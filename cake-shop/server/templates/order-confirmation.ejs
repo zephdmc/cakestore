@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Order Confirmation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background-color: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .order-details {
+            margin: 20px 0;
+        }
+
+        .item {
+            margin-bottom: 10px;
+        }
+
+        .footer {
+            margin-top: 20px;
+            font-size: 0.9em;
+            color: #666;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Order Confirmation</h1>
+            <p>Thank you for your order with Bellebeau Auaesthetics!</p>
+        </div>
+
+        <div class="order-details">
+            <h2>Order #<%= orderId %>
+            </h2>
+            <p><strong>Order Date:</strong>
+                <%= new Date().toLocaleString() %>
+            </p>
+            <p><strong>Total Amount:</strong> ₦<%= totalPrice.toLocaleString() %>
+            </p>
+
+            <h3>Items Ordered:</h3>
+            <% items.forEach(item=> { %>
+                <div class="item">
+                    <p><strong>
+                            <%= item.name %>
+                        </strong></p>
+                    <p>Quantity: <%= item.quantity %>
+                    </p>
+                    <p>Price: ₦<%= item.price.toLocaleString() %>
+                    </p>
+                </div>
+                <% }); %>
+        </div>
+
+        <div class="shipping-info">
+            <h3>Shipping Information:</h3>
+            <p>
+                <%= shippingAddress.fullName %>
+            </p>
+            <p>
+                <%= shippingAddress.address %>
+            </p>
+            <p>
+                <%= shippingAddress.city %>, <%= shippingAddress.state %>
+            </p>
+            <p>
+                <%= shippingAddress.country %>
+            </p>
+            <p>Phone: <%= shippingAddress.phone %>
+            </p>
+        </div>
+
+        <div class="footer">
+            <p>If you have any questions about your order, please contact us at auaestheticsbellebeau@gmail.com</p>
+            <p>Thank you for shopping with us!</p>
+        </div>
+    </div>
+</body>
+
+</html>
