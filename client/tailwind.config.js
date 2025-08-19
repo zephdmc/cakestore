@@ -7,16 +7,16 @@ module.exports = {
   theme: {
     extend: {},
        backgroundImage: {
-                'purplegradient': 'linear-gradient(to right, #4A2BA0, #A18AE2, #4A2BA0)',
+                'purplegradient': 'linear-gradient(to right, #F4EAFA, #A18AE2, #F4EAFA)',
                 'purplegradientv': 'linear-gradient(to bottom, #4A2BA0, #A18AE2, #4A2BA0)',
                 'purplegradientr': 'radial-gradient(circle, #4A2BA0, #A18AE2, #4A2BA0)',
             },
             colors: {
-                'purpleDark1': '#4A2BA0',
+                'purpleDark1': '#BB2A8F',
                 'purpleDark': '#4F2EAA',
-                'purpleLight': '#A18AE2',
+                'purpleLight': '#F4EAFA',
                 'purpleDark2': '#380638',
-              'purpleLighter': '#ba68c8',
+              'purpleLighter': '#F4EAFA',
                'purpleLighter1': '#ede7f6',
               'white': '#FFFFFF',
               'red': '#e91e63',
