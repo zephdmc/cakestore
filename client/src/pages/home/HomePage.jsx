@@ -240,7 +240,7 @@ useEffect(() => {
             className="w-full md:w-1/2 text-center md:text-left"
         >
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif font-bold text-white mb-6">
-                Glow Naturally with <span className="text-purpleDark1">Bellebeau</span> Aesthetics
+             Crafting Moments  <span className="text-purpleDark1">You Can Taste, </span> Scent & Hold
             </h1>
             <p className="text-lg md:text-xl text-white mb-8 max-w-2xl mx-auto md:mx-0">
                 Discover skincare made for you — Shop clean beauty, get expert recommendations, and follow the latest trends.
@@ -250,7 +250,7 @@ useEffect(() => {
                     to="/products"
                     className="bg-purplegradient hover:bg-purplegradientv text-white py-3 px-8 rounded-full font-medium transition-all duration-300 transform hover:scale-105 shadow-lg text-center"
                 >
-                    Shop Now
+                   Shop Ready-Made
                 </Link>
              <Link
   to="#"
@@ -260,7 +260,7 @@ useEffect(() => {
   }}
   className="border-2 border-purplegradient text-purplegradient hover:bg-purplelight py-3 px-8 rounded-full font-medium transition-all duration-300 transform hover:scale-105 text-center"
 >
-  Start Your Skincare Journey
+ Order Custom
 </Link>
             </div>
         </motion.div>
