@@ -11,6 +11,11 @@ import { getBlogPosts } from '../../services/contentful'; // adjust path if need
 import BlogTeaser from '../../components/blog/BlogTeaser';
 // Add this import with your other imports
 import SkincareQuizForm from './HomePageComponent/SkincareQuizForm'; // Adjust the path as needed
+import { BiBookReader } from "react-icons/bi";
+import { GiTrophyCup } from "react-icons/gi";
+import { FaGraduationCap } from "react-icons/fa";
+import { IoPeopleOutline } from "react-icons/io5";
+import { GiTwoFeathers } from "react-icons/gi";
 
 // ImageSlideShow Component
 const ImageSlideShow = ({ isMobile = false }) => {
@@ -282,6 +287,81 @@ useEffect(() => {
         <div className="absolute top-1/3 right-20 w-24 h-24 rounded-full bg-purpleLight opacity-30 animate-float animation-delay-2000"></div>
         <div className="absolute bottom-20 left-1/4 w-20 h-20 rounded-full bg-purpleLight opacity-30 animate-float animation-delay-4000"></div>
     </div>
+
+
+  {/*pop Pit */}
+
+  
+ <div
+      style={{ fontFamily: "calibri" }}
+      className=" bg-white block md:flex justify-between  sm:mx-[2%] -mt-2 md:-mt-12 md:mx-[10%] text-black md:shadow-md"
+    >
+      <div className="flex lg:flex sm:block md:justify-between  mx-12 md:mx-2 text-mghso-10 m-4 ">
+        <div className="p-2">
+          <BiBookReader className="text-[30px] text-gray-700" />
+        </div>
+        <div className="p-2">
+          <h3 className="text-md font-roboto text-gray-800 font-bold whitespace-nowrap px-2">
+            School Life
+          </h3>
+          <p className="px-2 text-[11px] mb-2 font-roboto text-gray-500">
+            {" "}
+            Embracing the essence of holistic development
+          </p>
+        </div>
+      </div>
+      <div className="flex lg:flex sm:block  md:justify-between  mx-12 md:mx-2 text-mghso-10 m-4 ">
+        <div className="p-2">
+          <FaGraduationCap className="text-[30px] text-gray-700" />
+        </div>
+        <div className="p-2">
+          <h3 className="text-md text-gray-800 font-robot font-bold px-2">
+            Graduation
+          </h3>
+          <p className="px-2 text-[11px] mb-2 text-gray-500">
+            A Culmination of Achievements, a stepping stone to a brighter future
+          </p>
+        </div>
+      </div>
+      <div className="flex lg:flex sm:block  md:justify-between m-4  mx-12 md:mx-2 text-mghso-10 ">
+        <div className="p-2">
+          <GiTrophyCup className="text-[30px] text-gray-700" />
+        </div>
+        <div className="p-2">
+          <h3 className="text-md text-gray-800 font-bold font-roboto px-2">
+            Sport
+          </h3>
+          <p className="px-2 text-[11px] mb-2 text-gray-500">
+            Achieving excellence, We stand As the best in every game
+          </p>
+        </div>
+      </div>
+      <div className=" flex lg:flex sm:block  md:justify-between m-4  mx-12 md:mx-2 text-mghso-10 ">
+        <div className="p-2">
+          <IoPeopleOutline className="text-[30px] text-gray-700" />
+        </div>
+        <div className="p-2">
+          <h3 className="text-md text-gray-800 font-bold px-2">Social</h3>
+          <p className="px-2 text-[11px] mb-2 text-gray-500">
+            Fostering connection, building friendships that last a lifetime
+          </p>
+        </div>
+      </div>
+      <div className="flex lg:flex sm:block  md:justify-between m-4 mx-12 md:mx-2 text-mghso-10 ">
+        <div className="p-2">
+          <GiTwoFeathers className="text-[30px] text-gray-700" />
+        </div>
+        <div className="p-2">
+          <h3 className="text-md text-gray-800 font-bold px-2">Spirituality</h3>
+          <p className="px-2 text-[11px] mb-2 text-gray-500">
+            Nurturing the soul, finding meaning in shared values
+          </p>
+        </div>
+      </div>
+    </div>
+
+
+  
 </section>
 
             {/* Featured Products Section */}
