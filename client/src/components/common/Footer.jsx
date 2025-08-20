@@ -10,9 +10,9 @@ export default function Footer() {
                     {/* Brand Column */}
                     <div className="space-y-6">
                         <h3 className="text-2xl font-bold">
-                            <span className="text-purpleDark1 px-2">Stefanos </span> Bakeshop
+                            <span className="text-purpleDark1 pr-2">Stefanos </span> Bakeshop
                         </h3>
-                        <p className="text-Dark  text-sm leading-relaxed">
+                        <p className="text-purpleDark1  text-sm leading-relaxed">
                             Elevating beauty through premium aesthetic solutions. 
                             We deliver exceptional quality products with professional 
                             results you can trust.
