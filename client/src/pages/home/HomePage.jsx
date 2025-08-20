@@ -500,7 +500,7 @@ useEffect(() => {
         href="https://wa.me/+2349014727839" // Replace PHONE_NUMBER with your actual WhatsApp number in international format (e.g., 2348000000000)
         target="_blank"
         rel="noopener noreferrer"
-        className="bg-purpleDark hover:bg-green-600 text-white rounded-full p-4 shadow-lg flex items-center justify-center transition-colors duration-300"
+        className="bg-purpleDark1 hover:bg-green-600 text-white rounded-full p-4 shadow-lg flex items-center justify-center transition-colors duration-300"
     >
         <FaWhatsapp size={32} />
     </a>
