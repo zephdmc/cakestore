@@ -10,9 +10,9 @@ export default function Footer() {
                     {/* Brand Column */}
                     <div className="space-y-6">
                         <h3 className="text-2xl font-bold">
-                            <span className="text-black px-2">Stefanos </span> Bakeshop
+                            <span className="text-purpleDark1 px-2">Stefanos </span> Bakeshop
                         </h3>
-                        <p className="text-black  text-sm leading-relaxed">
+                        <p className="text-Dark  text-sm leading-relaxed">
                             Elevating beauty through premium aesthetic solutions. 
                             We deliver exceptional quality products with professional 
                             results you can trust.
@@ -20,14 +20,14 @@ export default function Footer() {
                         
                         {/* Social Media */}
                         <div className="flex space-x-4 pt-2">
-                            <a href="#" className="text-black  hover:text-purpleLight transition-colors duration-300">
+                            <a href="#" className="text-purpleDark1  hover:text-purpleLight transition-colors duration-300">
                                 <FiFacebook size={20} />
                             </a>
-                            <a href="#" className="text-black  hover:text-purpleLight transition-colors duration-300">
+                            <a href="#" className="text-purpleDark1  hover:text-purpleLight transition-colors duration-300">
                                 <FiInstagram size={20} />
                             </a>
                             
-                            <a href="#" className="text-black  hover:text-purpleLight transition-colors duration-300">
+                            <a href="#" className="text-purpleDark1  hover:text-purpleLight transition-colors duration-300">
                                 <FaTiktok size={20} />
                             </a>
                            
@@ -36,17 +36,17 @@ export default function Footer() {
 
                     {/* Quick Links */}
                     <div>
-                        <h4 className="text-lg font-semibold mb-6 pb-2 border-b border-purpleDark ">Quick Links</h4>
+                        <h4 className="text-lg font-semibold text-purpleDark1 mb-6 pb-2 border-b border-purpleDark ">Quick Links</h4>
                         <ul className="space-y-3">
-                            <li><a href="/" className="text-white hover:text-purple-400 transition-colors flex items-center">
+                            <li><a href="/" className="text-purpleDark1 hover:text-purple-400 transition-colors flex items-center">
                                 <span className="w-1 h-1 bg-purpleLighter mr-2 rounded-full"></span> Home</a></li>
-                            <li><a href="/products" className="text-white hover:text-purple-400 transition-colors flex items-center">
+                            <li><a href="/products" className="text-purpleDark1 hover:text-purple-400 transition-colors flex items-center">
                                 <span className="w-1 h-1 bg-purpleLighter mr-2 rounded-full"></span> Products</a></li>
-                            <li><a href="/about" className="text-white hover:text-purple-400 transition-colors flex items-center">
+                            <li><a href="/about" className="text-purpleDark1 hover:text-purple-400 transition-colors flex items-center">
                                 <span className="w-1 h-1 bg-purpleLighter mr-2 rounded-full"></span> About Us</a></li>
-                            <li><a href="/blog" className="text-white hover:text-purple-400 transition-colors flex items-center">
+                            <li><a href="/blog" className="text-purpleDark1 hover:text-purple-400 transition-colors flex items-center">
                                 <span className="w-1 h-1 bg-purpleLighter mr-2 rounded-full"></span> Blog</a></li>
-                            <li><a href="/about" className="text-white hover:text-purple-400 transition-colors flex items-center">
+                            <li><a href="/about" className="text-purpleDark1 hover:text-purple-400 transition-colors flex items-center">
                                 <span className="w-1 h-1 bg-purpleLighter mr-2 rounded-full"></span> FAQs</a></li>
                         </ul>
                     </div>
@@ -55,15 +55,15 @@ export default function Footer() {
                     <div>
                         <h4 className="text-lg font-semibold mb-6 pb-2 border-b border-gray-700">Customer Service</h4>
                         <ul className="space-y-3">
-                            <li><a href="/contact" className="text-gray-400 hover:text-purple-400 transition-colors flex items-center">
+                            <li><a href="/contact" className="text-purpleDark1 hover:text-purple-400 transition-colors flex items-center">
                                 <span className="w-1 h-1 bg-purple-400 mr-2 rounded-full"></span> Contact Us</a></li>
-                            <li><a href="/shipping" className="text-gray-400 hover:text-purple-400 transition-colors flex items-center">
+                            <li><a href="/shipping" className="text-purpleDark1 hover:text-purple-400 transition-colors flex items-center">
                                 <span className="w-1 h-1 bg-purple-400 mr-2 rounded-full"></span> Shipping Policy</a></li>
-                            <li><a href="/returns" className="text-gray-400 hover:text-purple-400 transition-colors flex items-center">
+                            <li><a href="/returns" className="text-purpleDark1 hover:text-purple-400 transition-colors flex items-center">
                                 <span className="w-1 h-1 bg-purple-400 mr-2 rounded-full"></span> Returns & Exchanges</a></li>
-                            <li><a href="/privacy" className="text-gray-400 hover:text-purple-400 transition-colors flex items-center">
+                            <li><a href="/privacy" className="text-purpleDark1 hover:text-purple-400 transition-colors flex items-center">
                                 <span className="w-1 h-1 bg-purple-400 mr-2 rounded-full"></span> Privacy Policy</a></li>
-                            <li><a href="/terms" className="text-gray-400 hover:text-purple-400 transition-colors flex items-center">
+                            <li><a href="/terms" className="text-purpleDark1 hover:text-purple-400 transition-colors flex items-center">
                                 <span className="w-1 h-1 bg-purple-400 mr-2 rounded-full"></span> Terms of Service</a></li>
                         </ul>
                     </div>
