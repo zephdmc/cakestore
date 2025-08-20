@@ -334,7 +334,7 @@ useEffect(() => {
             Sport
           </h3>
           <p className="px-2 text-[11px] mb-2 text-gray-500">
-            Achieving excellence, We stand As the best in every game t
+            Achieving excellence, We stand As the best in every game 
           </p>
         </div>
       </div>
