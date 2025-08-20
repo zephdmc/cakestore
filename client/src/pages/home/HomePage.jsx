@@ -229,7 +229,7 @@ useEffect(() => {
 
 {/* Hero Section - Modified */}
           <div>  
-<section className="relative overflow-hidden border-b-2 border-green min-h-[80vh] flex items-center">
+<section className="relative overflow-hidden border-b-2  min-h-[80vh] flex items-center">
     {/* Mobile Background (for small screens) */}
     <div className="md:hidden absolute inset-0 z-0">
         <div className="absolute inset-0 bg-gradient-to-b from-purpleDark/90 to-purpleLight/90 z-10"></div>
@@ -254,7 +254,7 @@ useEffect(() => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
                 <Link
                     to="/products"
-                    className="bg-purplegradient hover:bg-purplegradientv text-white py-3 px-8 rounded-full font-medium transition-all duration-300 transform hover:scale-105 shadow-lg text-center"
+                    className="bg-purplegradient hover:bg-purplegradientv text-Dark py-3 px-8 rounded-full font-medium transition-all duration-300 transform hover:scale-105 shadow-lg text-center"
                 >
                    Shop Ready-Made
                 </Link>
