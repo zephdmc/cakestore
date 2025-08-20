@@ -229,7 +229,7 @@ useEffect(() => {
 
 {/* Hero Section - Modified */}
           <div>  
-<section className="relative overflow-hidden border-b-2  min-h-[80vh] flex items-center">
+<section className="relative overflow-hidden min-h-[80vh] flex items-center">
     {/* Mobile Background (for small screens) */}
     <div className="md:hidden absolute inset-0 z-0">
         <div className="absolute inset-0 bg-gradient-to-b from-purpleDark/90 to-purpleLight/90 z-10"></div>
