@@ -23,7 +23,7 @@ module.exports = {
               'white': '#FFFFFF',
               'red': '#e91e63',
                'greengrade': 'radial-gradient(to right, #A5d707, #FFFFFF)',
-               'green': '#A5d707',
+               'green': 'radial-gradient(to right, #A5d707, #FFFFFF)',
                 primary: {
                      DEFAULT: '#4A2BA0',
                      light: '#ede7f6',
