@@ -276,7 +276,7 @@ const handleClickOutside = (event) => {
       tracking-tight        // Slightly condensed
       -mb-1                 // Tighten spacing
     ">
-      Bellebeau
+      Stefanos
     </span>
     <span className="
       text-[15px]           // Mobile
@@ -288,7 +288,7 @@ const handleClickOutside = (event) => {
       tracking-wider        // Letter spacing for elegance
       mt-0.5                // Perfect vertical spacing
     ">
-      Aesthetics
+      Bakeshop
     </span>
   </div>
 </Link>
