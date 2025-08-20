@@ -15,7 +15,7 @@ module.exports = {
             },
             colors: {
                 'purpleDark1': '#BB2A8F',
-                'purpleDark': '#4F2EAA',
+                'purpleDark': '#BB2A8F',
                 'purpleLight': '#F4EAFA',
                 'purpleDark2': '#BB2A8F',
               'purpleLighter': '#F4EAFA',
