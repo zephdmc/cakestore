@@ -296,7 +296,7 @@ useEffect(() => {
   
  <div
       style={{ fontFamily: "calibri" }}
-      className="  bg-gradient-to-b from-green to-purpleLight block md:flex justify-between  sm:mx-[2%] -mt-2 md:-mt-12 md:mx-[10%] text-black md:shadow-md"
+      className="  bg-purplegradient block md:flex justify-between  sm:mx-[2%] -mt-2 md:-mt-12 md:mx-[10%] text-black md:shadow-md"
     >
       <div className="flex lg:flex sm:block md:justify-between  bg-gradient-to-b from-green to-white  mx-12 md:mx-2 text-mghso-10 m-4 ">
         <div className="p-2">
@@ -312,7 +312,7 @@ useEffect(() => {
           </p>
         </div>
       </div>
-      <div className="flex lg:flex sm:block  bg-gradient-to-b from-green to-white  md:justify-between  mx-12 md:mx-2 text-mghso-10 m-4 ">
+      <div className="flex lg:flex sm:block  bg-purplegradient  md:justify-between  mx-12 md:mx-2 text-mghso-10 m-4 ">
         <div className="p-2">
           <FaGraduationCap className="text-[30px] text-gray-700" />
         </div>
@@ -325,7 +325,7 @@ useEffect(() => {
           </p>
         </div>
       </div>
-      <div className="flex lg:flex sm:block  bg-gradient-to-b from-green to-white md:justify-between m-4  mx-12 md:mx-2 text-mghso-10 ">
+      <div className="flex lg:flex sm:block  bg-purplegradient md:justify-between m-4  mx-12 md:mx-2 text-mghso-10 ">
         <div className="p-2">
           <GiTrophyCup className="text-[30px] text-gray-700" />
         </div>
@@ -338,7 +338,7 @@ useEffect(() => {
           </p>
         </div>
       </div>
-      <div className=" flex lg:flex sm:block  bg-gradient-to-b from-green to-white md:justify-between m-4  mx-12 md:mx-2 text-mghso-10 ">
+      <div className=" flex lg:flex sm:block  bg-purplegradient md:justify-between m-4  mx-12 md:mx-2 text-mghso-10 ">
         <div className="p-2">
           <IoPeopleOutline className="text-[30px] text-gray-700" />
         </div>
@@ -349,7 +349,7 @@ useEffect(() => {
           </p>
         </div>
       </div>
-      <div className="flex lg:flex sm:block  bg-gradient-to-b from-green to-white md:justify-between m-4 mx-12 md:mx-2 text-mghso-10 ">
+      <div className="flex lg:flex sm:block  bg-purplegradient md:justify-between m-4 mx-12 md:mx-2 text-mghso-10 ">
         <div className="p-2">
           <GiTwoFeathers className="text-[30px] text-gray-700" />
         </div>
