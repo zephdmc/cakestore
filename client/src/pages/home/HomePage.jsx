@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -13,6 +12,65 @@ import BlogTeaser from '../../components/blog/BlogTeaser';
 // Add this import with your other imports
 import SkincareQuizForm from './HomePageComponent/SkincareQuizForm'; // Adjust the path as needed
 
+// ImageSlideShow Component
+const ImageSlideShow = ({ isMobile = false }) => {
+  const images = [
+    "/images/hero1.jpeg",
+    "/images/hero2.jpeg",
+    "/images/hero3.jpeg",
+    "/images/hero4.jpeg"
+  ];
+  
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
+    }, 4000); // Change image every 4 seconds
+
+    return () => clearInterval(interval);
+  }, [images.length]);
+
+  return (
+    <div className="relative w-full h-full">
+      {images.map((src, index) => (
+        <motion.div
+          key={index}
+          className="absolute inset-0 w-full h-full"
+          initial={{ 
+            opacity: 0, 
+            scale: 1.1,
+            rotate: index % 2 === 0 ? -2 : 2,
+            y: -20,
+            zIndex: images.length - index
+          }}
+          animate={{ 
+            opacity: index === currentIndex ? 1 : 0,
+            scale: index === currentIndex ? 1 : 1.1,
+            rotate: index === currentIndex ? 0 : (index % 2 === 0 ? -5 : 5),
+            y: index === currentIndex ? 0 : -30,
+            zIndex: index === currentIndex ? images.length : images.length - index
+          }}
+          transition={{ 
+            duration: 0.8, 
+            ease: "easeOut",
+            opacity: { duration: 0.5 }
+          }}
+          style={{
+            transformOrigin: "center center",
+            boxShadow: isMobile ? "none" : "0 10px 30px rgba(0, 0, 0, 0.2)"
+          }}
+        >
+          <img 
+            src={src} 
+            alt={`Beauty product ${index + 1}`}
+            className={`w-full h-full object-cover ${isMobile ? '' : 'rounded-2xl'}`}
+          />
+        </motion.div>
+      ))}
+    </div>
+  );
+};
 
 const SplashScreen = ({ onClose }) => {
   useEffect(() => {
@@ -94,10 +152,6 @@ const SplashScreen = ({ onClose }) => {
   );
 };
 
-
-
-
-
 export default function HomePage() {
     const [products, setProducts] = useState([]);
     const [blogs, setBlogs] = useState([]);
@@ -168,36 +222,33 @@ useEffect(() => {
                 </div>
             )}
 
-{/* Hero Section */}
-<section className="relative overflow-hidden border-b-2 border-purplegradientr">
-    {/* Background Image with Opacity */}
-    <div className="absolute inset-0 z-0">
-        <img 
-            src="/images/hero1.jpeg" // Replace with your image path
-            alt="Beauty Products Background"
-            className="w-full h-full object-cover opacity-20" // Adjust opacity as needed (0.2 = 20%)
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-purpleDark to-purpleLight mix-blend-multiply"></div>
+{/* Hero Section - Modified */}
+<section className="relative overflow-hidden border-b-2 border-purplegradientr min-h-[80vh] flex items-center">
+    {/* Mobile Background (for small screens) */}
+    <div className="md:hidden absolute inset-0 z-0">
+        <div className="absolute inset-0 bg-gradient-to-b from-purpleDark/90 to-purpleLight/90 z-10"></div>
+        <ImageSlideShow isMobile={true} />
     </div>
     
-    {/* Content Container (unchanged) */}
-    <div className="container mx-auto px-4 pt-4 pb-20 md:pt-28 md:pb-28 flex flex-col items-center text-center relative z-10">
+    {/* Content Container */}
+    <div className="container mx-auto px-4 py-12 md:py-0 flex flex-col md:flex-row items-center justify-between gap-8 md:gap-12 relative z-10">
+        {/* Text Content */}
         <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, x: -30 }}
+            animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8 }}
-            className="max-w-4xl"
+            className="w-full md:w-1/2 text-center md:text-left"
         >
-            <h1 className="text-4xl md:text-6xl font-serif font-bold text-white mb-6">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif font-bold text-white mb-6">
                 Glow Naturally with <span className="text-purpleDark1">Bellebeau</span> Aesthetics
             </h1>
-            <p className="text-lg md:text-xl text-white mb-8 max-w-2xl mx-auto">
+            <p className="text-lg md:text-xl text-white mb-8 max-w-2xl mx-auto md:mx-0">
                 Discover skincare made for you — Shop clean beauty, get expert recommendations, and follow the latest trends.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
                 <Link
                     to="/products"
-                    className="bg-purplegradient hover:bg-purplegradientv text-white py-3 px-8 rounded-full font-medium transition-all duration-300 transform hover:scale-105 shadow-lg"
+                    className="bg-purplegradient hover:bg-purplegradientv text-white py-3 px-8 rounded-full font-medium transition-all duration-300 transform hover:scale-105 shadow-lg text-center"
                 >
                     Shop Now
                 </Link>
@@ -207,15 +258,25 @@ useEffect(() => {
     e.preventDefault();
     setShowQuizForm(true);
   }}
-  className="border-2 border-purplegradient text-purplegradient hover:bg-purplelight py-3 px-8 rounded-full font-medium transition-all duration-300 transform hover:scale-105"
+  className="border-2 border-purplegradient text-purplegradient hover:bg-purplelight py-3 px-8 rounded-full font-medium transition-all duration-300 transform hover:scale-105 text-center"
 >
   Start Your Skincare Journey
 </Link>
             </div>
         </motion.div>
+
+        {/* Image Slideshow (Desktop only) */}
+        <motion.div 
+            initial={{ opacity: 0, x: 30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="hidden md:block w-full md:w-1/2 h-[400px] lg:h-[500px] relative"
+        >
+            <ImageSlideShow />
+        </motion.div>
     </div>
 
-    {/* Decorative elements (unchanged) */}
+    {/* Decorative elements */}
     <div className="absolute top-0 left-0 w-full h-full pointer-events-none z-10">
         <div className="absolute top-20 left-10 w-16 h-16 rounded-full bg-purpleLight opacity-30 animate-float"></div>
         <div className="absolute top-1/3 right-20 w-24 h-24 rounded-full bg-purpleLight opacity-30 animate-float animation-delay-2000"></div>
@@ -399,10 +460,6 @@ useEffect(() => {
     )}
   </div>
 </section>
-
-
-
-         
 
             {/* Testimonials Section */}
             <section className="bg-pink-50 py-16">
