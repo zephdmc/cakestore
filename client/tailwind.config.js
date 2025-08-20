@@ -22,6 +22,7 @@ module.exports = {
                'purpleLighter1': '#ede7f6',
               'white': '#FFFFFF',
               'red': '#e91e63',
+               'greengrade': 'radial-gradient(to right, #A5d707, #FFFFFF)',
                 primary: {
                      DEFAULT: '#4A2BA0',
                      light: '#ede7f6',
