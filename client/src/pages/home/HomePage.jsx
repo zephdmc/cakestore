@@ -228,6 +228,7 @@ useEffect(() => {
             )}
 
 {/* Hero Section - Modified */}
+          <div>  
 <section className="relative overflow-hidden border-b-2 border-purplegradientr min-h-[80vh] flex items-center">
     {/* Mobile Background (for small screens) */}
     <div className="md:hidden absolute inset-0 z-0">
@@ -288,6 +289,7 @@ useEffect(() => {
         <div className="absolute bottom-20 left-1/4 w-20 h-20 rounded-full bg-purpleLight opacity-30 animate-float animation-delay-4000"></div>
     </div>
 
+</section>
 
   {/*pop Pit */}
 
@@ -360,9 +362,8 @@ useEffect(() => {
       </div>
     </div>
 
-
+</div>
   
-</section>
 
             {/* Featured Products Section */}
             {/* Featured Products Section */}
