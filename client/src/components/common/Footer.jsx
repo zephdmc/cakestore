@@ -112,7 +112,7 @@ export default function Footer() {
             <div className="bg-gray-800 py-6">
                 <div className="container mx-auto px-4">
                     <div className="flex flex-col md:flex-row justify-between items-center">
-                        <div className="text-gray-400 text-sm mb-4 md:mb-0">
+                        <div className="text-Dark text-sm mb-4 md:mb-0">
                             &copy; {new Date().getFullYear()} Bellebeau Aesthetics. All rights reserved.
                         </div>
                         
