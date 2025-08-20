@@ -312,7 +312,7 @@ useEffect(() => {
           </p>
         </div>
       </div>
-      <div className="flex lg:flex sm:block  bg-green  md:justify-between  mx-12 md:mx-2 text-mghso-10 m-4 ">
+      <div className="flex lg:flex sm:block  bg-greengrade  md:justify-between  mx-12 md:mx-2 text-mghso-10 m-4 ">
         <div className="p-2">
           <FaGraduationCap className="text-[30px] text-gray-700" />
         </div>
@@ -325,7 +325,7 @@ useEffect(() => {
           </p>
         </div>
       </div>
-      <div className="flex lg:flex sm:block  bg-green md:justify-between m-4  mx-12 md:mx-2 text-mghso-10 ">
+      <div className="flex lg:flex sm:block  bg-greengrade md:justify-between m-4  mx-12 md:mx-2 text-mghso-10 ">
         <div className="p-2">
           <GiTrophyCup className="text-[30px] text-gray-700" />
         </div>
@@ -338,7 +338,7 @@ useEffect(() => {
           </p>
         </div>
       </div>
-      <div className=" flex lg:flex sm:block  bg-green md:justify-between m-4  mx-12 md:mx-2 text-mghso-10 ">
+      <div className=" flex lg:flex sm:block  bg-greengrade md:justify-between m-4  mx-12 md:mx-2 text-mghso-10 ">
         <div className="p-2">
           <IoPeopleOutline className="text-[30px] text-gray-700" />
         </div>
@@ -349,7 +349,7 @@ useEffect(() => {
           </p>
         </div>
       </div>
-      <div className="flex lg:flex sm:block  bg-green md:justify-between m-4 mx-12 md:mx-2 text-mghso-10 ">
+      <div className="flex lg:flex sm:block  bg-greengrade md:justify-between m-4 mx-12 md:mx-2 text-mghso-10 ">
         <div className="p-2">
           <GiTwoFeathers className="text-[30px] text-gray-700" />
         </div>
