@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+fimport { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import ProductCard from '../../components/products/ProductCard';
@@ -83,7 +83,7 @@ export default function HomePage() {
     const [products, setProducts] = useState([]);
     const [blogs, setBlogs] = useState([]);
     const [loading, setLoading] = useState(true);
-      const [showSplash, setShowSplash] = useState(true);
+
     const [error, setError] = useState('');
   // Add this state to your HomePage component
 const [showQuizForm, setShowQuizForm] = useState(false);
@@ -136,7 +136,7 @@ useEffect(() => {
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-purpleDark to-purpleLight">
-                  {showSplash && <SplashScreen onClose={() => setShowSplash(false)} />}
+                
            {isAdmin && (
                 <div className="fixed top-4 right-4 z-50">
                     <Link
