@@ -10,9 +10,9 @@ export default function Footer() {
                     {/* Brand Column */}
                     <div className="space-y-6">
                         <h3 className="text-2xl font-bold">
-                            <span className="text-purplegradientv px-2">Bellebeau </span> Aesthetics
+                            <span className="text-black px-2">Stefanos </span> Bakeshop
                         </h3>
-                        <p className="text-white  text-sm leading-relaxed">
+                        <p className="text-black  text-sm leading-relaxed">
                             Elevating beauty through premium aesthetic solutions. 
                             We deliver exceptional quality products with professional 
                             results you can trust.
@@ -20,14 +20,14 @@ export default function Footer() {
                         
                         {/* Social Media */}
                         <div className="flex space-x-4 pt-2">
-                            <a href="#" className="text-purplegradientv  hover:text-purpleLight transition-colors duration-300">
+                            <a href="#" className="text-black  hover:text-purpleLight transition-colors duration-300">
                                 <FiFacebook size={20} />
                             </a>
-                            <a href="#" className="text-purplegradientv  hover:text-purpleLight transition-colors duration-300">
+                            <a href="#" className="text-black  hover:text-purpleLight transition-colors duration-300">
                                 <FiInstagram size={20} />
                             </a>
                             
-                            <a href="#" className="text-purplegradientv  hover:text-purpleLight transition-colors duration-300">
+                            <a href="#" className="text-black  hover:text-purpleLight transition-colors duration-300">
                                 <FaTiktok size={20} />
                             </a>
                            
