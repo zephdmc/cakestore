@@ -296,7 +296,7 @@ useEffect(() => {
   
  <div
       style={{ fontFamily: "calibri" }}
-      className="  bg-gradient-to-b from-green to-white  block md:flex justify-between  sm:mx-[2%] -mt-2 md:-mt-12 md:mx-[10%] text-black md:shadow-md"
+      className="  bg-gradient-to-b from-purpleDark to-purpleLight block md:flex justify-between  sm:mx-[2%] -mt-2 md:-mt-12 md:mx-[10%] text-black md:shadow-md"
     >
       <div className="flex lg:flex sm:block md:justify-between  bg-gradient-to-b from-green to-white  mx-12 md:mx-2 text-mghso-10 m-4 ">
         <div className="p-2">
