@@ -36,7 +36,7 @@ export default function Footer() {
 
                     {/* Quick Links */}
                     <div>
-                        <h4 className="text-lg font-semibold text-purpleDark1 mb-6 pb-2 border-b border-purpleDark ">Quick Links</h4>
+                        <h4 className="text-lg font-semibold text-purpleDark1 mb-6 pb-2 border-b border-purpleDark1 ">Quick Links</h4>
                         <ul className="space-y-3">
                             <li><a href="/" className="text-purpleDark1 hover:text-purple-400 transition-colors flex items-center">
                                 <span className="w-1 h-1 bg-purpleLighter mr-2 rounded-full"></span> Home</a></li>
@@ -53,7 +53,7 @@ export default function Footer() {
 
                     {/* Customer Service */}
                     <div>
-                        <h4 className="text-lg text-purpleDark1 font-semibold mb-6 pb-2 border-b border-gray-700">Customer Service</h4>
+                        <h4 className="text-lg text-purpleDark1 font-semibold mb-6 pb-2 border-b border-purpleDark1">Customer Service</h4>
                         <ul className="space-y-3">
                             <li><a href="/contact" className="text-purpleDark1 hover:text-purple-400 transition-colors flex items-center">
                                 <span className="w-1 h-1 bg-purple-400 mr-2 rounded-full"></span> Contact Us</a></li>
@@ -71,7 +71,7 @@ export default function Footer() {
                     {/* Contact Info */}
                     <div>
                         <h4 className="text-lg font-semibold text-purpleDark1 mb-6 pb-2 border-b border-purpleDark1"> Contact Us </h4>
-                        <ul className="space-y-4 text-gray-50" >
+                        <ul className="space-y-4 text-purpleDark1" >
                             <li className="flex items-start">
                                 <FiMapPin className="mt-1 mr-3 flex-shrink-0 text-white" />
                                 <span>330 PH/Aba Express way Rumukwurushi Port Harcourt</span>
