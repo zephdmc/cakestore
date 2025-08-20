@@ -226,7 +226,7 @@ useEffect(() => {
         </div>
         <div className="p-2">
           <h3 className="text-md font-roboto text-gray-800 font-bold whitespace-nowrap px-2">
-            School Life
+            Birthday Cake
           </h3>
           <p className="px-2 text-[11px] mb-2 font-roboto text-gray-500">
             {" "}
@@ -240,7 +240,7 @@ useEffect(() => {
         </div>
         <div className="p-2">
           <h3 className="text-md text-gray-800 font-robot font-bold px-2">
-            Graduation
+            Anniversaries Cake
           </h3>
           <p className="px-2 text-[11px] mb-2 text-gray-500">
             A Culmination of Achievements, a stepping stone to a brighter future
@@ -253,7 +253,7 @@ useEffect(() => {
         </div>
         <div className="p-2">
           <h3 className="text-md text-gray-800 font-bold font-roboto px-2">
-            Sport
+            Weddings Cake
           </h3>
           <p className="px-2 text-[11px] mb-2 text-gray-500">
             Achieving excellence, We stand As the best in every game 
@@ -265,7 +265,7 @@ useEffect(() => {
           <IoPeopleOutline className="text-[30px] text-gray-700" />
         </div>
         <div className="p-2">
-          <h3 className="text-md text-gray-800 font-bold px-2">Social</h3>
+          <h3 className="text-md text-gray-800 font-bold px-2">Corporate Events</h3>
           <p className="px-2 text-[11px] mb-2 text-gray-500">
             Fostering connection, building friendships that last a lifetime
           </p>
@@ -276,7 +276,7 @@ useEffect(() => {
           <GiTwoFeathers className="text-[30px] text-gray-700" />
         </div>
         <div className="p-2">
-          <h3 className="text-md text-gray-800 font-bold px-2">Spirituality</h3>
+          <h3 className="text-md text-gray-800 font-bold px-2">Church Events</h3>
           <p className="px-2 text-[11px] mb-2 text-gray-500">
             Nurturing the soul, finding meaning in shared values
           </p>
