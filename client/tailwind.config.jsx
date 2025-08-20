@@ -10,7 +10,7 @@ module.exports = {
                 'purplegradient': 'linear-gradient(to right, #390039, #C1A5C1, #380638)',
                 'purplegradientv': 'linear-gradient(to bottom, #390039, #C1A5C1, #380638)',
                 'purplegradientr': 'radial-gradient(circle, #390039, #C1A5C1, #380638)',
-                  'greengrade': 'radial-gradient(to right, #A5d707, #FFFFFF)',
+                  'greengrade': 'linear-gradient(to right, #A5d707, #FFFFFF)',
             },
             colors: {
                 'purpleDark1': '#770077',
@@ -19,7 +19,7 @@ module.exports = {
                 'purpleDark2': '#380638',
                 'Dark': '#000000',
                 'green': 'radial-gradient(to right, #A5d707, #FFFFFF)',
-                 'greengrade': 'radial-gradient(to right, #A5d707, #FFFFFF)',
+                 'greengrade': 'linear-gradient(to right, #A5d707, #FFFFFF)',
                 primary: {
                     DEFAULT: '#770077',
                     light: '#C1A5C1',
