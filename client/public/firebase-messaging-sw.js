@@ -5,12 +5,12 @@ importScripts("https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging-comp
 
 // Firebase config - use environment variables in vite.config.js
 const firebaseConfig = {
-    apiKey: "AIzaSyDLMJv5uMy8QbT4r2uMdDxQ-bbSgizHvdg", // Replace with your actual API key
-    authDomain: "bellebeauaesthetics-c1199.firebaseapp.com",
-    projectId: "bellebeauaesthetics-c1199",
-    storageBucket: "bellebeauaesthetics-c1199.firebasestorage.app",
-    messagingSenderId: "893744528427",
-    appId: "1:893744528427:web:a31ddada2407f52d1ebe6e"
+    apiKey: "AIzaSyBlafRUKpFjqmtgT2c940bsbeWMqMojLTs", // Replace with your actual API key
+    authDomain: "stefanosbakeshop-5cf8f.firebaseapp.com",
+    projectId: "stefanosbakeshop-5cf8f",
+    storageBucket: "stefanosbakeshop-5cf8f.firebasestorage.app",
+    messagingSenderId: "694246190492",
+    appId: "1:694246190492:web:a31ddada2407f52d1ebe6e"
 };
 
 // Initialize Firebase
