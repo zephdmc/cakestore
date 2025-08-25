@@ -16,6 +16,8 @@ const searchRoutes = require('./routes/searchRoutes')
 const notificationRoutes = require('./routes/notificationRoutes')
 const users = require('./routes/userRoutes')
 const payments = require('./routes/paymentroute');
+const customOrderRoutes = require('./routes/customOrderRoutes');
+
 // const adminRoutes = require('./routes/adminRoutes');
 // Import error middleware
 const errorMiddleware = require('./middlewares/errorMiddleware');
@@ -75,6 +77,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/users', notificationRoutes);
 app.use('/api/admin', users);
 app.use('/api/payments', payments);
+app.use('/api/custom-orders', customOrderRoutes);
 
 // Error handling middleware
 app.use(errorMiddleware);
