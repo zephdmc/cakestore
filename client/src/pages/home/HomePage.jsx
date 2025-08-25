@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import ProductCard from '../../components/products/ProductCard';
 import { getProducts } from '../../services/productServic';
@@ -85,7 +85,7 @@ export default function HomePage() {
     const [blogs, setBlogs] = useState([]);
     const [loading, setLoading] = useState(true);
 const [showCustomOrderForm, setShowCustomOrderForm] = useState(false);
-
+ const navigate = useNavigate(); // ✅ now navigate works
     const [error, setError] = useState('');
   // Add this state to your HomePage component
 const [showQuizForm, setShowQuizForm] = useState(false);
