@@ -12,6 +12,8 @@ const AdminLayout = () => {  // Removed children prop
         { name: 'Dashboard', path: '/admin', icon: <FiHome /> },
         { name: 'Products', path: '/admin/products', icon: <FiShoppingBag /> },
         { name: 'Orders', path: '/admin/orders', icon: <FiDollarSign /> },
+        { name: 'Custorm Orders', path: '/admin/orders', icon: <FiDollarSign /> },
+
         // { name: 'Users', path: '/admin/users', icon: <FiUsers /> },
         // { name: 'Settings', path: '/admin/settings', icon: <FiSettings /> },
     ];
