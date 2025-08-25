@@ -54,6 +54,30 @@ exports.createOrder = asyncHandler(async (req, res, next) => {
             };
         });
 
+
+ // In server/controllers/orderController.js, modify the createOrder function
+// Add this validation after the existing validations
+if (req.body.isCustomOrder && req.body.customOrderId) {
+    // Verify custom order exists and belongs to user
+    const customOrderRef = await db.collection('customOrders').doc(req.body.customOrderId).get();
+    if (!customOrderRef.exists) {
+        throw new Error('Custom order not found');
+    }
+    
+    const customOrder = customOrderRef.data();
+    if (customOrder.userId !== userId) {
+        throw new Error('Custom order does not belong to user');
+    }
+    
+    // Update custom order status to confirmed
+    await db.collection('customOrders').doc(req.body.customOrderId).update({
+        status: 'confirmed',
+        updatedAt: new Date().toISOString()
+    });
+}
+
+
+        
         const numericPrices = {
             itemsPrice: validateNumber(itemsPrice, 'itemsPrice'),
             shippingPrice: validateNumber(shippingPrice, 'shippingPrice'),
