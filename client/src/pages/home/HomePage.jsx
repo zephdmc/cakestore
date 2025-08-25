@@ -16,6 +16,7 @@ import { GiTrophyCup } from "react-icons/gi";
 import { FaGraduationCap } from "react-icons/fa";
 import { IoPeopleOutline } from "react-icons/io5";
 import { GiTwoFeathers } from "react-icons/gi";
+import CustomCakeForm from '../../components/orders/CustomCakeForm';
 
 // ImageSlideShow Component
 const ImageSlideShow = ({ isMobile = false }) => {
@@ -83,6 +84,7 @@ export default function HomePage() {
     const [products, setProducts] = useState([]);
     const [blogs, setBlogs] = useState([]);
     const [loading, setLoading] = useState(true);
+const [showCustomOrderForm, setShowCustomOrderForm] = useState(false);
 
     const [error, setError] = useState('');
   // Add this state to your HomePage component
@@ -131,6 +133,27 @@ useEffect(() => {
         hidden: { opacity: 0, y: 20 },
         show: { opacity: 1, y: 0 }
     };
+
+  // Add this handler function
+const handleCustomOrderSubmit = async (orderData) => {
+  try {
+    // Create custom order in Firebase
+    const customOrder = await createCustomOrder(orderData);
+    
+    // Redirect to checkout with custom order details
+    navigate('/checkout', { 
+      state: { 
+        customOrder,
+        isCustomOrder: true
+      } 
+    });
+    
+    setShowCustomOrderForm(false);
+  } catch (error) {
+    console.error("Error creating custom order: ", error);
+    alert("There was an error creating your order. Please try again.");
+  }
+};
   // Check if user is admin
     const isAdmin = currentUser?.isAdmin;
 
@@ -180,15 +203,20 @@ useEffect(() => {
                 >
                    Shop Ready-Made
                 </Link>
-             <Link
+             // Modify the Order Custom button
+<Link
   to="#"
   onClick={(e) => {
     e.preventDefault();
-    setShowQuizForm(true);
+    if (!currentUser) {
+      navigate('/login', { state: { from: '/', message: 'Please login to place a custom order' } });
+    } else {
+      setShowCustomOrderForm(true);
+    }
   }}
   className="border-2 border-purplegradient text-purplegradient hover:bg-purplelight py-3 px-8 rounded-full font-medium transition-all duration-300 transform hover:scale-105 text-center"
 >
- Order Custom
+  Order Custom
 </Link>
             </div>
         </motion.div>
@@ -482,7 +510,12 @@ useEffect(() => {
                 </div>
             </section>
 
-           
+           {showCustomOrderForm && (
+  <CustomCakeForm 
+    onClose={() => setShowCustomOrderForm(false)} 
+    onSubmit={handleCustomOrderSubmit}
+  />
+)}
             {/* Floating WhatsApp Button */}
 <motion.div
     drag
