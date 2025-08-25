@@ -1,3 +1,4 @@
+// server/models/Order.js
 const { v4: uuidv4 } = require('uuid');
 
 class Order {
@@ -17,6 +18,11 @@ class Order {
         this.isDelivered = data.isDelivered || false;
         this.deliveredAt = data.deliveredAt || null;
         this.createdAt = data.createdAt || new Date().toISOString();
+        
+        // Add custom order fields
+        this.isCustomOrder = data.isCustomOrder || false;
+        this.customOrderId = data.customOrderId || null;
+        this.customDetails = data.customDetails || null;
     }
 
     toFirestore() {
@@ -34,7 +40,11 @@ class Order {
             paidAt: this.paidAt,
             isDelivered: this.isDelivered,
             deliveredAt: this.deliveredAt,
-            createdAt: this.createdAt
+            createdAt: this.createdAt,
+            // Add custom order fields
+            isCustomOrder: this.isCustomOrder,
+            customOrderId: this.customOrderId,
+            customDetails: this.customDetails
         };
     }
 
