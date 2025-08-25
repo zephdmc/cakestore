@@ -203,7 +203,6 @@ const handleCustomOrderSubmit = async (orderData) => {
                 >
                    Shop Ready-Made
                 </Link>
-             // Modify the Order Custom button
 <Link
   to="#"
   onClick={(e) => {
