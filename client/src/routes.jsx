@@ -32,7 +32,7 @@ const AdminLayout = lazy(() => import('./components/admin/AdminLayout'));
 const AddProductPage = lazy(() => import('./components/products/AddProductPage'));
 const EditProductPage = lazy(() => import('./components/products/EditProductPage'));
 const AboutPage = lazy(() => import('./pages/About/About'));
-//const AdminCustomOrder = lazy(() => import('./pages/
+const AdminCustomOrder = lazy(() => import('./pages/admin/AdminCustomOrders'));
 const AppRoutes = () => {
 
     return (
@@ -73,7 +73,7 @@ const AppRoutes = () => {
                         <Route path="products/:id/edit" element={<EditProductPage />} />
                         <Route path="orders" element={<AdminOrders />} />
                         <Route path="users" element={<UserManagement />} />
-                         
+                       <Route path="users" element={<AdminCustomOrder />} />
                         <Route path="orders/:id" element={<AdminOrderDetails />} />
                     </Route>
                 </Route>
