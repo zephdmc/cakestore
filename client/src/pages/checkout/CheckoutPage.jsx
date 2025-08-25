@@ -33,67 +33,95 @@ const [isProcessingOrder, setIsProcessingOrder] = useState(false);
         setStep(2);
     };
 
-    const handlePaymentSuccess = async (paymentData) => {
-        try {
-            setIsProcessingOrder(true); // show processing immediately
-            const {
-                payment,
-                verification,
-                userId,
-                cartItems
-            } = paymentData;
-
-            if (!userId) throw new Error('User ID not found in payment data');
-            if (!shippingData) throw new Error('Shipping data not found');
-            if (!cartItems?.length) throw new Error('Cart items not found');
-
-            // Transform items to match backend expectations
-            const backendItems = cartItems.map(item => ({
-                productId: item.id,  // Changed from 'id' to 'productId'
-                name: item.name,
-                price: Number(item.price),
-                quantity: Number(item.quantity),
-                image: item.image
-            }));
-
-            const orderData = {
-                userId,
-                items: backendItems,  // Use transformed items
-                shippingAddress: shippingData,
-                paymentMethod: 'flutterwave',
-                paymentResult: {
-                    id: payment.transaction_id || payment.id,
-                    status: payment.status,
-                    amount: Number(payment.amount),
-                    currency: payment.currency || 'NGN',
-                    transactionRef: payment.tx_ref,
-                    verifiedAt: verification.verifiedAt || new Date().toISOString()
-                },
-                itemsPrice: Number(cartTotal),
-                 shippingPrice: shippingData.shippingPrice,
-                taxPrice: 0,
-                totalPrice: Number(cartTotal) + shippingData.shippingPrice,
-            };
-
-            const createdOrder = await createOrder(orderData);
-            setOrder(createdOrder);
-            clearCart();
-            setStep(3);
-            setTimeout(() => navigate(`/orders/${createdOrder.data.id}`), 5000);
-
-        } catch (error) {
-            console.error('Order creation failed:', error);
-            console.error('Detailed order creation error:', {
-                status: error.response?.status,
-                data: error.response?.data,
-                message: error.message,
-                config: error.config
-            });
-            alert(`Order processing failed: ${error.response?.data?.message || error.message}`);
-        }finally {
-        setIsProcessingOrder(false); // hide processing if error or after success render
+ // In CheckoutPage.jsx, modify the handlePaymentSuccess function
+const handlePaymentSuccess = async (paymentData) => {
+  try {
+    setIsProcessingOrder(true);
+    
+    const { location } = useLocation();
+    const isCustomOrder = location.state?.isCustomOrder;
+    const customOrder = location.state?.customOrder;
+    
+    let orderData;
+    
+    if (isCustomOrder && customOrder) {
+      // Handle custom order
+      orderData = {
+        userId: currentUser.uid,
+        items: [{
+          productId: 'custom-cake',
+          name: `Custom ${customOrder.occasion} Cake`,
+          price: Number(customOrder.price),
+          quantity: 1,
+          customDetails: customOrder
+        }],
+        shippingAddress: shippingData,
+        paymentMethod: 'flutterwave',
+        paymentResult: {
+          id: payment.transaction_id || payment.id,
+          status: payment.status,
+          amount: Number(payment.amount),
+          currency: payment.currency || 'NGN',
+          transactionRef: payment.tx_ref,
+          verifiedAt: new Date().toISOString()
+        },
+        itemsPrice: Number(customOrder.price),
+        shippingPrice: shippingData.shippingPrice,
+        taxPrice: 0,
+        totalPrice: Number(customOrder.price) + shippingData.shippingPrice,
+        isCustomOrder: true,
+        customOrderId: customOrder.id
+      };
+    } else {
+      // Handle regular order (existing code)
+      orderData = {
+        userId: currentUser.uid,
+        items: cartItems.map(item => ({
+          productId: item.id,
+          name: item.name,
+          price: Number(item.price),
+          quantity: Number(item.quantity),
+          image: item.image
+        })),
+        shippingAddress: shippingData,
+        paymentMethod: 'flutterwave',
+        paymentResult: {
+          id: payment.transaction_id || payment.id,
+          status: payment.status,
+          amount: Number(payment.amount),
+          currency: payment.currency || 'NGN',
+          transactionRef: payment.tx_ref,
+          verifiedAt: new Date().toISOString()
+        },
+        itemsPrice: Number(cartTotal),
+        shippingPrice: shippingData.shippingPrice,
+        taxPrice: 0,
+        totalPrice: Number(cartTotal) + shippingData.shippingPrice,
+      };
     }
-    };
+
+    const createdOrder = await createOrder(orderData);
+    setOrder(createdOrder);
+    
+    // Clear cart only if it's not a custom order
+    if (!isCustomOrder) {
+      clearCart();
+    }
+    
+    // Update custom order status to confirmed
+    if (isCustomOrder && customOrder.id) {
+      await updateCustomOrderStatus(customOrder.id, 'confirmed');
+    }
+    
+    setStep(3);
+    setTimeout(() => navigate(`/orders/${createdOrder.data.id}`), 5000);
+  } catch (error) {
+    console.error('Order creation failed:', error);
+    alert(`Order processing failed: ${error.response?.data?.message || error.message}`);
+  } finally {
+    setIsProcessingOrder(false);
+  }
+};
 
     return (
         <div className="container mx-auto px-4 py-8 max-w-4xl">
