@@ -149,12 +149,12 @@ export default function CheckoutPage() {
             {step === 1 && <ShippingForm onSubmit={handleShippingSubmit} />}
             {step === 2 && (
                 <PaymentForm
-                    // FIXED: Use customOrderData?.price instead of customOrder?.price
-                    amount={isCustomOrder ? (Number(customOrderData?.price) + (shippingData?.shippingPrice || 0)) : (cartTotal + (shippingData?.shippingPrice || 0))}
-                    onSuccess={handlePaymentSuccess}
-                    onClose={() => setStep(1)}
-                    cartItems={cartItems}
-                />
+        amount={isCustomOrder ? (Number(customOrderData?.price) + (shippingData?.shippingPrice || 0)) : (cartTotal + (shippingData?.shippingPrice || 0))}
+        onSuccess={handlePaymentSuccess}
+        onClose={() => setStep(1)}
+        cartItems={cartItems}
+        isCustomOrder={isCustomOrder} // <-- ADD THIS PROP
+    />
             )}
             
             {step === 3 && (
