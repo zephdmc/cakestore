@@ -118,8 +118,15 @@ export default function OrderHistory() {
                                     {currentOrders.map((order) => (
                                         <tr key={order.id} className="hover:bg-gray-50 transition-colors">
                                             <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className="text-sm font-medium text-gray-900">#{order.id.substring(0, 8)}</span>
-                                            </td>
+    <div className="flex items-center">
+        <span className="text-sm font-medium text-gray-900">#{order.id.substring(0, 8)}</span>
+        {order.isCustomOrder && (
+            <span className="ml-2 bg-purpleLighter text-purpleDark1 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                Custom
+            </span>
+        )}
+    </div>
+</td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                 {formatDate(order.createdAt)}
                                             </td>
