@@ -135,35 +135,31 @@ useEffect(() => {
         show: { opacity: 1, y: 0 }
     };
 
-  // Add this handler function
+// In HomePage.js - UPDATE the handleCustomOrderSubmit function
 const handleCustomOrderSubmit = async (orderData) => {
+    // 1. Check if currentUser exists
+    if (!currentUser) {
+        console.error("User is not authenticated. Cannot create order.");
+        alert("Your session has expired. Please log in again.");
+        navigate('/login');
+        return;
+    }
 
-    // 1. Check if currentUser exists BEFORE trying to use it
-        if (!currentUser) {
-            // This should theoretically never happen since the form is gated by a login check,
-            // but it's a critical safety net.
-            console.error("User is not authenticated. Cannot create order.");
-            alert("Your session has expired. Please log in again.");
-            navigate('/login');
-            return; // Stop the function execution
-        }
-  
-  try {
-    // Create custom order in Firebase
-const customOrder = await createCustomOrder(orderData, currentUser);    
-    // Redirect to checkout with custom order details
-    navigate('/checkout', { 
-      state: { 
-        customOrder,
-        isCustomOrder: true
-      } 
-    });
-    
-    setShowCustomOrderForm(false);
-  } catch (error) {
-    console.error("Error creating custom order: ", error);
-    alert("There was an error creating your order. Please try again.");
-  }
+    try {
+        // 2. DO NOT SAVE TO FIRESTORE HERE.
+        // Just navigate to checkout with the raw form data.
+        navigate('/checkout', {
+            state: {
+                customOrderData: orderData, // Pass the raw data, not a saved order
+                isCustomOrder: true
+            }
+        });
+
+        setShowCustomOrderForm(false);
+    } catch (error) {
+        console.error("Error preparing custom order: ", error);
+        alert("There was an error preparing your order. Please try again.");
+    }
 };
 
    // This is the function that handles the button click to OPEN the form
