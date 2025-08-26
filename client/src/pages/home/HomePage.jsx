@@ -137,6 +137,17 @@ useEffect(() => {
 
   // Add this handler function
 const handleCustomOrderSubmit = async (orderData) => {
+
+    // 1. Check if currentUser exists BEFORE trying to use it
+        if (!currentUser) {
+            // This should theoretically never happen since the form is gated by a login check,
+            // but it's a critical safety net.
+            console.error("User is not authenticated. Cannot create order.");
+            alert("Your session has expired. Please log in again.");
+            navigate('/login');
+            return; // Stop the function execution
+        }
+  
   try {
     // Create custom order in Firebase
     const customOrder = await createCustomOrder(orderData);
@@ -155,6 +166,18 @@ const handleCustomOrderSubmit = async (orderData) => {
     alert("There was an error creating your order. Please try again.");
   }
 };
+
+   // This is the function that handles the button click to OPEN the form
+    const handleCustomOrderClick = (e) => {
+        e.preventDefault();
+        if (!currentUser) {
+            // If the user is not logged in, send them to login page
+            navigate('/login', { state: { from: '/', message: 'Please login to place a custom order' } });
+        } else {
+            // If the user IS logged in, open the form
+            setShowCustomOrderForm(true);
+        }
+    };
   // Check if user is admin
     const isAdmin = currentUser?.isAdmin;
 
