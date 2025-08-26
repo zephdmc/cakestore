@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { getOrderById } from '../../services/orderService';
+import { getEnhancedOrderDetails } from '../../services/orderDetailsService'; // Import new service
 
 export default function OrderDetails() {
     const { id } = useParams();
@@ -9,6 +10,7 @@ export default function OrderDetails() {
     const [order, setOrder] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [activeTab, setActiveTab] = useState('orderInfo'); // State for tabs
 
     useEffect(() => {
         const fetchOrder = async () => {
@@ -86,6 +88,98 @@ export default function OrderDetails() {
         );
     }
 
+// Custom Order Details Tab Content
+    const renderCustomOrderDetails = () => (
+        <div className="bg-white rounded-lg shadow overflow-hidden mb-6">
+            <div className="px-6 py-4 border-b border-purpleDark1">
+                <h2 className="text-lg font-medium text-purpleDark1">Custom Cake Details</h2>
+            </div>
+            <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h3 className="text-sm font-medium text-purpleDark1 mb-2">Occasion</h3>
+                    <p className="text-gray-900">{order.customOrderDetails.occasion}</p>
+                </div>
+                <div>
+                    <h3 className="text-sm font-medium text-purpleDark1 mb-2">Size</h3>
+                    <p className="text-gray-900">{order.customOrderDetails.size}</p>
+                </div>
+                <div>
+                    <h3 className="text-sm font-medium text-purpleDark1 mb-2">Flavor</h3>
+                    <p className="text-gray-900">{order.customOrderDetails.flavor}</p>
+                </div>
+                <div>
+                    <h3 className="text-sm font-medium text-purpleDark1 mb-2">Frosting</h3>
+                    <p className="text-gray-900">{order.customOrderDetails.frosting}</p>
+                </div>
+                <div>
+                    <h3 className="text-sm font-medium text-purpleDark1 mb-2">Filling</h3>
+                    <p className="text-gray-900">{order.customOrderDetails.filling}</p>
+                </div>
+                <div>
+                    <h3 className="text-sm font-medium text-purpleDark1 mb-2">Decorations</h3>
+                    <p className="text-gray-900">{order.customOrderDetails.decorations}</p>
+                </div>
+                {order.customOrderDetails.message && (
+                    <div className="md:col-span-2">
+                        <h3 className="text-sm font-medium text-purpleDark1 mb-2">Special Message</h3>
+                        <p className="text-gray-900">{order.customOrderDetails.message}</p>
+                    </div>
+                )}
+                <div className="md:col-span-2">
+                    <h3 className="text-sm font-medium text-purpleDark1 mb-2">Delivery Date & Time</h3>
+                    <p className="text-gray-900">
+                        {new Date(order.customOrderDetails.deliveryDate).toLocaleDateString()} 
+                        {order.customOrderDetails.deliveryTime && ` at ${order.customOrderDetails.deliveryTime}`}
+                    </p>
+                </div>
+                {order.customOrderDetails.allergies && (
+                    <div className="md:col-span-2">
+                        <h3 className="text-sm font-medium text-purpleDark1 mb-2">Allergies</h3>
+                        <p className="text-gray-900">{order.customOrderDetails.allergies}</p>
+                    </div>
+                )}
+                {order.customOrderDetails.specialInstructions && (
+                    <div className="md:col-span-2">
+                        <h3 className="text-sm font-medium text-purpleDark1 mb-2">Special Instructions</h3>
+                        <p className="text-gray-900 whitespace-pre-wrap">{order.customOrderDetails.specialInstructions}</p>
+                    </div>
+                )}
+                {order.customOrderDetails.imageUrl && (
+                    <div className="md:col-span-2">
+                        <h3 className="text-sm font-medium text-purpleDark1 mb-2">Reference Image</h3>
+                        <img 
+                            src={order.customOrderDetails.imageUrl} 
+                            alt="Cake reference" 
+                            className="w-full max-w-md rounded-lg shadow-md"
+                        />
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+
+    // Tab Navigation
+    const renderTabNavigation = () => (
+        <div className="flex border-b border-gray-200 mb-6">
+            <button
+                className={`py-2 px-4 font-medium text-sm ${activeTab === 'orderInfo' ? 'border-b-2 border-purpleDark1 text-purpleDark1' : 'text-gray-500 hover:text-gray-700'}`}
+                onClick={() => setActiveTab('orderInfo')}
+            >
+                Order Information
+            </button>
+            {order.isCustomOrder && order.customOrderDetails && (
+                <button
+                    className={`py-2 px-4 font-medium text-sm ${activeTab === 'customDetails' ? 'border-b-2 border-purpleDark1 text-purpleDark1' : 'text-gray-500 hover:text-gray-700'}`}
+                    onClick={() => setActiveTab('customDetails')}
+                >
+                    Custom Details
+                </button>
+            )}
+        </div>
+    );
+
+
+    
     return (
         <div className="container mx-auto px-4 py-8">
             <div className="mb-6">
@@ -103,8 +197,13 @@ export default function OrderDetails() {
                     Placed on {new Date(order.createdAt).toLocaleDateString()} at {new Date(order.createdAt).toLocaleTimeString()}
                 </p>
             </div>
+ {/* Tab Navigation */}
+            {renderTabNavigation()}
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+ {/* Tab Content */}
+            {activeTab === 'orderInfo' ? (
+                // Your existing order info content goes here
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2">
                     <div className="bg-white rounded-lg shadow overflow-hidden mb-6">
                         <div className="px-6 py-4 border-b border-white">
@@ -248,6 +347,13 @@ export default function OrderDetails() {
                     </div>
                 </div>
             </div>
+            ) : (
+                // Custom Order Details
+                renderCustomOrderDetails()
+            )}
+
+            
+           
         </div>
     );
 }
