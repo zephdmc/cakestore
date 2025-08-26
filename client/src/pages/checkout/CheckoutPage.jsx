@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useCart } from '../../context/CartContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import ShippingForm from '../../components/checkout/ShippingForm';
 import PaymentForm from '../../components/checkout/PaymentForm';
 import OrderConfirmation from '../../components/checkout/OrderConfirmation';
 import { createOrder } from '../../services/orderService';
 import { useAuth } from '../../context/AuthContext';
-
+import { updateCustomOrderStatus } from '../../services/customOrderService'; // <-- Import this if you haven't
 export default function CheckoutPage() {
     const { cartItems, cartTotal, clearCart } = useCart();
     const { currentUser } = useAuth();
@@ -14,7 +14,12 @@ export default function CheckoutPage() {
     const [order, setOrder] = useState(null);
     const [step, setStep] = useState(1);
     const navigate = useNavigate();
+        const location = useLocation(); // <-- Call useLocation here at the top level
+
 const [isProcessingOrder, setIsProcessingOrder] = useState(false);
+  // Get state from location at the top level
+    const isCustomOrder = location.state?.isCustomOrder;
+    const customOrder = location.state?.customOrder;
 
     // Redirect to login if not authenticated
     useEffect(() => {
@@ -58,7 +63,7 @@ const handlePaymentSuccess = async (paymentData) => {
         shippingAddress: shippingData,
         paymentMethod: 'flutterwave',
         paymentResult: {
-          id: payment.transaction_id || payment.id,
+          id: paymentData.transaction_id || paymentData.id, // <-- Fixed: paymentData, not payment
           status: payment.status,
           amount: Number(payment.amount),
           currency: payment.currency || 'NGN',
@@ -86,7 +91,7 @@ const handlePaymentSuccess = async (paymentData) => {
         shippingAddress: shippingData,
         paymentMethod: 'flutterwave',
         paymentResult: {
-          id: payment.transaction_id || payment.id,
+         id: paymentData.transaction_id || paymentData.id, // <-- Fixed: paymentData, not payment
           status: payment.status,
           amount: Number(payment.amount),
           currency: payment.currency || 'NGN',
@@ -146,7 +151,8 @@ const handlePaymentSuccess = async (paymentData) => {
             {step === 1 && <ShippingForm onSubmit={handleShippingSubmit} />}
             {step === 2 && (
                 <PaymentForm
-                    amount={cartTotal + (shippingData?.shippingPrice || 0)}
+                    // FIX THE AMOUNT PROP HERE TOO!
+                    amount={isCustomOrder ? (Number(customOrder?.price) + (shippingData?.shippingPrice || 0)) : (cartTotal + (shippingData?.shippingPrice || 0))}
                     onSuccess={handlePaymentSuccess}
                     onClose={() => setStep(1)}
                     cartItems={cartItems}
