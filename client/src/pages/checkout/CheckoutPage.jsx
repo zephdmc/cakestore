@@ -49,33 +49,37 @@ export default function CheckoutPage() {
                 // 1. FIRST, save the custom order to Firestore and get its ID
                 newlyCreatedCustomOrder = await createCustomOrder(customOrderData, currentUser);
 
-                // 2. THEN, build the order data for the main orders collection
-                finalOrderData = {
-                    userId: currentUser.uid,
-                    items: [{
-                        productId: 'custom-cake',
-                        name: `Custom ${customOrderData.occasion} Cake`,
-                        price: Number(customOrderData.price),
-                        quantity: 1,
-                        customDetails: customOrderData
-                    }],
-                    shippingAddress: shippingData,
-                    paymentMethod: 'flutterwave',
-                    paymentResult: {
-                        id: paymentData.transaction_id || paymentData.id,
-                        status: paymentData.status,
-                        amount: Number(paymentData.amount),
-                        currency: paymentData.currency || 'NGN',
-                        transactionRef: paymentData.tx_ref,
-                        verifiedAt: new Date().toISOString()
-                    },
-                    itemsPrice: Number(customOrderData.price),
-                    shippingPrice: shippingData.shippingPrice,
-                    taxPrice: 0,
-                    totalPrice: Number(customOrderData.price) + shippingData.shippingPrice,
-                    isCustomOrder: true,
-                    customOrderId: newlyCreatedCustomOrder.id
-                };
+                const shippingPrice = shippingData?.shippingPrice || 0;
+    const customOrderPrice = Number(customOrderData.price);
+
+    // 2. THEN, build the order data for the main orders collection
+    finalOrderData = {
+        userId: currentUser.uid,
+        items: [{
+            productId: 'custom-cake',
+            name: `Custom ${customOrderData.occasion} Cake`,
+            price: customOrderPrice,
+            quantity: 1
+            // Remove customDetails from items
+        }],
+        shippingAddress: shippingData,
+        paymentMethod: 'flutterwave',
+        paymentResult: {
+            id: paymentData.transaction_id || paymentData.id,
+            status: paymentData.status,
+            amount: Number(paymentData.amount),
+            currency: paymentData.currency || 'NGN',
+            transactionRef: paymentData.tx_ref,
+            verifiedAt: new Date().toISOString()
+        },
+        itemsPrice: customOrderPrice,
+        shippingPrice: shippingPrice,
+        taxPrice: 0,
+        totalPrice: customOrderPrice + shippingPrice,
+        isCustomOrder: true,
+        customOrderId: newlyCreatedCustomOrder.id,
+        customDetails: customOrderData  // ✅ Add customDetails at root level
+    };
             } else {
                 // Handle regular order (existing code)
                 finalOrderData = {
