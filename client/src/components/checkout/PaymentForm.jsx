@@ -8,7 +8,7 @@ import API from '../../services/api';
 import { auth } from '../../firebase/config';
 const logoUrl = `${window.location.origin}/images/logo.png`;
 
-const PaymentForm = ({ amount, onSuccess, onClose, cartItems }) => {
+const PaymentForm = ({ amount, onSuccess, onClose, cartItems, isCustomOrder = false }) => {
     const { currentUser } = useAuth();
     const [isLoading, setIsLoading] = useState(false);
     const [scriptReady, setScriptReady] = useState(false);
@@ -62,8 +62,8 @@ const paymentResolvedRef = useRef(false);
         try {
             if (!currentUser?.email) throw new Error('You must be logged in to pay.');
             if (!amount || amount <= 0) throw new Error('Invalid payment amount.');
-            if (!cartItems?.length) throw new Error('Your cart is empty.');
-
+              // FIXED: Allow payment if EITHER cart has items OR it's a custom order
+            if (!cartItems?.length && !isCustomOrder) throw new Error('Your cart is empty.');
             const token = await auth.currentUser.getIdToken(true);
 
             const nonceResponse = await API.get('/api/payments/payments/nonce', {
