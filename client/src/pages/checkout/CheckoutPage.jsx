@@ -6,21 +6,21 @@ import PaymentForm from '../../components/checkout/PaymentForm';
 import OrderConfirmation from '../../components/checkout/OrderConfirmation';
 import { createOrder } from '../../services/orderService';
 import { useAuth } from '../../context/AuthContext';
-import { createCustomOrder, updateCustomOrderStatus } from '../../services/customOrderService'; // <-- Ensure createCustomOrder is importedexport default function CheckoutPage() {
+import { createCustomOrder, updateCustomOrderStatus } from '../../services/customOrderService';
+
+export default function CheckoutPage() {
     const { cartItems, cartTotal, clearCart } = useCart();
     const { currentUser } = useAuth();
     const [shippingData, setShippingData] = useState(null);
     const [order, setOrder] = useState(null);
     const [step, setStep] = useState(1);
     const navigate = useNavigate();
-        const location = useLocation();
-    const isCustomOrder = location.state?.isCustomOrder;
-    const customOrderData = location.state?.customOrderData; // <-- Now holds raw form data, not a saved order
+    const location = useLocation();
+    const [isProcessingOrder, setIsProcessingOrder] = useState(false);
 
-const [isProcessingOrder, setIsProcessingOrder] = useState(false);
-  // Get state from location at the top level
+    // Get state from location at the top level - REMOVE DUPLICATES
     const isCustomOrder = location.state?.isCustomOrder;
-    const customOrder = location.state?.customOrder;
+    const customOrderData = location.state?.customOrderData; // This is the correct variable
 
     // Redirect to login if not authenticated
     useEffect(() => {
@@ -31,7 +31,7 @@ const [isProcessingOrder, setIsProcessingOrder] = useState(false);
 
     // Return null or loading spinner while checking auth status
     if (!currentUser) {
-        return null; // or return a loading spinner
+        return null;
     }
 
     const handleShippingSubmit = (data) => {
@@ -39,12 +39,11 @@ const [isProcessingOrder, setIsProcessingOrder] = useState(false);
         setStep(2);
     };
 
- // In CheckoutPage.jsx, modify the handlePaymentSuccess function
-const handlePaymentSuccess = async (paymentData) => {
+    const handlePaymentSuccess = async (paymentData) => {
         try {
             setIsProcessingOrder(true);
-            let finalOrderData; // This will be sent to createOrder
-            let newlyCreatedCustomOrder = null; // To store the result of createCustomOrder if needed
+            let finalOrderData;
+            let newlyCreatedCustomOrder = null;
 
             if (isCustomOrder && customOrderData) {
                 // 1. FIRST, save the custom order to Firestore and get its ID
@@ -64,10 +63,10 @@ const handlePaymentSuccess = async (paymentData) => {
                     paymentMethod: 'flutterwave',
                     paymentResult: {
                         id: paymentData.transaction_id || paymentData.id,
-                        status: paymentData.status, // <-- Fixed: paymentData, not payment
-                        amount: Number(paymentData.amount), // <-- Fixed: paymentData, not payment
-                        currency: paymentData.currency || 'NGN', // <-- Fixed: paymentData, not payment
-                        transactionRef: paymentData.tx_ref, // <-- Fixed: paymentData, not payment
+                        status: paymentData.status,
+                        amount: Number(paymentData.amount),
+                        currency: paymentData.currency || 'NGN',
+                        transactionRef: paymentData.tx_ref,
                         verifiedAt: new Date().toISOString()
                     },
                     itemsPrice: Number(customOrderData.price),
@@ -75,11 +74,34 @@ const handlePaymentSuccess = async (paymentData) => {
                     taxPrice: 0,
                     totalPrice: Number(customOrderData.price) + shippingData.shippingPrice,
                     isCustomOrder: true,
-                    customOrderId: newlyCreatedCustomOrder.id // Use the ID from the newly created document
+                    customOrderId: newlyCreatedCustomOrder.id
                 };
             } else {
                 // Handle regular order (existing code)
-                finalOrderData = { ... }; // Your existing cart logic here
+                finalOrderData = {
+                    userId: currentUser.uid,
+                    items: cartItems.map(item => ({
+                        productId: item.id,
+                        name: item.name,
+                        price: Number(item.price),
+                        quantity: Number(item.quantity),
+                        image: item.image
+                    })),
+                    shippingAddress: shippingData,
+                    paymentMethod: 'flutterwave',
+                    paymentResult: {
+                        id: paymentData.transaction_id || paymentData.id,
+                        status: paymentData.status,
+                        amount: Number(paymentData.amount),
+                        currency: paymentData.currency || 'NGN',
+                        transactionRef: paymentData.tx_ref,
+                        verifiedAt: new Date().toISOString()
+                    },
+                    itemsPrice: Number(cartTotal),
+                    shippingPrice: shippingData.shippingPrice,
+                    taxPrice: 0,
+                    totalPrice: Number(cartTotal) + shippingData.shippingPrice,
+                };
             }
 
             // 3. Create the main order in your database
@@ -113,10 +135,8 @@ const handlePaymentSuccess = async (paymentData) => {
             {/* Progress Steps */}
             <div className="flex mb-8">
                 {[1, 2, 3].map((stepNumber) => (
-                    <div key={stepNumber} className={`flex-1 text-center border-b-2 ${step >= stepNumber ? 'border-primary' : 'border-gray-300'
-                        }`}>
-                        <span className={`inline-block py-2 px-4 rounded-full ${step >= stepNumber ? 'bg-primary text-white' : 'bg-gray-200'
-                            }`}>
+                    <div key={stepNumber} className={`flex-1 text-center border-b-2 ${step >= stepNumber ? 'border-primary' : 'border-gray-300'}`}>
+                        <span className={`inline-block py-2 px-4 rounded-full ${step >= stepNumber ? 'bg-primary text-white' : 'bg-gray-200'}`}>
                             {stepNumber}
                         </span>
                         <p className="mt-2 text-sm">
@@ -129,8 +149,8 @@ const handlePaymentSuccess = async (paymentData) => {
             {step === 1 && <ShippingForm onSubmit={handleShippingSubmit} />}
             {step === 2 && (
                 <PaymentForm
-                    // FIX THE AMOUNT PROP HERE TOO!
-                    amount={isCustomOrder ? (Number(customOrder?.price) + (shippingData?.shippingPrice || 0)) : (cartTotal + (shippingData?.shippingPrice || 0))}
+                    // FIXED: Use customOrderData?.price instead of customOrder?.price
+                    amount={isCustomOrder ? (Number(customOrderData?.price) + (shippingData?.shippingPrice || 0)) : (cartTotal + (shippingData?.shippingPrice || 0))}
                     onSuccess={handlePaymentSuccess}
                     onClose={() => setStep(1)}
                     cartItems={cartItems}
@@ -138,28 +158,27 @@ const handlePaymentSuccess = async (paymentData) => {
             )}
             
             {step === 3 && (
-    isProcessingOrder ? (
-        <div className="flex flex-col items-center justify-center py-16 bg-white rounded-lg shadow-md">
-            <div className="flex items-center space-x-4">
-                <div className="relative w-12 h-12">
-                    <div className="animate-spin rounded-full border-4 border-t-primary border-b-transparent border-l-primary border-r-transparent w-12 h-12"></div>
-                    <div className="absolute inset-0 flex items-center justify-center">
-                        <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                        </svg>
+                isProcessingOrder ? (
+                    <div className="flex flex-col items-center justify-center py-16 bg-white rounded-lg shadow-md">
+                        <div className="flex items-center space-x-4">
+                            <div className="relative w-12 h-12">
+                                <div className="animate-spin rounded-full border-4 border-t-primary border-b-transparent border-l-primary border-r-transparent w-12 h-12"></div>
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <div>
+                                <p className="text-xl font-semibold text-purpleDark">Processing your transaction…</p>
+                                <p className="text-sm text-gray-500">This usually takes a few seconds. Please don’t close or refresh.</p>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <div>
-                    <p className="text-xl font-semibold text-purpleDark">Processing your transaction…</p>
-                    <p className="text-sm text-gray-500">This usually takes a few seconds. Please don’t close or refresh.</p>
-                </div>
-            </div>
-        </div>
-    ) : (
-        order && <OrderConfirmation order={order} />
-    )
-)}
-
+                ) : (
+                    order && <OrderConfirmation order={order} />
+                )
+            )}
         </div>
     );
 }
