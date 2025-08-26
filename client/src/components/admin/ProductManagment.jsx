@@ -11,11 +11,10 @@ export default function ProductManagement() {
         const fetchProducts = async () => {
             try {
                 const response = await getProducts();
-                // Ensure we always have an array, even if response.data is undefined
                 setProducts(Array.isArray(response?.data) ? response.data : []);
             } catch (err) {
                 setError(err.message || 'Failed to load products');
-                setProducts([]); // Set empty array on error
+                setProducts([]);
             } finally {
                 setLoading(false);
             }
@@ -49,14 +48,12 @@ export default function ProductManagement() {
                 </Link>
             </div>
 
-            {/* Error Message */}
             {error && (
                 <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
                     <p className="text-red-700">{error}</p>
                 </div>
             )}
 
-            {/* Loading State */}
             {loading ? (
                 <div className="flex justify-center items-center h-64">
                     <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
@@ -69,8 +66,11 @@ export default function ProductManagement() {
                                 <tr>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Image</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Size</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Custom</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
@@ -78,8 +78,9 @@ export default function ProductManagement() {
                                 {products.map((product) => (
                                     <tr key={product.id}>
                                         <td className="px-6 py-4 whitespace-nowrap">
+                                            {/* FIXED: Use first image from images array */}
                                             <img
-                                                src={product.image || '/placeholder-product.png'}
+                                                src={product.images && product.images[0] ? product.images[0] : '/placeholder-product.png'}
                                                 alt={product.name}
                                                 className="h-10 w-10 object-cover rounded"
                                                 onError={(e) => {
@@ -91,10 +92,19 @@ export default function ProductManagement() {
                                             {product.name}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {product.category}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {product.size}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             ₦{product.price?.toLocaleString() || '0'}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             {product.countInStock || '0'}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {product.isCustom ? 'Yes' : 'No'}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             <Link
