@@ -150,8 +150,7 @@ const handleCustomOrderSubmit = async (orderData) => {
   
   try {
     // Create custom order in Firebase
-    const customOrder = await createCustomOrder(orderData);
-    
+const customOrder = await createCustomOrder(orderData, currentUser);    
     // Redirect to checkout with custom order details
     navigate('/checkout', { 
       state: { 
