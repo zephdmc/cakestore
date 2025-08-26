@@ -21,6 +21,23 @@ exports.getProducts = asyncHandler(async (req, res, next) => {
         query = query.where('price', '>=', minPrice).where('price', '<=', maxPrice);
     }
 
+
+
+// In your getProducts controller, add these filters:
+if (req.query.dietary) {
+    query = query.where('dietaryTags', 'array-contains', req.query.dietary);
+}
+
+if (req.query.flavor) {
+    query = query.where('flavorTags', 'array-contains', req.query.flavor);
+}
+
+if (req.query.custom !== undefined) {
+    const isCustom = req.query.custom === 'true';
+    query = query.where('isCustom', '==', isCustom);
+}
+
+    
     // Search by name
     if (req.query.search) {
         // Note: Firestore doesn't support full-text search natively
