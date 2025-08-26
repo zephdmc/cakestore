@@ -34,7 +34,15 @@ const OrderConfirmation = ({ order }) => {
 
             <h2 className="text-2xl font-bold text-purpleDark mb-2">Order Confirmed!</h2>
             <p className="text-gray-600 mb-6">Thank you for your purchase. Your order #{order.data.id} has been received.</p>
-
+// OrderConfirmation.jsx - Add custom order badge
+<h2 className="text-2xl font-bold text-purpleDark mb-2">
+    Order Confirmed!
+    {order.data.isCustomOrder && (
+        <span className="ml-3 bg-purpleLighter text-purpleDark1 text-xs font-medium px-2.5 py-0.5 rounded-full align-middle">
+            Custom Order
+        </span>
+    )}
+</h2>
             <div className="bg-gray-purpleLighter1 p-4 rounded-lg mb-6 text-left">
                 <h3 className="font-medium text-purpleDark1 mb-2">Order Summary</h3>
                 <p className="text-purpleDark">Amount Paid: <span className="font-medium">₦{order.data.totalPrice.toLocaleString()}</span></p>
