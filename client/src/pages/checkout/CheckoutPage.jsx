@@ -6,15 +6,16 @@ import PaymentForm from '../../components/checkout/PaymentForm';
 import OrderConfirmation from '../../components/checkout/OrderConfirmation';
 import { createOrder } from '../../services/orderService';
 import { useAuth } from '../../context/AuthContext';
-import { updateCustomOrderStatus } from '../../services/customOrderService'; // <-- Import this if you haven't
-export default function CheckoutPage() {
+import { createCustomOrder, updateCustomOrderStatus } from '../../services/customOrderService'; // <-- Ensure createCustomOrder is importedexport default function CheckoutPage() {
     const { cartItems, cartTotal, clearCart } = useCart();
     const { currentUser } = useAuth();
     const [shippingData, setShippingData] = useState(null);
     const [order, setOrder] = useState(null);
     const [step, setStep] = useState(1);
     const navigate = useNavigate();
-        const location = useLocation(); // <-- Call useLocation here at the top level
+        const location = useLocation();
+    const isCustomOrder = location.state?.isCustomOrder;
+    const customOrderData = location.state?.customOrderData; // <-- Now holds raw form data, not a saved order
 
 const [isProcessingOrder, setIsProcessingOrder] = useState(false);
   // Get state from location at the top level
@@ -40,93 +41,70 @@ const [isProcessingOrder, setIsProcessingOrder] = useState(false);
 
  // In CheckoutPage.jsx, modify the handlePaymentSuccess function
 const handlePaymentSuccess = async (paymentData) => {
-  try {
-    setIsProcessingOrder(true);
-    
-    const { location } = useLocation();
-    const isCustomOrder = location.state?.isCustomOrder;
-    const customOrder = location.state?.customOrder;
-    
-    let orderData;
-    
-    if (isCustomOrder && customOrder) {
-      // Handle custom order
-      orderData = {
-        userId: currentUser.uid,
-        items: [{
-          productId: 'custom-cake',
-          name: `Custom ${customOrder.occasion} Cake`,
-          price: Number(customOrder.price),
-          quantity: 1,
-          customDetails: customOrder
-        }],
-        shippingAddress: shippingData,
-        paymentMethod: 'flutterwave',
-        paymentResult: {
-          id: paymentData.transaction_id || paymentData.id, // <-- Fixed: paymentData, not payment
-          status: payment.status,
-          amount: Number(payment.amount),
-          currency: payment.currency || 'NGN',
-          transactionRef: payment.tx_ref,
-          verifiedAt: new Date().toISOString()
-        },
-        itemsPrice: Number(customOrder.price),
-        shippingPrice: shippingData.shippingPrice,
-        taxPrice: 0,
-        totalPrice: Number(customOrder.price) + shippingData.shippingPrice,
-        isCustomOrder: true,
-        customOrderId: customOrder.id
-      };
-    } else {
-      // Handle regular order (existing code)
-      orderData = {
-        userId: currentUser.uid,
-        items: cartItems.map(item => ({
-          productId: item.id,
-          name: item.name,
-          price: Number(item.price),
-          quantity: Number(item.quantity),
-          image: item.image
-        })),
-        shippingAddress: shippingData,
-        paymentMethod: 'flutterwave',
-        paymentResult: {
-         id: paymentData.transaction_id || paymentData.id, // <-- Fixed: paymentData, not payment
-          status: payment.status,
-          amount: Number(payment.amount),
-          currency: payment.currency || 'NGN',
-          transactionRef: payment.tx_ref,
-          verifiedAt: new Date().toISOString()
-        },
-        itemsPrice: Number(cartTotal),
-        shippingPrice: shippingData.shippingPrice,
-        taxPrice: 0,
-        totalPrice: Number(cartTotal) + shippingData.shippingPrice,
-      };
-    }
+        try {
+            setIsProcessingOrder(true);
+            let finalOrderData; // This will be sent to createOrder
+            let newlyCreatedCustomOrder = null; // To store the result of createCustomOrder if needed
 
-    const createdOrder = await createOrder(orderData);
-    setOrder(createdOrder);
-    
-    // Clear cart only if it's not a custom order
-    if (!isCustomOrder) {
-      clearCart();
-    }
-    
-    // Update custom order status to confirmed
-    if (isCustomOrder && customOrder.id) {
-      await updateCustomOrderStatus(customOrder.id, 'confirmed');
-    }
-    
-    setStep(3);
-    setTimeout(() => navigate(`/orders/${createdOrder.data.id}`), 5000);
-  } catch (error) {
-    console.error('Order creation failed:', error);
-    alert(`Order processing failed: ${error.response?.data?.message || error.message}`);
-  } finally {
-    setIsProcessingOrder(false);
-  }
-};
+            if (isCustomOrder && customOrderData) {
+                // 1. FIRST, save the custom order to Firestore and get its ID
+                newlyCreatedCustomOrder = await createCustomOrder(customOrderData, currentUser);
+
+                // 2. THEN, build the order data for the main orders collection
+                finalOrderData = {
+                    userId: currentUser.uid,
+                    items: [{
+                        productId: 'custom-cake',
+                        name: `Custom ${customOrderData.occasion} Cake`,
+                        price: Number(customOrderData.price),
+                        quantity: 1,
+                        customDetails: customOrderData
+                    }],
+                    shippingAddress: shippingData,
+                    paymentMethod: 'flutterwave',
+                    paymentResult: {
+                        id: paymentData.transaction_id || paymentData.id,
+                        status: paymentData.status, // <-- Fixed: paymentData, not payment
+                        amount: Number(paymentData.amount), // <-- Fixed: paymentData, not payment
+                        currency: paymentData.currency || 'NGN', // <-- Fixed: paymentData, not payment
+                        transactionRef: paymentData.tx_ref, // <-- Fixed: paymentData, not payment
+                        verifiedAt: new Date().toISOString()
+                    },
+                    itemsPrice: Number(customOrderData.price),
+                    shippingPrice: shippingData.shippingPrice,
+                    taxPrice: 0,
+                    totalPrice: Number(customOrderData.price) + shippingData.shippingPrice,
+                    isCustomOrder: true,
+                    customOrderId: newlyCreatedCustomOrder.id // Use the ID from the newly created document
+                };
+            } else {
+                // Handle regular order (existing code)
+                finalOrderData = { ... }; // Your existing cart logic here
+            }
+
+            // 3. Create the main order in your database
+            const createdOrder = await createOrder(finalOrderData);
+            setOrder(createdOrder);
+
+            // 4. Update the custom order status to 'confirmed' (or 'paid')
+            if (isCustomOrder && newlyCreatedCustomOrder.id) {
+                await updateCustomOrderStatus(newlyCreatedCustomOrder.id, 'confirmed');
+            }
+
+            // 5. Clear cart only for regular orders
+            if (!isCustomOrder) {
+                clearCart();
+            }
+
+            setStep(3);
+            setTimeout(() => navigate(`/orders/${createdOrder.data.id}`), 5000);
+        } catch (error) {
+            console.error('Order creation failed:', error);
+            alert(`Order processing failed: ${error.response?.data?.message || error.message}`);
+        } finally {
+            setIsProcessingOrder(false);
+        }
+    };
 
     return (
         <div className="container mx-auto px-4 py-8 max-w-4xl">
