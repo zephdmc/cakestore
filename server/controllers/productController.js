@@ -46,28 +46,47 @@ exports.getProducts = asyncHandler(async (req, res, next) => {
 // @desc    Get single product
 // @route   GET /api/products/:id
 // @access  Public
-exports.getProduct = asyncHandler(async (req, res, next) => {
-    const productRef = await db.collection('products').doc(req.params.id).get();
+exports.getProducts = asyncHandler(async (req, res, next) => {
+    let query = db.collection('products');
 
-    if (!productRef.exists) {
-        return next(new ErrorResponse('Product not found', 404));
+    // ... existing filters (category, price, search) ...
+
+    // NEW FILTER: Filter by dietary tag (e.g., ?dietary=Gluten-Free)
+    if (req.query.dietary) {
+        query = query.where('dietaryTags', 'array-contains', req.query.dietary);
     }
 
-    const product = Product.fromFirestore(productRef.id, productRef.data());
+    // NEW FILTER: Filter by flavor tag (e.g., ?flavor=Chocolate)
+    if (req.query.flavor) {
+        query = query.where('flavorTags', 'array-contains', req.query.flavor);
+    }
+
+    // NEW FILTER: Show only custom or only non-custom products (e.g., ?custom=true)
+    if (req.query.custom !== undefined) {
+        // Convert the string 'true'/'false' to a boolean
+        const isCustom = req.query.custom === 'true';
+        query = query.where('isCustom', '==', isCustom);
+    }
+
+    const snapshot = await query.get();
+    const products = [];
+
+    snapshot.forEach(doc => {
+        products.push(Product.fromFirestore(doc.id, doc.data()));
+    });
 
     res.status(200).json({
         success: true,
-        data: product
+        count: products.length,
+        data: products
     });
 });
-
 // @desc    Create product
 // @route   POST /api/products
 // @access  Private/Admin
 exports.createProduct = async (req, res) => {
     try {
         console.log('Incoming product data:', req.body);
-        console.log('Authenticated user:', req.user);
 
         // Validate required fields
         const requiredFields = ['name', 'price', 'description'];
@@ -80,9 +99,16 @@ exports.createProduct = async (req, res) => {
             });
         }
 
-        // Create product
+        // 1. Create a new Product instance from the request body
+        // This applies defaults and structures the data correctly (e.g., ensures arrays)
+        const newProduct = new Product(req.body);
+
+        // 2. Get the Firestore-ready object from the model
+        const productData = newProduct.toFirestore();
+
+        // 3. Add metadata fields for Firestore
         const productRef = await admin.firestore().collection('products').add({
-            ...req.body,
+            ...productData, // Use the model's data, not raw req.body
             createdBy: req.user.uid,
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
             updatedAt: admin.firestore.FieldValue.serverTimestamp()
@@ -92,20 +118,23 @@ exports.createProduct = async (req, res) => {
 
         return res.status(201).json({
             success: true,
-            message: 'Product created successfully', // ✅ Important
+            message: 'Product created successfully',
             id: productRef.id,
-            data: productDoc.data()
+            data: { id: productRef.id, ...productDoc.data() } // Include the ID in the response
         });
 
     } catch (error) {
         console.error('Product Creation Error:', error);
         res.status(500).json({
             success: false,
-            message: error.message || 'Server error during product creation' // ✅ use `message` key
+            message: error.message || 'Server error during product creation'
         });
     }
 };
 
+// @desc    Update product
+// @route   PUT /api/products/:id
+// @access  Private/Admin
 // @desc    Update product
 // @route   PUT /api/products/:id
 // @access  Private/Admin
@@ -117,10 +146,25 @@ exports.updateProduct = asyncHandler(async (req, res, next) => {
         return next(new ErrorResponse('Product not found', 404));
     }
 
-    const updates = {
-        ...req.body,
-        updatedAt: new Date().toISOString()
+    // Prepare the update object
+    let updates = { ...req.body };
+
+    // Helper function to convert string to array if needed
+    // This is useful if a form sends a comma-separated string like "gluten-free,vegan"
+    const formatArrayField = (field) => {
+        if (updates[field] && typeof updates[field] === 'string') {
+            updates[field] = updates[field].split(',').map(item => item.trim());
+        }
     };
+
+    // Apply formatting to all array-based fields
+    formatArrayField('images');
+    formatArrayField('ingredients');
+    formatArrayField('dietaryTags');
+    formatArrayField('flavorTags');
+
+    // Use serverTimestamp for accuracy
+    updates.updatedAt = admin.firestore.FieldValue.serverTimestamp();
 
     await productRef.update(updates);
 
@@ -128,11 +172,10 @@ exports.updateProduct = asyncHandler(async (req, res, next) => {
 
     res.status(200).json({
         success: true,
-        message: 'Product updated successfully', // Add explicit message
+        message: 'Product updated successfully',
         data: Product.fromFirestore(updatedProduct.id, updatedProduct.data())
     });
 });
-
 // @desc    Delete product
 // @route   DELETE /api/products/:id
 // @access  Private/Admin
