@@ -6,14 +6,15 @@ class Product {
         this.name = data.name || '';
         this.price = data.price || 0;
         this.description = data.description || '';
-        this.image = data.image || '';
-        this.category = data.category || '';
+        this.images = data.images || []; // Changed from 'image' to 'images' (array)
+        this.category = data.category || ''; // e.g., "Birthday Cakes", "Cupcakes"
         this.countInStock = data.countInStock || 0;
-        this.ingredients = data.ingredients || '';
-        this.skinType = data.skinType || '';
-        this.size = data.size || '';
-        this.benefits = data.benefits || '';
-       this.discountPercentage = data.discountPercentage || 0;
+        this.ingredients = data.ingredients || []; // Now an array
+        this.dietaryTags = data.dietaryTags || []; // Replaced 'skinType'. e.g., ["Gluten-Free", "Vegetarian"]
+        this.size = data.size || ''; // e.g., "6-inch", "Dozen", "Single"
+        this.flavorTags = data.flavorTags || []; // Replaced 'benefits'. e.g., ["Chocolate", "Vanilla", "Fruity"]
+        this.isCustom = data.isCustom || false; // New field for made-to-order items
+        this.discountPercentage = data.discountPercentage || 0;
         this.createdAt = data.createdAt || new Date().toISOString();
         this.updatedAt = data.updatedAt || new Date().toISOString();
     }
@@ -23,13 +24,14 @@ class Product {
             name: this.name,
             price: this.price,
             description: this.description,
-            image: this.image,
+            images: this.images,
             category: this.category,
             countInStock: this.countInStock,
             ingredients: this.ingredients,
-            skinType: this.skinType,
+            dietaryTags: this.dietaryTags,
             size: this.size,
-            benefits: this.benefits,
+            flavorTags: this.flavorTags,
+            isCustom: this.isCustom,
             discountPercentage: this.discountPercentage,
             createdAt: this.createdAt,
             updatedAt: this.updatedAt
@@ -42,13 +44,14 @@ class Product {
             name: data.name,
             price: data.price,
             description: data.description,
-            image: data.image,
+            images: data.images,
             category: data.category,
             countInStock: data.countInStock,
             ingredients: data.ingredients,
-            skinType: data.skinType,
+            dietaryTags: data.dietaryTags,
             size: data.size,
-            benefits: data.benefits,
+            flavorTags: data.flavorTags,
+            isCustom: data.isCustom,
             discountPercentage: data.discountPercentage,
             createdAt: data.createdAt,
             updatedAt: data.updatedAt
