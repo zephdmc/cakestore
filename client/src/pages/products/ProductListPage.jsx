@@ -1,75 +1,145 @@
 import { useState, useEffect } from 'react';
 import ProductCard from '../../components/products/ProductCard';
 import ProductFilter from '../../components/products/ProductFilter';
-import { getProducts } from '../../services/productServic';
+import { useProducts } from '../../context/ProductContext'; // Use the context instead of direct service call
 import { motion } from 'framer-motion';
-import {  FiLoader } from 'react-icons/fi';
+import { FiLoader } from 'react-icons/fi';
+
 export default function ProductListPage() {
-    const [products, setProducts] = useState([]);
-    const [categories, setCategories] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
+    const { 
+        products, 
+        categories, 
+        dietaryTags, 
+        flavorTags, 
+        loading, 
+        error, 
+        fetchProducts,
+        refreshProducts 
+    } = useProducts();
+    
+    const [localLoading, setLocalLoading] = useState(false);
 
-    useEffect(() => {
-        const fetchProducts = async () => {
-            try {
-                const response = await getProducts();
-                setProducts(response.data);
-
-                // Extract unique categories
-                const uniqueCategories = [...new Set(
-                    response.data.map(product => product.category)
-                )];
-                setCategories(uniqueCategories);
-            } catch (err) {
-                setError(err.message || 'Failed to load products');
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchProducts();
-    }, []);
+    // No need for separate useEffect since context handles initial loading
 
     const handleFilter = async (filters) => {
         try {
-            setLoading(true);
-            const response = await getProducts(filters);
-            setProducts(response.data);
+            setLocalLoading(true);
+            await fetchProducts(filters);
         } catch (err) {
-            setError(err.message || 'Failed to filter products');
+            console.error('Filter error:', err);
         } finally {
-            setLoading(false);
+            setLocalLoading(false);
         }
     };
-      const itemVariants = {
+
+    const handleClearFilters = () => {
+        refreshProducts(); // Reset to all products
+    };
+
+    const itemVariants = {
         hidden: { opacity: 0, y: 20 },
         show: { opacity: 1, y: 0 }
     };
 
-    if (loading) return <div> <motion.div variants={itemVariants} className="text-center py-12">
+    // Show loading state from context (initial load) or local loading (filtering)
+    if (loading) return (
+        <div className="container mx-auto px-4 py-8">
+            <motion.div 
+                variants={itemVariants} 
+                className="text-center py-12"
+                initial="hidden"
+                animate="show"
+            >
                 <FiLoader className="inline-block animate-spin text-3xl text-purple-600 mb-3" />
-                <p className="text-white">Loading featured products...</p>
+                <p className="text-white">Loading products...</p>
             </motion.div>
-</div>;
-    if (error) return <div className="text-red-500">{error}</div>;
+        </div>
+    );
+
+    if (error) return (
+        <div className="container mx-auto px-4 py-8">
+            <div className="text-red-500 text-center py-8">
+                {error}
+                <button 
+                    onClick={refreshProducts}
+                    className="block mt-4 mx-auto bg-purpleDark text-white px-4 py-2 rounded hover:bg-purpleDark1 transition"
+                >
+                    Try Again
+                </button>
+            </div>
+        </div>
+    );
 
     return (
         <div className="container mx-auto px-4 py-8">
-            <h1 className="text-2xl text-white font-bold mb-6">All Products</h1>
-
-            <ProductFilter categories={categories} onFilter={handleFilter} />
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {products.map((product) => (
-                    <ProductCard key={product.id} product={product} />
-                ))}
+            <div className="flex justify-between items-center mb-6">
+                <h1 className="text-2xl text-white font-bold">Our Delicious Cakes</h1>
+                {products.length > 0 && (
+                    <span className="text-white bg-purpleDark px-3 py-1 rounded-full text-sm">
+                        {products.length} {products.length === 1 ? 'product' : 'products'}
+                    </span>
+                )}
             </div>
 
-            {products.length === 0 && (
-                <div className="text-center py-12">
-                    <p className="text-gray-500">No products found matching your criteria.</p>
+            <ProductFilter 
+                categories={categories} 
+                onFilter={handleFilter} 
+            />
+
+            {/* Filter loading indicator */}
+            {localLoading && (
+                <motion.div 
+                    className="text-center py-4"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                >
+                    <FiLoader className="inline-block animate-spin text-purple-600 mr-2" />
+                    <span className="text-white">Applying filters...</span>
+                </motion.div>
+            )}
+
+            {/* Results summary */}
+            {products.length > 0 && !localLoading && (
+                <div className="mb-6">
+                    <p className="text-white text-sm">
+                        Showing {products.length} {products.length === 1 ? 'result' : 'results'}
+                    </p>
                 </div>
+            )}
+
+            <motion.div 
+                className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
+                variants={{
+                    show: {
+                        transition: {
+                            staggerChildren: 0.1
+                        }
+                    }
+                }}
+                initial="hidden"
+                animate="show"
+            >
+                {products.map((product) => (
+                    <motion.div key={product.id} variants={itemVariants}>
+                        <ProductCard product={product} />
+                    </motion.div>
+                ))}
+            </motion.div>
+
+            {products.length === 0 && !localLoading && (
+                <motion.div 
+                    className="text-center py-12"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                >
+                    <p className="text-gray-400 mb-4">No products found matching your criteria.</p>
+                    <button
+                        onClick={handleClearFilters}
+                        className="bg-purpleDark text-white px-4 py-2 rounded hover:bg-purpleDark1 transition"
+                    >
+                        Clear Filters
+                    </button>
+                </motion.div>
             )}
         </div>
     );
