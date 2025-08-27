@@ -63,11 +63,7 @@ export default function OrderHistory() {
                     Continue Shopping
                 </Link>
             </div>
-{order.isCustomOrder && (
-    <span className="ml-2 bg-purpleLighter text-purpleDark1 text-xs font-medium px-2.5 py-0.5 rounded-full">
-        Custom
-    </span>
-)}
+            
             {loading ? (
                 <div className="flex flex-col items-center justify-center py-12 space-y-4">
                     <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
@@ -118,15 +114,15 @@ export default function OrderHistory() {
                                     {currentOrders.map((order) => (
                                         <tr key={order.id} className="hover:bg-gray-50 transition-colors">
                                             <td className="px-6 py-4 whitespace-nowrap">
-    <div className="flex items-center">
-        <span className="text-sm font-medium text-gray-900">#{order.id.substring(0, 8)}</span>
-        {order.isCustomOrder && (
-            <span className="ml-2 bg-purpleLighter text-purpleDark1 text-xs font-medium px-2.5 py-0.5 rounded-full">
-                Custom
-            </span>
-        )}
-    </div>
-</td>
+                                                <div className="flex items-center">
+                                                    <span className="text-sm font-medium text-gray-900">#{order.id.substring(0, 8)}</span>
+                                                    {order.isCustomOrder && (
+                                                        <span className="ml-2 bg-purpleLighter text-purpleDark1 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                                                            Custom
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                 {formatDate(order.createdAt)}
                                             </td>
@@ -159,16 +155,16 @@ export default function OrderHistory() {
                             <div key={order.id} className="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
                                 <div className="flex justify-between items-start">
                                     <div>
-    <div className="flex items-center">
-        <h3 className="text-sm font-medium text-gray-900">Order #{order.id.substring(0, 8)}</h3>
-        {order.isCustomOrder && (
-            <span className="ml-2 bg-purpleLighter text-purpleDark1 text-xs font-medium px-2.5 py-0.5 rounded-full">
-                Custom
-            </span>
-        )}
-    </div>
-    <p className="text-xs text-gray-500 mt-1">{formatDate(order.createdAt)}</p>
-</div>
+                                        <div className="flex items-center">
+                                            <h3 className="text-sm font-medium text-gray-900">Order #{order.id.substring(0, 8)}</h3>
+                                            {order.isCustomOrder && (
+                                                <span className="ml-2 bg-purpleLighter text-purpleDark1 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                                                    Custom
+                                                </span>
+                                            )}
+                                        </div>
+                                        <p className="text-xs text-gray-500 mt-1">{formatDate(order.createdAt)}</p>
+                                    </div>
                                     <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(order)}`}>
                                         {getStatusText(order)}
                                     </span>
