@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
-import { getProductById } from '../../services/productService'; // Fixed typo: productServic -> productService
+import { getProductById } from '../../services/productServic'; // Fixed typo: productServic -> productService
 import { useEffect } from 'react';
 
 export default function ProductDetail() {
