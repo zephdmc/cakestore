@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { getProductById, updateProduct } from '../../services/productService';
+import { getProductById, updateProduct } from '../../services/productServic';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { auth, storage } from '../../firebase/config';
 
