@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createProduct } from '../../services/productService';
+import { createProduct } from '../../services/productServic';
 // To this:
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { auth, storage } from '../../firebase/config'; // Import storage directly from config
