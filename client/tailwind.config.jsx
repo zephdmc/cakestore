@@ -7,9 +7,9 @@ module.exports = {
     theme: {
         extend: {
             backgroundImage: {
-                'purplegradient': 'linear-gradient(to right, #390039, #C1A5C1, #380638)',
-                'purplegradientv': 'linear-gradient(to bottom, #390039, #C1A5C1, #380638)',
-                'purplegradientr': 'radial-gradient(circle, #390039, #C1A5C1, #380638)',
+                'purplegradient': 'linear-gradient(to right, #390039, #c6c6c6, #380638)',
+                'purplegradientv': 'linear-gradient(to bottom, #390039, #c6c6c6, #380638)',
+                'purplegradientr': 'radial-gradient(circle, #390039, #c6c6c6, #380638)',
                   'greengrade': 'linear-gradient(to right, #6ab6b6, #c6c6c6)',
             },
             colors: {
