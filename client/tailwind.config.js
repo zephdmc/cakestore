@@ -20,7 +20,7 @@ module.exports = {
                 'purpleDark2': '#BB2A8F',
               'purpleLighter': '#F4EAFA',
                'purpleLighter1': '#ede7f6',
-              'white': '#c6c6c6',
+              'white': '#6ab6b6',
               'red': '#e91e63',
                'greengrade': 'radial-gradient(to right, #6ab6b6, #c6c6c6)',
                'green': 'linear-gradient(to right, #6ab6b6, #c6c6c6)',
