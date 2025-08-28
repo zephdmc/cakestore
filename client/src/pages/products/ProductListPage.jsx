@@ -5,6 +5,7 @@ import { useProducts } from '../../context/ProductContext'; // Use the context i
 import { motion } from 'framer-motion';
 import { FiLoader } from 'react-icons/fi';
 
+
 export default function ProductListPage() {
     const { 
         products, 
