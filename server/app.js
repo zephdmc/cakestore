@@ -7,54 +7,74 @@ const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
 const hpp = require('hpp');
 const path = require('path');
-const { db } = require('./config/firebaseConfig'); // Make sure this path is correct
+const { db } = require('./config/firebaseConfig');
 // Import routes
 const authRoutes = require('./routes/authRoutes');
 const productRoutes = require('./routes/productRoutes');
 const orderRoutes = require('./routes/orderRoutes');
-const searchRoutes = require('./routes/searchRoutes')
-const notificationRoutes = require('./routes/notificationRoutes')
-const users = require('./routes/userRoutes')
+const searchRoutes = require('./routes/searchRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
+const users = require('./routes/userRoutes');
 const payments = require('./routes/paymentroute');
 const customOrderRoutes = require('./routes/customOrderRoutes');
 
-// const adminRoutes = require('./routes/adminRoutes');
 // Import error middleware
 const errorMiddleware = require('./middlewares/errorMiddleware');
 
 const app = express();
 
-// Set security HTTP headers
-app.use(helmet());
-console.log(process.env.FRONTEND_URL)
+// Set security HTTP headers with CORS compatibility
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  crossOriginEmbedderPolicy: false
+}));
+
+console.log(process.env.FRONTEND_URL);
+
 // Enable CORS
 const allowedOrigins = [
   'https://www.stefanosbakeshop.com',
-  'https://stefanosbakeshop.com',  // Add non-www version
+  'https://stefanosbakeshop.com',
   'https://cakestore-git-main-stefanos-projects-ea9eedaa.vercel.app',
   'https://bellebeauaesthetics.ng',
   'https://www.bellebeauaesthetics.ng',
-  'http://localhost:3000',  // For local development
-  'http://localhost:3001'   // For local development
+  'http://localhost:3000',
+  'http://localhost:3001'
 ];
 
+// Handle preflight requests FIRST
+app.options('*', cors({
+  origin: allowedOrigins,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  credentials: true,
+  optionsSuccessStatus: 200
+}));
+
+// Apply CORS to all routes
 app.use(cors({
   origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS: ' + origin));
+      console.log('CORS blocked for origin:', origin);
+      callback(new Error('Not allowed by CORS'));
     }
   },
-  methods: ['POST', 'GET', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Added OPTIONS
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  credentials: true,
+  preflightContinue: false
 }));
 
 // Rate limiting
 const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100 // limit each IP to 100 requests per windowMs
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: 'Too many requests from this IP, please try again later.'
 });
 app.use('/api', limiter);
 
@@ -71,20 +91,35 @@ app.use(xss());
 // Prevent parameter pollution
 app.use(hpp());
 
-
-
-// Routes
+// Routes - FIXED route mappings
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/notifications', notificationRoutes);
-app.use('/api/users', notificationRoutes);
-app.use('/api/admin', users);
+app.use('/api/users', users); // FIXED: was pointing to notificationRoutes
+app.use('/api/admin', users); // This might need adjustment if you have separate admin routes
 app.use('/api/payments', payments);
 app.use('/api/custom-orders', customOrderRoutes);
 
+// Health check route
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ 
+    status: 'OK', 
+    message: 'Server is running',
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Error handling middleware
 app.use(errorMiddleware);
+
+// Handle undefined routes
+app.use('*', (req, res) => {
+  res.status(404).json({
+    status: 'error',
+    message: `Route ${req.originalUrl} not found`
+  });
+});
 
 module.exports = app;
