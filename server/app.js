@@ -29,10 +29,13 @@ app.use(helmet());
 console.log(process.env.FRONTEND_URL)
 // Enable CORS
 const allowedOrigins = [
-  'https://www.stefanosbakeshop.com', 
-  'https://cakestore-git-main-stefanos-projects-ea9eedaa.vercel.app'
+  'https://www.stefanosbakeshop.com',
+  'https://stefanosbakeshop.com',  // Add non-www version
+  'https://cakestore-git-main-stefanos-projects-ea9eedaa.vercel.app',
   'https://bellebeauaesthetics.ng',
-  'https://www.bellebeauaesthetics.ng'
+  'https://www.bellebeauaesthetics.ng',
+  'http://localhost:3000',  // For local development
+  'http://localhost:3001'   // For local development
 ];
 
 app.use(cors({
