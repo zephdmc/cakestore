@@ -182,7 +182,7 @@ const handleCustomOrderSubmit = async (orderData) => {
            {isAdmin && (
                 <div className="fixed top-4 right-4 z-50">
                     <Link
-                        to="https://www.bellebeauaesthetics.ng/admin"
+                        to="https://www.stefanosbakeshop.com/admin"
                         className="bg-purplegradient hover:bg-purplegradientv text-white py-2 px-4 rounded-full font-medium transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center gap-2"
                     >
                         1
