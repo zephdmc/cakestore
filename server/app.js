@@ -6,8 +6,7 @@ const cookieParser = require('cookie-parser');
 const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
 const hpp = require('hpp');
-const path = require('path');
-const { db } = require('./config/firebaseConfig');
+
 // Import routes
 const authRoutes = require('./routes/authRoutes');
 const productRoutes = require('./routes/productRoutes');
@@ -17,63 +16,37 @@ const notificationRoutes = require('./routes/notificationRoutes');
 const users = require('./routes/userRoutes');
 const payments = require('./routes/paymentroute');
 const customOrderRoutes = require('./routes/customOrderRoutes');
-
-// Import error middleware
 const errorMiddleware = require('./middlewares/errorMiddleware');
 
 const app = express();
 
-// Set security HTTP headers with CORS compatibility
+// 1. CORS - SIMPLEST POSSIBLE CONFIGURATION
+app.use(cors({
+  origin: true, // Allow ALL origins temporarily
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
+}));
+
+// 2. Handle preflight requests manually
+app.options('*', (req, res) => {
+  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.status(200).send();
+});
+
+// 3. Security headers (CORS compatible)
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" },
   crossOriginEmbedderPolicy: false
 }));
 
-console.log(process.env.FRONTEND_URL);
-
-// Enable CORS
-const allowedOrigins = [
-  'https://www.stefanosbakeshop.com',
-  'https://stefanosbakeshop.com',
-  'https://cakestore-git-main-stefanos-projects-ea9eedaa.vercel.app',
-  'https://bellebeauaesthetics.ng',
-  'https://www.bellebeauaesthetics.ng',
-  'http://localhost:3000',
-  'http://localhost:3001'
-];
-
-// Handle preflight requests FIRST
-app.options('*', cors({
-  origin: allowedOrigins,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  credentials: true,
-  optionsSuccessStatus: 200
-}));
-
-// Apply CORS to all routes
-app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      console.log('CORS blocked for origin:', origin);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Added OPTIONS
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  credentials: true,
-  preflightContinue: false
-}));
-
 // Rate limiting
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
+  windowMs: 15 * 60 * 1000,
+  max: 100,
   message: 'Too many requests from this IP, please try again later.'
 });
 app.use('/api', limiter);
@@ -82,39 +55,43 @@ app.use('/api', limiter);
 app.use(express.json({ limit: '10kb' }));
 app.use(cookieParser());
 
-// Data sanitization against NoSQL query injection
+// Data sanitization
 app.use(mongoSanitize());
-
-// Data sanitization against XSS
 app.use(xss());
-
-// Prevent parameter pollution
 app.use(hpp());
 
-// Routes - FIXED route mappings
+// Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/notifications', notificationRoutes);
-app.use('/api/users', users); // FIXED: was pointing to notificationRoutes
-app.use('/api/admin', users); // This might need adjustment if you have separate admin routes
+app.use('/api/users', users);
 app.use('/api/payments', payments);
 app.use('/api/custom-orders', customOrderRoutes);
 
-// Health check route
+// Health check
 app.get('/api/health', (req, res) => {
-  res.status(200).json({ 
+  res.json({ 
     status: 'OK', 
-    message: 'Server is running',
+    message: 'CORS should be working now',
     timestamp: new Date().toISOString()
   });
 });
 
-// Error handling middleware
+// Test CORS endpoint
+app.get('/api/cors-test', (req, res) => {
+  res.json({ 
+    message: 'CORS is working!',
+    origin: req.headers.origin,
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Error handling
 app.use(errorMiddleware);
 
-// Handle undefined routes
+// 404 handler
 app.use('*', (req, res) => {
   res.status(404).json({
     status: 'error',
