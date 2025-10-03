@@ -214,7 +214,7 @@ const handleClickOutside = (event) => {
             <header className="bg-white shadow-sm sticky top-0 z-50">
                 <div className="container mx-auto px-4 py-4 flex justify-end">
                     <Link
-                        to="https://bellebeauaesthetics.ng/admin"
+                        to="https://www.stefanosbakeshop.com/admin"
                         className="bg-purplegradient hover:bg-purplegradientv text-white py-2 px-4 rounded-full font-medium transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center gap-2"
                     >
                         Admin Dashboard
