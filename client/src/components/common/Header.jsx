@@ -2,7 +2,7 @@ import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { toast } from 'react-toastify';
 import { requestNotificationPermission, setupMessageHandler } from '../../firebase/config';
 import {
@@ -52,7 +52,7 @@ const NotificationItem = ({ notification, onMarkAsRead }) => (
                 whileTap={{ scale: 0.9 }}
                 onClick={(e) => {
                     e.stopPropagation();
-                    onMarkAsRead(notification.id);
+                    onMarkAsRead(notification.id || notification._id);
                 }}
                 className="text-green-400 hover:text-green-300 ml-3 transition-colors duration-200"
                 title="Mark as read"
@@ -150,9 +150,10 @@ export default function Header() {
         const fetchNotifications = async () => {
             try {
                 const response = await getNotifications();
-                setNotifications(response);
+                setNotifications(response || []);
             } catch (error) {
                 console.error("Failed to fetch notifications:", error);
+                setNotifications([]);
             }
         };
 
@@ -168,26 +169,34 @@ export default function Header() {
         return () => unsubscribe();
     }, [currentUser]);
 
-    // Search suggestions
-    useEffect(() => {
-        if (searchQuery.trim().length > 2) {
-            const fetchSuggestions = async () => {
+    // Debounced search function with useCallback
+    const debouncedSearch = useCallback(
+        debounce(async (query) => {
+            if (query.trim().length > 2) {
                 try {
-                    const data = await getSearchSuggestions(searchQuery);
-                    setSearchSuggestions(data);
+                    const data = await getSearchSuggestions(query);
+                    setSearchSuggestions(data || []);
                     setShowSuggestions(true);
                 } catch (error) {
                     setSearchSuggestions([]);
+                    setShowSuggestions(false);
                 }
-            };
+            } else {
+                setSearchSuggestions([]);
+                setShowSuggestions(false);
+            }
+        }, 300),
+        []
+    );
 
-            const debounceTimer = setTimeout(fetchSuggestions, 300);
-            return () => clearTimeout(debounceTimer);
-        } else {
-            setSearchSuggestions([]);
-            setShowSuggestions(false);
-        }
-    }, [searchQuery]);
+    // Search suggestions
+    useEffect(() => {
+        debouncedSearch(searchQuery);
+        
+        return () => {
+            debouncedSearch.cancel();
+        };
+    }, [searchQuery, debouncedSearch]);
 
     const handleLogout = async () => {
         try {
@@ -203,21 +212,21 @@ export default function Header() {
         }
     };
 
-    const handleSearch = debounce(() => {
+    const handleSearch = useCallback(debounce(() => {
         if (searchQuery.trim()) {
             navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
             setSearchQuery('');
             setShowSuggestions(false);
             if (searchRef.current) searchRef.current.blur();
         }
-    }, 500);
+    }, 500), [searchQuery, navigate]);
 
     // Mark as read functions
     const handleMarkAsRead = async (id) => {
         try {
             await markAsRead(id);
             setNotifications(notifications.map(n =>
-                n._id === id ? { ...n, read: true } : n
+                (n.id === id || n._id === id) ? { ...n, read: true } : n
             ));
         } catch (error) {
             toast.error('Failed to mark as read');
@@ -240,6 +249,14 @@ export default function Header() {
         const minutes = Math.floor(ms / 60000);
         const seconds = Math.floor((ms % 60000) / 1000);
         return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    };
+
+    // Handle Enter key in search
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter') {
+            handleSearch();
+            e.preventDefault();
+        }
     };
 
     if (isAdmin) {
@@ -324,7 +341,7 @@ export default function Header() {
                                     className="w-full pl-5 pr-12 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all duration-300"
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                                    onKeyDown={handleKeyDown}
                                     onFocus={() => searchQuery.length > 2 && setShowSuggestions(true)}
                                 />
                                 <motion.button
@@ -348,7 +365,7 @@ export default function Header() {
                                     >
                                         {searchSuggestions.map((item, index) => (
                                             <SearchSuggestion
-                                                key={item.id}
+                                                key={item.id || `search-${index}`}
                                                 item={item}
                                                 onClick={() => {
                                                     navigate(`/products/${item.id}`);
@@ -422,7 +439,7 @@ export default function Header() {
                                                 {notifications.length > 0 ? (
                                                     notifications.map((notification, index) => (
                                                         <NotificationItem
-                                                            key={notification.id}
+                                                            key={notification.id || notification._id || `notification-${index}`}
                                                             notification={notification}
                                                             onMarkAsRead={handleMarkAsRead}
                                                         />
@@ -589,7 +606,7 @@ export default function Header() {
                                     className="mobile-search-input w-full pl-4 pr-12 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all duration-300"
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                                    onKeyDown={handleKeyDown}
                                     ref={searchRef}
                                 />
                                 <motion.button
