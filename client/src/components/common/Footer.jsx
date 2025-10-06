@@ -73,6 +73,30 @@ export default function Footer() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
+    // Data arrays for better organization
+    const quickLinks = [
+        { href: '/', text: 'Home', delay: 0.2 },
+        { href: '/products', text: 'Products', delay: 0.3 },
+        { href: '/about', text: 'About Us', delay: 0.4 },
+        { href: '/blog', text: 'Blog', delay: 0.5 },
+        { href: '/faqs', text: 'FAQs', delay: 0.6 }
+    ];
+
+    const customerServiceLinks = [
+        { href: '/contact', text: 'Contact Us', delay: 0.3 },
+        { href: '/shipping', text: 'Shipping Policy', delay: 0.4 },
+        { href: '/returns', text: 'Returns & Exchanges', delay: 0.5 },
+        { href: '/privacy', text: 'Privacy Policy', delay: 0.6 },
+        { href: '/terms', text: 'Terms of Service', delay: 0.7 }
+    ];
+
+    const socialLinks = [
+        { href: '#', icon: FiFacebook, delay: 0.1 },
+        { href: '#', icon: FiInstagram, delay: 0.2 },
+        { href: '#', icon: FaTiktok, delay: 0.3 },
+        { href: 'https://wa.me/+2349014727839', icon: FaWhatsapp, delay: 0.4 }
+    ];
+
     return (
         <footer className="bg-gradient-to-br from-purple-900 via-purple-800 to-pink-700 relative overflow-hidden">
             {/* Background Pattern */}
@@ -112,26 +136,14 @@ export default function Footer() {
                             whileInView={{ opacity: 1 }}
                             transition={{ duration: 0.6, delay: 0.3 }}
                         >
-                            <SocialIcon 
-                                href="#" 
-                                icon={FiFacebook} 
-                                delay={0.1}
-                            />
-                            <SocialIcon 
-                                href="#" 
-                                icon={FiInstagram} 
-                                delay={0.2}
-                            />
-                            <SocialIcon 
-                                href="#" 
-                                icon={FaTiktok} 
-                                delay={0.3}
-                            />
-                            <SocialIcon 
-                                href="https://wa.me/+2349014727839"
-                                icon={FaWhatsapp}
-                                delay={0.4}
-                            />
+                            {socialLinks.map((social, index) => (
+                                <SocialIcon 
+                                    key={`social-${index}`}
+                                    href={social.href}
+                                    icon={social.icon}
+                                    delay={social.delay}
+                                />
+                            ))}
                         </motion.div>
                     </motion.div>
 
@@ -143,11 +155,15 @@ export default function Footer() {
                     >
                         <h4 className="text-lg font-semibold text-white mb-6 pb-3 border-b border-white/20">Quick Links</h4>
                         <ul className="space-y-1">
-                            <FooterLink href="/" delay={0.2}>Home</FooterLink>
-                            <FooterLink href="/products" delay={0.3}>Products</FooterLink>
-                            <FooterLink href="/about" delay={0.4}>About Us</FooterLink>
-                            <FooterLink href="/blog" delay={0.5}>Blog</FooterLink>
-                            <FooterLink href="/faqs" delay={0.6}>FAQs</FooterLink>
+                            {quickLinks.map((link, index) => (
+                                <FooterLink 
+                                    key={`quick-${index}`}
+                                    href={link.href}
+                                    delay={link.delay}
+                                >
+                                    {link.text}
+                                </FooterLink>
+                            ))}
                         </ul>
                     </motion.div>
 
@@ -159,11 +175,15 @@ export default function Footer() {
                     >
                         <h4 className="text-lg font-semibold text-white mb-6 pb-3 border-b border-white/20">Customer Service</h4>
                         <ul className="space-y-1">
-                            <FooterLink href="/contact" delay={0.3}>Contact Us</FooterLink>
-                            <FooterLink href="/shipping" delay={0.4}>Shipping Policy</FooterLink>
-                            <FooterLink href="/returns" delay={0.5}>Returns & Exchanges</FooterLink>
-                            <FooterLink href="/privacy" delay={0.6}>Privacy Policy</FooterLink>
-                            <FooterLink href="/terms" delay={0.7}>Terms of Service</FooterLink>
+                            {customerServiceLinks.map((link, index) => (
+                                <FooterLink 
+                                    key={`service-${index}`}
+                                    href={link.href}
+                                    delay={link.delay}
+                                >
+                                    {link.text}
+                                </FooterLink>
+                            ))}
                         </ul>
                     </motion.div>
 
@@ -183,7 +203,7 @@ export default function Footer() {
                             <ContactItem icon={FiMail} delay={0.5}>
                                 <a 
                                     href="mailto:stefanosbakeshop6@gmail.com" 
-                                    className="hover:text-purple-300 transition-colors"
+                                    className="hover:text-purple-300 transition-colors duration-300"
                                 >
                                     stefanosbakeshop6@gmail.com
                                 </a>
@@ -191,7 +211,7 @@ export default function Footer() {
                             <ContactItem icon={FiPhone} delay={0.6}>
                                 <a 
                                     href="tel:+2349014727839" 
-                                    className="hover:text-purple-300 transition-colors"
+                                    className="hover:text-purple-300 transition-colors duration-300"
                                 >
                                     +234 901 4727 839
                                 </a>
@@ -210,7 +230,7 @@ export default function Footer() {
                                 <input 
                                     type="email" 
                                     placeholder="Your email address" 
-                                    className="px-4 py-3 w-full bg-white/10 backdrop-blur-sm border border-white/20 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent rounded-l-2xl text-sm"
+                                    className="px-4 py-3 w-full bg-white/10 backdrop-blur-sm border border-white/20 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent rounded-l-2xl text-sm transition-all duration-300"
                                 />
                                 <motion.button 
                                     whileHover={{ scale: 1.05 }}
@@ -245,7 +265,7 @@ export default function Footer() {
                             onClick={scrollToTop}
                             whileHover={{ scale: 1.1, y: -2 }}
                             whileTap={{ scale: 0.9 }}
-                            className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-2xl flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300"
+                            className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-2xl flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 border border-white/20"
                             initial={{ opacity: 0, scale: 0 }}
                             whileInView={{ opacity: 1, scale: 1 }}
                             transition={{ duration: 0.6, delay: 0.3 }}
