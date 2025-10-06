@@ -1,7 +1,208 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 import { getOrdersByUser } from '../../services/orderService';
+import { 
+    FiPackage, 
+    FiShoppingBag, 
+    FiCalendar, 
+    FiDollarSign, 
+    FiTrendingUp,
+    FiArrowRight,
+    FiArrowLeft,
+    FiChevronRight,
+    FiCheckCircle,
+    FiClock,
+    FiTruck,
+    FiAlertCircle,
+    FiSearch
+} from 'react-icons/fi';
+
+// Loading Skeleton Component
+const OrderSkeleton = () => (
+    <div className="space-y-4">
+        {Array.from({ length: 5 }).map((_, index) => (
+            <div key={index} className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 animate-pulse">
+                <div className="flex items-center justify-between">
+                    <div className="space-y-2">
+                        <div className="h-6 bg-white/20 rounded w-32"></div>
+                        <div className="h-4 bg-white/20 rounded w-24"></div>
+                    </div>
+                    <div className="h-8 bg-white/20 rounded w-20"></div>
+                </div>
+                <div className="flex justify-between items-center mt-4">
+                    <div className="h-6 bg-white/20 rounded w-24"></div>
+                    <div className="h-4 bg-white/20 rounded w-16"></div>
+                </div>
+            </div>
+        ))}
+    </div>
+);
+
+// Status Badge Component
+const StatusBadge = ({ order }) => {
+    const getStatusConfig = () => {
+        if (order.isDelivered) return { 
+            color: 'from-green-500 to-emerald-500', 
+            text: 'Delivered', 
+            icon: FiCheckCircle 
+        };
+        if (order.isPaid) return { 
+            color: 'from-blue-500 to-cyan-500', 
+            text: 'Processing', 
+            icon: FiPackage 
+        };
+        return { 
+            color: 'from-yellow-500 to-orange-500', 
+            text: 'Pending Payment', 
+            icon: FiClock 
+        };
+    };
+
+    const config = getStatusConfig();
+    const Icon = config.icon;
+
+    return (
+        <motion.span
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className={`inline-flex items-center gap-2 bg-gradient-to-r ${config.color} text-white px-3 py-1 rounded-full text-xs font-semibold shadow-lg`}
+        >
+            <Icon className="text-xs" />
+            {config.text}
+        </motion.span>
+    );
+};
+
+// Order Card Component
+const OrderCard = ({ order, index }) => (
+    <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: index * 0.1 }}
+        whileHover={{ 
+            y: -4,
+            transition: { duration: 0.3 }
+        }}
+        className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 overflow-hidden group hover:border-white/40 transition-all duration-500"
+    >
+        <div className="p-6">
+            <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
+                        <FiPackage className="text-white text-lg" />
+                    </div>
+                    <div>
+                        <h3 className="text-lg font-semibold text-white">
+                            Order #{order.id.substring(0, 8)}
+                        </h3>
+                        <p className="text-white/70 text-sm flex items-center gap-1">
+                            <FiCalendar className="text-xs" />
+                            {new Date(order.createdAt).toLocaleDateString()}
+                        </p>
+                    </div>
+                </div>
+                <StatusBadge order={order} />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 mb-4">
+                <div className="bg-white/5 rounded-xl p-3 border border-white/10">
+                    <p className="text-white/70 text-sm">Total Amount</p>
+                    <p className="text-white font-semibold text-lg flex items-center gap-1">
+                        <FiDollarSign className="text-purple-300" />
+                        ₦{order.totalPrice.toLocaleString()}
+                    </p>
+                </div>
+                <div className="bg-white/5 rounded-xl p-3 border border-white/10">
+                    <p className="text-white/70 text-sm">Items</p>
+                    <p className="text-white font-semibold">
+                        {order.items.reduce((sum, item) => sum + item.quantity, 0)} items
+                    </p>
+                </div>
+            </div>
+
+            <div className="flex items-center justify-between pt-4 border-t border-white/20">
+                <div className="flex items-center gap-2">
+                    {order.isCustomOrder && (
+                        <span className="bg-purple-500/20 text-purple-300 border border-purple-500/30 px-2 py-1 rounded-full text-xs font-medium">
+                            Custom Order
+                        </span>
+                    )}
+                    <span className="text-white/60 text-sm">
+                        {order.items.length} product{order.items.length > 1 ? 's' : ''}
+                    </span>
+                </div>
+                <motion(Link)
+                    to={`/orders/${order.id}`}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white py-2 px-4 rounded-xl font-medium transition-all duration-300 group-hover:bg-white/20"
+                >
+                    View Details
+                    <FiChevronRight className="transition-transform group-hover:translate-x-1" />
+                </motion(Link>
+            </div>
+        </div>
+    </motion.div>
+);
+
+// Pagination Component
+const Pagination = ({ currentPage, totalPages, onPageChange }) => (
+    <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex items-center justify-between mt-8"
+    >
+        <motion.button
+            onClick={() => onPageChange(Math.max(currentPage - 1, 1))}
+            disabled={currentPage === 1}
+            whileHover={{ scale: currentPage === 1 ? 1 : 1.05 }}
+            whileTap={{ scale: currentPage === 1 ? 1 : 0.95 }}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all duration-300 ${
+                currentPage === 1 
+                    ? 'bg-white/10 text-white/40 cursor-not-allowed' 
+                    : 'bg-white/10 hover:bg-white/20 text-white'
+            }`}
+        >
+            <FiArrowLeft className="text-sm" />
+            Previous
+        </motion.button>
+
+        <div className="flex items-center gap-1">
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                <motion.button
+                    key={page}
+                    onClick={() => onPageChange(page)}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    className={`w-10 h-10 rounded-xl font-medium transition-all duration-300 ${
+                        currentPage === page 
+                            ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg' 
+                            : 'bg-white/10 hover:bg-white/20 text-white'
+                    }`}
+                >
+                    {page}
+                </motion.button>
+            ))}
+        </div>
+
+        <motion.button
+            onClick={() => onPageChange(Math.min(currentPage + 1, totalPages))}
+            disabled={currentPage === totalPages}
+            whileHover={{ scale: currentPage === totalPages ? 1 : 1.05 }}
+            whileTap={{ scale: currentPage === totalPages ? 1 : 0.95 }}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all duration-300 ${
+                currentPage === totalPages 
+                    ? 'bg-white/10 text-white/40 cursor-not-allowed' 
+                    : 'bg-white/10 hover:bg-white/20 text-white'
+            }`}
+        >
+            Next
+            <FiArrowRight className="text-sm" />
+        </motion.button>
+    </motion.div>
+);
 
 export default function OrderHistory() {
     const { currentUser } = useAuth();
@@ -9,7 +210,8 @@ export default function OrderHistory() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
-    const ordersPerPage = 5;
+    const [searchTerm, setSearchTerm] = useState('');
+    const ordersPerPage = 6;
 
     useEffect(() => {
         const fetchOrders = async () => {
@@ -29,191 +231,209 @@ export default function OrderHistory() {
         fetchOrders();
     }, [currentUser]);
 
+    // Filter orders based on search term
+    const filteredOrders = orders.filter(order => 
+        order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        order.totalPrice.toString().includes(searchTerm)
+    );
+
     // Pagination logic
     const indexOfLastOrder = currentPage * ordersPerPage;
     const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
-    const currentOrders = orders.slice(indexOfFirstOrder, indexOfLastOrder);
-    const totalPages = Math.ceil(orders.length / ordersPerPage);
+    const currentOrders = filteredOrders.slice(indexOfFirstOrder, indexOfLastOrder);
+    const totalPages = Math.ceil(filteredOrders.length / ordersPerPage);
 
-    const formatDate = (dateString) => {
-        const options = { year: 'numeric', month: 'short', day: 'numeric' };
-        return new Date(dateString).toLocaleDateString(undefined, options);
-    };
-
-    const getStatusColor = (order) => {
-        if (order.isDelivered) return 'bg-green-100 text-green-800';
-        if (order.isPaid) return 'bg-blue-100 text-blue-800';
-        return 'bg-yellow-100 text-yellow-800';
-    };
-
-    const getStatusText = (order) => {
-        if (order.isDelivered) return 'Delivered';
-        if (order.isPaid) return 'Paid';
-        return 'Processing';
-    };
+    // Stats calculation
+    const totalOrders = orders.length;
+    const totalSpent = orders.reduce((sum, order) => sum + order.totalPrice, 0);
+    const deliveredOrders = orders.filter(order => order.isDelivered).length;
 
     return (
-        <div className="container mx-auto px-4 py-8 max-w-7xl">
-            <div className="flex items-center justify-between mb-8">
-                <h1 className="text-2xl md:text-3xl font-bold text-white">Order History</h1>
-                <Link
-                    to="/products"
-                    className="px-4 py-2 bg-gradient-to-r from-primary to-primary-dark text-white rounded-lg hover:opacity-90 transition-all shadow-md"
+        <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-pink-700 py-8">
+            <div className="container mx-auto px-4 max-w-7xl">
+                {/* Header */}
+                <motion.div
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-8"
                 >
-                    Continue Shopping
-                </Link>
-            </div>
-            
-            {loading ? (
-                <div className="flex flex-col items-center justify-center py-12 space-y-4">
-                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-                    <p className="text-gray-600">Loading your orders...</p>
-                </div>
-            ) : error ? (
-                <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg mb-6">
-                    <div className="flex items-start">
-                        <svg className="h-5 w-5 text-red-500 mt-0.5 mr-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                        </svg>
-                        <div>
-                            <h3 className="text-sm font-medium text-red-800">Error loading orders</h3>
-                            <p className="text-sm text-red-700 mt-1">{error}</p>
-                        </div>
+                    <div>
+                        <h1 className="text-3xl lg:text-4xl font-bold text-white mb-2">Order History</h1>
+                        <p className="text-white/70">Track and manage all your orders in one place</p>
                     </div>
-                </div>
-            ) : orders.length === 0 ? (
-                <div className="text-center py-12 bg-white rounded-xl shadow-sm">
-                    <svg className="mx-auto h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
-                    </svg>
-                    <h3 className="mt-4 text-lg font-medium text-gray-900">No orders yet</h3>
-                    <p className="mt-2 text-gray-500 mb-6">You haven't placed any orders yet.</p>
-                    <Link
+                    <motion(Link)
                         to="/products"
-                        className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-primary to-primary-dark text-white rounded-lg hover:opacity-90 transition-all shadow-md"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white py-3 px-6 rounded-2xl font-semibold transition-all duration-300 shadow-lg backdrop-blur-sm border border-white/20"
                     >
-                        Start Shopping
-                    </Link>
-                </div>
-            ) : (
-                <>
-                    {/* Desktop Table View */}
-                    <div className="hidden md:block bg-white rounded-xl shadow-sm overflow-hidden">
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order #</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
-                                    {currentOrders.map((order) => (
-                                        <tr key={order.id} className="hover:bg-gray-50 transition-colors">
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="flex items-center">
-                                                    <span className="text-sm font-medium text-gray-900">#{order.id.substring(0, 8)}</span>
-                                                    {order.isCustomOrder && (
-                                                        <span className="ml-2 bg-purpleLighter text-purpleDark1 text-xs font-medium px-2.5 py-0.5 rounded-full">
-                                                            Custom
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                {formatDate(order.createdAt)}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                                ₦{order.totalPrice.toLocaleString()}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(order)}`}>
-                                                    {getStatusText(order)}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                <Link
-                                                    to={`/orders/${order.id}`}
-                                                    className="text-primary hover:text-primary-dark hover:underline"
-                                                >
-                                                    View Details
-                                                </Link>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+                        <FiShoppingBag className="text-sm" />
+                        Continue Shopping
+                    </motion(Link>
+                </motion.div>
 
-                    {/* Mobile Card View */}
-                    <div className="md:hidden space-y-4">
-                        {currentOrders.map((order) => (
-                            <div key={order.id} className="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
-                                <div className="flex justify-between items-start">
-                                    <div>
-                                        <div className="flex items-center">
-                                            <h3 className="text-sm font-medium text-gray-900">Order #{order.id.substring(0, 8)}</h3>
-                                            {order.isCustomOrder && (
-                                                <span className="ml-2 bg-purpleLighter text-purpleDark1 text-xs font-medium px-2.5 py-0.5 rounded-full">
-                                                    Custom
-                                                </span>
-                                            )}
-                                        </div>
-                                        <p className="text-xs text-gray-500 mt-1">{formatDate(order.createdAt)}</p>
-                                    </div>
-                                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(order)}`}>
-                                        {getStatusText(order)}
-                                    </span>
+                {/* Stats Cards */}
+                {orders.length > 0 && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 }}
+                        className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"
+                    >
+                        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
+                                    <FiPackage className="text-white text-xl" />
                                 </div>
-                                <div className="mt-3 flex justify-between items-center">
-                                    <p className="text-sm font-medium text-gray-900">₦{order.totalPrice.toLocaleString()}</p>
-                                    <Link
-                                        to={`/orders/${order.id}`}
-                                        className="text-sm text-primary hover:text-primary-dark hover:underline"
-                                    >
-                                        Details
-                                    </Link>
+                                <div>
+                                    <p className="text-white/70 text-sm">Total Orders</p>
+                                    <p className="text-white text-2xl font-bold">{totalOrders}</p>
                                 </div>
                             </div>
-                        ))}
-                    </div>
+                        </div>
+                        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl flex items-center justify-center">
+                                    <FiTrendingUp className="text-white text-xl" />
+                                </div>
+                                <div>
+                                    <p className="text-white/70 text-sm">Total Spent</p>
+                                    <p className="text-white text-2xl font-bold">₦{totalSpent.toLocaleString()}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center">
+                                    <FiTruck className="text-white text-xl" />
+                                </div>
+                                <div>
+                                    <p className="text-white/70 text-sm">Delivered</p>
+                                    <p className="text-white text-2xl font-bold">{deliveredOrders}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
 
-                    {/* Pagination */}
-                    {totalPages > 1 && (
-                        <div className="flex items-center justify-between mt-8">
-                            <button
-                                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                                disabled={currentPage === 1}
-                                className={`px-4 py-2 rounded-md ${currentPage === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                {/* Search Bar */}
+                {orders.length > 0 && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 }}
+                        className="mb-6"
+                    >
+                        <div className="relative max-w-md">
+                            <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/60 text-lg" />
+                            <input
+                                type="text"
+                                placeholder="Search orders by ID or amount..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl pl-10 pr-4 py-3 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            />
+                        </div>
+                    </motion.div>
+                )}
+
+                {/* Content */}
+                {loading ? (
+                    <OrderSkeleton />
+                ) : error ? (
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="bg-red-500/20 backdrop-blur-sm border border-red-500/30 rounded-2xl p-8 text-center"
+                    >
+                        <FiAlertCircle className="text-4xl text-red-400 mx-auto mb-4" />
+                        <h3 className="text-xl font-semibold text-white mb-2">Error Loading Orders</h3>
+                        <p className="text-white/80 mb-6">{error}</p>
+                        <motion.button
+                            onClick={() => window.location.reload()}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white py-3 px-6 rounded-2xl font-semibold transition-all duration-300 shadow-lg"
+                        >
+                            Try Again
+                        </motion.button>
+                    </motion.div>
+                ) : orders.length === 0 ? (
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="text-center py-16"
+                    >
+                        <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-12 max-w-2xl mx-auto">
+                            <div className="w-20 h-20 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                                <FiPackage className="text-3xl text-white" />
+                            </div>
+                            <h3 className="text-2xl font-bold text-white mb-3">No Orders Yet</h3>
+                            <p className="text-white/70 mb-8 max-w-md mx-auto">
+                                You haven't placed any orders yet. Start exploring our products and make your first purchase!
+                            </p>
+                            <motion(Link)
+                                to="/products"
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white py-3 px-8 rounded-2xl font-semibold transition-all duration-300 shadow-lg"
                             >
-                                Previous
-                            </button>
-                            <div className="flex space-x-1">
-                                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                                    <button
-                                        key={page}
-                                        onClick={() => setCurrentPage(page)}
-                                        className={`w-10 h-10 rounded-md ${currentPage === page ? 'bg-primary text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
-                                    >
-                                        {page}
-                                    </button>
+                                <FiShoppingBag className="text-sm" />
+                                Start Shopping
+                            </motion(Link>
+                        </div>
+                    </motion.div>
+                ) : (
+                    <>
+                        {/* Orders Count */}
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="flex items-center justify-between mb-6"
+                        >
+                            <p className="text-white/70">
+                                Showing {Math.min(filteredOrders.length, ordersPerPage)} of {filteredOrders.length} orders
+                            </p>
+                            {searchTerm && (
+                                <button
+                                    onClick={() => setSearchTerm('')}
+                                    className="text-purple-300 hover:text-purple-200 text-sm font-medium"
+                                >
+                                    Clear search
+                                </button>
+                            )}
+                        </motion.div>
+
+                        {/* Orders Grid */}
+                        <AnimatePresence mode="wait">
+                            <motion.div
+                                key={currentPage}
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="grid grid-cols-1 lg:grid-cols-2 gap-6"
+                            >
+                                {currentOrders.map((order, index) => (
+                                    <OrderCard 
+                                        key={order.id} 
+                                        order={order} 
+                                        index={index} 
+                                    />
                                 ))}
-                            </div>
-                            <button
-                                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                                disabled={currentPage === totalPages}
-                                className={`px-4 py-2 rounded-md ${currentPage === totalPages ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
-                            >
-                                Next
-                            </button>
-                        </div>
-                    )}
-                </>
-            )}
+                            </motion.div>
+                        </AnimatePresence>
+
+                        {/* Pagination */}
+                        {totalPages > 1 && (
+                            <Pagination
+                                currentPage={currentPage}
+                                totalPages={totalPages}
+                                onPageChange={setCurrentPage}
+                            />
+                        )}
+                    </>
+                )}
+            </div>
         </div>
     );
 }
