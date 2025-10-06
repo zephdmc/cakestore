@@ -12,6 +12,9 @@ import {
     FiPackage
 } from 'react-icons/fi';
 
+// Create motion-wrapped components at the top level
+const MotionLink = motion(Link);
+
 // Empty Cart Component
 const EmptyCart = () => (
     <motion.div
@@ -53,18 +56,18 @@ const EmptyCart = () => (
                 transition={{ delay: 0.4 }}
                 className="flex flex-col sm:flex-row gap-4 justify-center"
             >
-                <motion(Link)
+                <MotionLink
                     to="/products"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    className="inline-flex items-center gap-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white py-4 px-8 rounded-2xl font-semibold transition-all duration-300 shadow-lg"
+                    className="inline-flex items-center gap-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white py-4 px-8 rounded-2xl font-semibold transition-all duration-300 shadow-lg group"
                 >
                     <FiShoppingBag className="text-sm" />
                     Explore Products
                     <FiArrowRight className="text-sm transition-transform group-hover:translate-x-1" />
-                </motion(Link>
+                </MotionLink>
                 
-                <motion(Link)
+                <MotionLink
                     to="/custom-order"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
@@ -72,7 +75,7 @@ const EmptyCart = () => (
                 >
                     <FiPackage className="text-sm" />
                     Order Custom Cake
-                </motion(Link>
+                </MotionLink>
             </motion.div>
 
             {/* Featured Categories */}
@@ -88,7 +91,7 @@ const EmptyCart = () => (
                     { name: 'Special Occasions', color: 'from-green-500 to-emerald-500' },
                     { name: 'Custom Designs', color: 'from-orange-500 to-red-500' }
                 ].map((category, index) => (
-                    <motion(Link)
+                    <MotionLink
                         key={category.name}
                         to="/products"
                         whileHover={{ scale: 1.05, y: -2 }}
@@ -99,7 +102,7 @@ const EmptyCart = () => (
                         transition={{ delay: 0.7 + index * 0.1 }}
                     >
                         {category.name}
-                    </motion(Link>
+                    </MotionLink>
                 ))}
             </motion.div>
         </div>
@@ -132,7 +135,7 @@ const CartHeader = ({ cartCount, onClearCart }) => (
                 Clear Cart
             </motion.button>
             
-            <motion(Link)
+            <MotionLink
                 to="/products"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -140,7 +143,7 @@ const CartHeader = ({ cartCount, onClearCart }) => (
             >
                 <FiArrowRight className="text-sm rotate-180" />
                 Continue Shopping
-            </motion(Link>
+            </MotionLink>
         </div>
     </motion.div>
 );
@@ -222,7 +225,7 @@ export default function CartPage() {
                             >
                                 <div className="flex flex-col sm:flex-row gap-4 justify-between items-center">
                                     <div className="flex items-center gap-4">
-                                        <motion(Link)
+                                        <MotionLink
                                             to="/products"
                                             whileHover={{ scale: 1.05 }}
                                             whileTap={{ scale: 0.95 }}
@@ -230,9 +233,9 @@ export default function CartPage() {
                                         >
                                             <FiArrowRight className="text-sm rotate-180" />
                                             Continue Shopping
-                                        </motion(Link>
+                                        </MotionLink>
                                         
-                                        <motion(Link)
+                                        <MotionLink
                                             to="/wishlist"
                                             whileHover={{ scale: 1.05 }}
                                             whileTap={{ scale: 0.95 }}
@@ -240,7 +243,7 @@ export default function CartPage() {
                                         >
                                             <FiHeart className="text-sm" />
                                             View Wishlist
-                                        </motion(Link>
+                                        </MotionLink>
                                     </div>
                                     
                                     <motion.div
