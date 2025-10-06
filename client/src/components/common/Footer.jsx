@@ -1,3 +1,4 @@
+import React from 'react';
 import { motion } from 'framer-motion';
 import { 
     FiFacebook, 
@@ -42,6 +43,7 @@ const FooterLink = ({ href, children, delay = 0 }) => (
         initial={{ opacity: 0, x: -20 }}
         whileInView={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.5, delay }}
+        viewport={{ once: true }}
     >
         <a 
             href={href} 
@@ -60,6 +62,7 @@ const ContactItem = ({ icon: Icon, children, delay = 0 }) => (
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay }}
+        viewport={{ once: true }}
     >
         <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center mr-4 mt-1 flex-shrink-0">
             <Icon className="text-white text-lg" />
@@ -120,6 +123,7 @@ export default function Footer() {
                         initial={{ opacity: 0, y: 30 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6 }}
+                        viewport={{ once: true }}
                     >
                         <div className="flex items-center gap-3">
                             <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center">
@@ -142,6 +146,7 @@ export default function Footer() {
                             initial={{ opacity: 0 }}
                             whileInView={{ opacity: 1 }}
                             transition={{ duration: 0.6, delay: 0.3 }}
+                            viewport={{ once: true }}
                         >
                             {socialLinks.map((social, index) => (
                                 <SocialIcon 
@@ -159,6 +164,7 @@ export default function Footer() {
                         initial={{ opacity: 0, y: 30 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6, delay: 0.1 }}
+                        viewport={{ once: true }}
                     >
                         <h4 className="text-lg font-semibold text-white mb-6 pb-3 border-b border-white/20">Quick Links</h4>
                         <ul className="space-y-1">
@@ -179,6 +185,7 @@ export default function Footer() {
                         initial={{ opacity: 0, y: 30 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6, delay: 0.2 }}
+                        viewport={{ once: true }}
                     >
                         <h4 className="text-lg font-semibold text-white mb-6 pb-3 border-b border-white/20">Customer Service</h4>
                         <ul className="space-y-1">
@@ -199,6 +206,7 @@ export default function Footer() {
                         initial={{ opacity: 0, y: 30 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6, delay: 0.3 }}
+                        viewport={{ once: true }}
                     >
                         <h4 className="text-lg font-semibold text-white mb-6 pb-3 border-b border-white/20">Contact Us</h4>
                         <ul className="space-y-4 mb-6">
@@ -233,6 +241,7 @@ export default function Footer() {
                                 initial={{ opacity: 0, scale: 0.9 }}
                                 whileInView={{ opacity: 1, scale: 1 }}
                                 transition={{ duration: 0.6, delay: 0.7 }}
+                                viewport={{ once: true }}
                                 onSubmit={handleNewsletterSubmit}
                             >
                                 <input 
@@ -264,6 +273,7 @@ export default function Footer() {
                             initial={{ opacity: 0 }}
                             whileInView={{ opacity: 1 }}
                             transition={{ duration: 0.6 }}
+                            viewport={{ once: true }}
                         >
                             &copy; {new Date().getFullYear()} Stefanos Bakeshop. Crafted with{' '}
                             <FiHeart className="inline text-red-400 mx-1" />{' '}
@@ -279,6 +289,7 @@ export default function Footer() {
                             initial={{ opacity: 0, scale: 0 }}
                             whileInView={{ opacity: 1, scale: 1 }}
                             transition={{ duration: 0.6, delay: 0.3 }}
+                            viewport={{ once: true }}
                             aria-label="Scroll to top"
                         >
                             <FiArrowUp className="text-lg" />
