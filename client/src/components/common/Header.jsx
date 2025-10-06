@@ -1,4 +1,5 @@
 import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 import { useEffect, useState, useRef } from 'react';
@@ -15,10 +16,13 @@ import {
     FiBell,
     FiChevronDown,
     FiCheck,
-    FiArrowRight
+    FiArrowRight,
+    FiHeart,
+    FiPackage,
+    FiHome,
+    FiShoppingBag
 } from 'react-icons/fi';
 import debounce from 'lodash.debounce';
-import axios from 'axios';
 import {
     getSearchSuggestions,
     searchProducts
@@ -28,6 +32,52 @@ import {
     markAsRead,
     markAllAsRead
 } from '../../services/notificationService';
+
+// Notification Item Component
+const NotificationItem = ({ notification, onMarkAsRead }) => (
+    <motion.div
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        className={`p-4 border-b border-white/10 flex justify-between items-start group hover:bg-white/5 transition-all duration-300 ${
+            !notification.read ? 'bg-purple-500/10' : ''
+        }`}
+    >
+        <div className="flex-1 min-w-0">
+            <div className="text-white text-sm leading-relaxed">{notification.text}</div>
+            <div className="text-white/60 text-xs mt-2">{notification.date}</div>
+        </div>
+        {!notification.read && (
+            <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={(e) => {
+                    e.stopPropagation();
+                    onMarkAsRead(notification.id);
+                }}
+                className="text-green-400 hover:text-green-300 ml-3 transition-colors duration-200"
+                title="Mark as read"
+            >
+                <FiCheck size={16} />
+            </motion.button>
+        )}
+    </motion.div>
+);
+
+// Search Suggestion Item
+const SearchSuggestion = ({ item, onClick }) => (
+    <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="p-3 hover:bg-white/10 cursor-pointer border-b border-white/10 last:border-b-0 flex justify-between items-center group transition-all duration-300"
+        onClick={onClick}
+    >
+        <div className="flex-1 min-w-0">
+            <div className="text-white font-medium truncate">{item.name}</div>
+            <div className="text-white/60 text-xs mt-1">{item.category}</div>
+        </div>
+        <FiArrowRight className="text-white/40 group-hover:text-white transform group-hover:translate-x-1 transition-all duration-300" />
+    </motion.div>
+);
 
 export default function Header() {
     const {
@@ -52,7 +102,6 @@ export default function Header() {
     const searchRef = useRef(null);
     const userMenuRef = useRef(null);
 
-
     // Hide entire nav if user is admin
     const isAdmin = currentUser?.isAdmin;
 
@@ -73,27 +122,28 @@ export default function Header() {
 
     // Close dropdowns when clicking outside
     useEffect(() => {
-        // Update the handleClickOutside function in your useEffect
-const handleClickOutside = (event) => {
-    if (mobileMenuOpen && 
-        !event.target.closest('.mobile-menu-container') && 
-        !event.target.closest('.mobile-search-input')) {
-        setMobileMenuOpen(false);
-    }
-    if (showUserDropdown && userMenuRef.current && !userMenuRef.current.contains(event.target)) {
-        setShowUserDropdown(false);
-    }
-    if (showNotifications && !event.target.closest('.notifications-container')) {
-        setShowNotifications(false);
-    }
-};
+        const handleClickOutside = (event) => {
+            if (mobileMenuOpen && 
+                !event.target.closest('.mobile-menu-container') && 
+                !event.target.closest('.mobile-search-input')) {
+                setMobileMenuOpen(false);
+            }
+            if (showUserDropdown && userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+                setShowUserDropdown(false);
+            }
+            if (showNotifications && !event.target.closest('.notifications-container')) {
+                setShowNotifications(false);
+            }
+            if (showSuggestions && searchRef.current && !searchRef.current.contains(event.target)) {
+                setShowSuggestions(false);
+            }
+        };
 
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, [mobileMenuOpen, showUserDropdown, showNotifications]);
+    }, [mobileMenuOpen, showUserDropdown, showNotifications, showSuggestions]);
 
-
-    // Add this useEffect in your component
+    // Notifications setup
     useEffect(() => {
         if (!currentUser) return;
 
@@ -106,26 +156,16 @@ const handleClickOutside = (event) => {
             }
         };
 
-        // Request permission on first load
         requestNotificationPermission(currentUser.uid)
             .catch(error => console.error('Notification permission error:', error));
 
-        // Handle incoming messages
         const unsubscribe = setupMessageHandler((payload) => {
-            // Show toast notification
             toast.info(payload.notification?.body || 'New notification');
-
-            // Refresh notifications
             fetchNotifications();
-
-            // Optional: Play sound
-            const audio = new Audio('/notification-sound.mp3');
-            audio.play().catch(e => console.error('Audio play failed:', e));
         });
 
-        return () => {
-            unsubscribe(); // Clean up the message handler
-        };
+        fetchNotifications();
+        return () => unsubscribe();
     }, [currentUser]);
 
     // Search suggestions
@@ -149,8 +189,6 @@ const handleClickOutside = (event) => {
         }
     }, [searchQuery]);
 
-
-    // In your Header component, update the logout handler
     const handleLogout = async () => {
         try {
             await signOut({
@@ -164,6 +202,7 @@ const handleClickOutside = (event) => {
             toast.error(`Logout failed: ${error.message}`);
         }
     };
+
     const handleSearch = debounce(() => {
         if (searchQuery.trim()) {
             navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
@@ -172,9 +211,6 @@ const handleClickOutside = (event) => {
             if (searchRef.current) searchRef.current.blur();
         }
     }, 500);
-
-
-
 
     // Mark as read functions
     const handleMarkAsRead = async (id) => {
@@ -188,7 +224,6 @@ const handleClickOutside = (event) => {
         }
     };
 
-
     const handleMarkAllAsRead = async () => {
         try {
             await markAllAsRead();
@@ -197,7 +232,6 @@ const handleClickOutside = (event) => {
             toast.error('Failed to mark all as read');
         }
     };
-
 
     const unreadNotifications = notifications.filter(n => !n.read).length;
 
@@ -208,229 +242,232 @@ const handleClickOutside = (event) => {
         return `${minutes}:${seconds.toString().padStart(2, '0')}`;
     };
 
-
-      if (isAdmin) {
+    if (isAdmin) {
         return (
-            <header className="bg-white shadow-sm sticky top-0 z-50">
-                <div className="container mx-auto px-4 py-4 flex justify-end">
-                    <Link
-                        to="https://www.stefanosbakeshop.com/admin"
-                        className="bg-purplegradient hover:bg-purplegradientv text-white py-2 px-4 rounded-full font-medium transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center gap-2"
+            <header className="bg-gradient-to-r from-purple-900 to-pink-800 shadow-lg sticky top-0 z-50">
+                <div className="container mx-auto px-4 py-3 flex justify-end">
+                    <motion(Link)
+                        to="/admin"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white py-2 px-6 rounded-2xl font-semibold transition-all duration-300 shadow-lg flex items-center gap-2 backdrop-blur-sm border border-white/20"
                     >
                         Admin Dashboard
-                        <FiUser className="ml-1" />
-                    </Link>
+                        <FiArrowRight className="text-sm" />
+                    </motion(Link>
                 </div>
             </header>
         );
     }
 
     return (
-        <header className="bg-white shadow-sm sticky top-0 z-50">
+        <header className="bg-gradient-to-r from-purple-900 to-pink-800 shadow-2xl sticky top-0 z-50">
             {/* Session Timeout Warning */}
-            {showTimeoutWarning && (
-                <div className="bg-yellow-100 text-yellow-800 p-2 text-sm flex items-center justify-center gap-2">
-                    <FiUser className="shrink-0" />
-                    <span>Session expires in {formatTime(timeLeft)}. Move your mouse to extend.</span>
-                </div>
-            )}
+            <AnimatePresence>
+                {showTimeoutWarning && (
+                    <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="bg-yellow-500/20 backdrop-blur-sm text-yellow-200 p-3 text-sm flex items-center justify-center gap-3 border-b border-yellow-500/30"
+                    >
+                        <FiAlertTriangle className="flex-shrink-0" />
+                        <span>Session expires in {formatTime(timeLeft)}. Move your mouse to extend.</span>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
-            <div className="container mx-auto px-4 py-4">
-                {/* Top Bar */}
+            <div className="container mx-auto px-4 py-3">
+                {/* Main Header */}
                 <div className="flex justify-between items-center">
-                    {/* Logo and Mobile Menu Button */}
-                    <div className="flex items-center space-x-4">
-                        <button
+                    {/* Logo and Mobile Menu */}
+                    <div className="flex items-center gap-4">
+                        <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
                             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                            className="md:hidden text-purpleDark hover:text-purpleLight transition"
+                            className="lg:hidden text-white hover:text-purple-200 transition-all duration-300 p-2 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20"
                         >
-                            {mobileMenuOpen ? <FiX size={24} /> : <FiMenu size={24} />}
-                        </button>
-                     <Link 
-  to="/" 
-  className="flex items-center gap-3 hover:opacity-90 transition-opacity group"
->
-  {/* Logo Image - Optimized Sizing */}
-  <div className="
-    w-[50px] h-[50px]       // Base size
-    sm:w-[60px] sm:h-[60px]  // Small tablets
-    md:w-[70px] md:h-[70px]  // Tablets
-    lg:w-[80px] lg:h-[80px]  // Desktops
-  ">
-    <img 
-      src="/images/logo.png" 
-      alt="Bellebeau Aesthetics"
-      className="w-full h-full object-contain" 
-    />
-  </div>
-
-  {/* Text Container - Perfect Vertical Rhythm */}
-  <div className="flex flex-col leading-none">
-    <span className="
-      text-[28px]           // Mobile
-      sm:text-[32px]        // Small tablets
-      md:text-[36px]        // Tablets
-      lg:text-[40px]        // Desktops
-      font-bold 
-      text-purpleDark1
-      tracking-tight        // Slightly condensed
-      -mb-1                 // Tighten spacing
-    ">
-      Stefanos
-    </span>
-    <span className="
-      text-[15px]           // Mobile
-      sm:text-[16px]        // Small tablets
-      md:text-[18px]        // Tablets
-      lg:text-[20px]        // Desktops
-      font-medium           // Slightly emphasized (not bold)
-      text-purpleDark1/80   // Subtle transparency
-      tracking-wider        // Letter spacing for elegance
-      mt-0.5                // Perfect vertical spacing
-    ">
-      Bakeshop
-    </span>
-  </div>
-</Link>
+                            {mobileMenuOpen ? <FiX size={20} /> : <FiMenu size={20} />}
+                        </motion.button>
+                        
+                        <motion(Link)
+                            to="/"
+                            whileHover={{ scale: 1.02 }}
+                            className="flex items-center gap-3 hover:opacity-90 transition-all duration-300 group"
+                        >
+                            <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 flex items-center justify-center p-2">
+                                <img 
+                                    src="/images/logo.png" 
+                                    alt="Stefanos Bakeshop"
+                                    className="w-full h-full object-contain" 
+                                />
+                            </div>
+                            <div className="flex flex-col leading-none">
+                                <span className="text-2xl sm:text-3xl font-bold text-white tracking-tight -mb-1">
+                                    Stefanos
+                                </span>
+                                <span className="text-sm sm:text-base font-medium text-white/80 tracking-wider mt-0.5">
+                                    Bakeshop
+                                </span>
+                            </div>
+                        </motion(Link>
                     </div>
 
-                    {/* Desktop Search Bar with Suggestions */}
-                    <div className="hidden md:flex flex-1 max-w-md mx-4 relative">
-                        <div className="relative w-full">
-                            <input
-                                type="text"
-                                placeholder="Search products..."
-                                className="w-full pl-4 pr-10 py-2 border border-purpleLight rounded-lg focus:outline-none focus:ring-2 focus:ring-purpleLight focus:border-transparent"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                                onFocus={() => searchQuery.length > 2 && setShowSuggestions(true)}
-                                ref={searchRef}
-                            />
-                            <button
-                                onClick={handleSearch}
-                                className="absolute right-3 top-2.5 text-purpleDark1 hover:text-primary transition"
-                            >
-                                <FiSearch size={18} />
-                            </button>
+                    {/* Desktop Search Bar */}
+                    <div className="hidden lg:flex flex-1 max-w-xl mx-8 relative">
+                        <div className="relative w-full" ref={searchRef}>
+                            <div className="relative">
+                                <input
+                                    type="text"
+                                    placeholder="Search cakes, pastries, and more..."
+                                    className="w-full pl-5 pr-12 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all duration-300"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                                    onFocus={() => searchQuery.length > 2 && setShowSuggestions(true)}
+                                />
+                                <motion.button
+                                    whileHover={{ scale: 1.1 }}
+                                    whileTap={{ scale: 0.9 }}
+                                    onClick={handleSearch}
+                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/60 hover:text-white transition-colors duration-300"
+                                >
+                                    <FiSearch size={20} />
+                                </motion.button>
+                            </div>
 
                             {/* Search Suggestions */}
-                            {showSuggestions && searchSuggestions.length > 0 && (
-                                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-purpleLight rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto">
-                                    {searchSuggestions.map(item => (
-                                        <div
-                                            key={item.id}
-                                            className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0 flex justify-between items-center"
-                                            onClick={() => {
-                                                navigate(`/products/${item.id}`);
-                                                setShowSuggestions(false);
-                                            }}
-                                        >
-                                            <div>
-                                                <div className="font-medium">{item.name}</div>
-                                                <div className="text-xs text-purpleDark1">{item.category}</div>
-                                            </div>
-                                            <FiChevronDown className="text-purpleDark transform rotate-90" />
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
+                            <AnimatePresence>
+                                {showSuggestions && searchSuggestions.length > 0 && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: 10 }}
+                                        className="absolute top-full left-0 right-0 mt-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl shadow-2xl z-50 max-h-96 overflow-y-auto"
+                                    >
+                                        {searchSuggestions.map((item, index) => (
+                                            <SearchSuggestion
+                                                key={item.id}
+                                                item={item}
+                                                onClick={() => {
+                                                    navigate(`/products/${item.id}`);
+                                                    setShowSuggestions(false);
+                                                    setSearchQuery('');
+                                                }}
+                                            />
+                                        ))}
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
                         </div>
                     </div>
 
                     {/* Right-side Icons */}
-                    <div className="flex items-center space-x-4">
+                    <div className="flex items-center gap-4">
                         {/* Mobile Search Button */}
-                        <button
-                            className="md:hidden text-gray-purpleDark1 hover:text-primary transition"
+                        <motion.button
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            className="lg:hidden text-white hover:text-purple-200 transition-colors duration-300 p-2 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20"
                             onClick={() => {
                                 setMobileMenuOpen(false);
                                 searchRef.current?.focus();
                             }}
                         >
                             <FiSearch size={20} />
-                        </button>
+                        </motion.button>
 
                         {/* Notifications */}
                         {currentUser && (
                             <div className="relative notifications-container">
-                                <button
-                                    className="text-purpleDark hover:text-primary transition relative"
+                                <motion.button
+                                    whileHover={{ scale: 1.1 }}
+                                    whileTap={{ scale: 0.9 }}
+                                    className="relative text-white hover:text-purple-200 transition-colors duration-300 p-2 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20"
                                     onClick={() => setShowNotifications(!showNotifications)}
                                 >
                                     <FiBell size={20} />
                                     {unreadNotifications > 0 && (
-                                        <span className="absolute -top-1 -right-1 bg-purpleDark1 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
+                                        <motion.span
+                                            initial={{ scale: 0 }}
+                                            animate={{ scale: 1 }}
+                                            className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center border-2 border-purple-900"
+                                        >
                                             {unreadNotifications}
-                                        </span>
+                                        </motion.span>
                                     )}
-                                </button>
-                                {showNotifications && (
-                                    <div className="absolute right-0 mt-2 w-72 bg-white shadow-lg rounded-lg border border-gray-200 z-50">
-                                        <div className="p-3 font-medium border-b flex justify-between items-center">
-                                            <span>Notifications</span>
-                                            {unreadNotifications > 0 && (
-                                                <button
-                                                    onClick={handleMarkAllAsRead}
-                                                    className="text-xs text-primary hover:underline"
-                                                >
-                                                    Mark all as read
-                                                </button>
-                                            )}
-                                        </div>
-                                        <div className="max-h-96 overflow-y-auto">
-                                            {notifications.length > 0 ? (
-                                                notifications.map(notification => (
-                                                    <div
-                                                        key={notification.id}
-                                                        className={`p-3 border-b flex justify-between items-start ${!notification.read ? 'bg-purpleLight' : ''
-                                                            }`}
+                                </motion.button>
+                                
+                                <AnimatePresence>
+                                    {showNotifications && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                                            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                            className="absolute right-0 mt-2 w-80 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl shadow-2xl z-50"
+                                        >
+                                            <div className="p-4 font-semibold text-white border-b border-white/10 flex justify-between items-center">
+                                                <span>Notifications</span>
+                                                {unreadNotifications > 0 && (
+                                                    <button
+                                                        onClick={handleMarkAllAsRead}
+                                                        className="text-sm text-purple-300 hover:text-purple-200 transition-colors duration-300"
                                                     >
-                                                        <div>
-                                                            <div className="text-sm">{notification.text}</div>
-                                                            <div className="text-xs text-purpleDark1 mt-1">{notification.date}</div>
-                                                        </div>
-                                                        {!notification.read && (
-                                                            <button
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    handleMarkAsRead(notification.id);
-                                                                }}
-                                                                className="text-green-500 hover:text-green-700 ml-2"
-                                                                title="Mark as read"
-                                                            >
-                                                                <FiCheck size={16} />
-                                                            </button>
-                                                        )}
+                                                        Mark all as read
+                                                    </button>
+                                                )}
+                                            </div>
+                                            <div className="max-h-96 overflow-y-auto">
+                                                {notifications.length > 0 ? (
+                                                    notifications.map((notification, index) => (
+                                                        <NotificationItem
+                                                            key={notification.id}
+                                                            notification={notification}
+                                                            onMarkAsRead={handleMarkAsRead}
+                                                        />
+                                                    ))
+                                                ) : (
+                                                    <div className="p-6 text-white/60 text-center">
+                                                        No notifications
                                                     </div>
-                                                ))
-                                            ) : (
-                                                <div className="p-4 text-purpleDark1 text-center">No notifications</div>
-                                            )}
-                                        </div>
-                                    </div>
-                                )}
+                                                )}
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
                             </div>
                         )}
 
                         {/* Cart */}
-                        <Link to="/cart" className="relative group">
-                            <FiShoppingCart className="h-6 w-6 text-purpleDark group-hover:text-primary transition" />
+                        <motion(Link)
+                            to="/cart"
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            className="relative group p-2 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20"
+                        >
+                            <FiShoppingCart className="h-6 w-6 text-white group-hover:text-purple-200 transition-colors duration-300" />
                             {cartCount > 0 && (
-                                <span className="absolute -top-2 -right-2 bg-purpleLight text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                                <motion.span
+                                    initial={{ scale: 0 }}
+                                    animate={{ scale: 1 }}
+                                    className="absolute -top-2 -right-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center border-2 border-purple-900 font-semibold"
+                                >
                                     {cartCount}
-                                </span>
+                                </motion.span>
                             )}
-                        </Link>
+                        </motion(Link>
 
                         {/* Auth Section */}
                         {currentUser ? (
-                            <div className="hidden md:block relative" ref={userMenuRef}>
-                                <button
+                            <div className="hidden lg:block relative" ref={userMenuRef}>
+                                <motion.button
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
                                     onClick={() => setShowUserDropdown(!showUserDropdown)}
-                                    className="flex items-center space-x-1 text-purpleDark1 hover:text-primary transition"
+                                    className="flex items-center gap-3 text-white hover:text-purple-200 transition-colors duration-300 p-2 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20"
                                 >
-                                    <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+                                    <div className="w-10 h-10 rounded-2xl bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center overflow-hidden border-2 border-white/20">
                                         {currentUser.photoURL ? (
                                             <img
                                                 src={currentUser.photoURL}
@@ -438,243 +475,254 @@ const handleClickOutside = (event) => {
                                                 className="w-full h-full object-cover"
                                             />
                                         ) : (
-                                            <FiUser className="text-gray-500" />
+                                            <FiUser className="text-white text-lg" />
                                         )}
                                     </div>
-                                    <FiChevronDown className={`transition-transform ${showUserDropdown ? 'transform rotate-180' : ''}`} />
-                                </button>
+                                    <FiChevronDown className={`transition-transform duration-300 ${showUserDropdown ? 'rotate-180' : ''}`} />
+                                </motion.button>
 
                                 {/* User Dropdown */}
-                                {showUserDropdown && (
-                                    <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-lg border border-gray-200 z-50">
-                                        <div className="p-4 border-b">
-                                            <div className="font-medium">{currentUser.displayName || currentUser.email.split('@')[0]}</div>
-                                            <div className="text-xs text-gray-500">{currentUser.email}</div>
-                                        </div>
-                                        {/* <NavLink
-                                            to="/profile"
-                                            onClick={() => setShowUserDropdown(false)}
-                                            className="block px-4 py-2 hover:bg-gray-50 text-sm"
+                                <AnimatePresence>
+                                    {showUserDropdown && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                                            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                            className="absolute right-0 mt-2 w-64 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl shadow-2xl z-50"
                                         >
-                                            My Profile
-                                        </NavLink> */}
-                                        {/* Add this new NavLink for Admin Dashboard */}
-                                        {currentUser.isAdmin && (
-                                            <NavLink
-                                                to="/admin"
-                                                onClick={() => setShowUserDropdown(false)}
-                                                className="block px-4 py-2 hover:bg-gray-50 text-sm"
-                                            >
-                                                Dashboard
-                                            </NavLink>
-                                        )}
-                                        <NavLink
-                                            to="/about"
-                                            onClick={() => setShowUserDropdown(false)}
-                                            className="block px-4 py-2 hover:bg-gray-50 text-sm"
-                                        >
-                                            About
-                                        </NavLink> <NavLink
-                                            to="/products"
-                                            onClick={() => setMobileMenuOpen(false)}
-                                            className={({ isActive }) =>
-                                                `py-2 ${isActive ? 'text-primary text-sm' : 'block px-4 py-2 hover:bg-gray-50 text-sm'}`
-                                            }
-                                        >
-                                            Products
-                                        </NavLink>
-                                        {currentUser && (
-                                            <>
-                                                <NavLink
-                                                    to="/orders"
-                                                    onClick={() => setMobileMenuOpen(false)}
-                                                    className={({ isActive }) =>
-                                                        `py-2 ${isActive ? 'text-primary text-sm' : 'block px-4 py-2 hover:bg-gray-50 text-sm'}`
-                                                    }
-                                                >
-                                                    Orders
-                                                </NavLink>
-                                                {/* <NavLink
-                                    to="/profile"
-                                    onClick={() => setMobileMenuOpen(false)}
-                                    className={({ isActive }) =>
-                                        `py-2 ${isActive ? 'text-primary font-medium' : 'text-gray-600'}`
-                                    }
-                                >
-                                    Profile
-                                </NavLink> */}
+                                            <div className="p-4 border-b border-white/10">
+                                                <div className="font-semibold text-white text-lg">
+                                                    {currentUser.displayName || currentUser.email.split('@')[0]}
+                                                </div>
+                                                <div className="text-white/60 text-sm mt-1">{currentUser.email}</div>
+                                            </div>
+                                            
+                                            <div className="p-2 space-y-1">
                                                 {currentUser.isAdmin && (
                                                     <NavLink
                                                         to="/admin"
-                                                        onClick={() => setMobileMenuOpen(false)}
-                                                        className={({ isActive }) =>
-                                                            `py-2 ${isActive ? 'text-purpleDark1 font-medium' : 'text-purpleDark'}`
-                                                        }
+                                                        onClick={() => setShowUserDropdown(false)}
+                                                        className="flex items-center gap-3 px-3 py-3 text-white hover:bg-white/10 rounded-xl transition-all duration-300 text-sm font-medium"
                                                     >
+                                                        <FiPackage className="text-lg" />
                                                         Dashboard
                                                     </NavLink>
                                                 )}
-
-                                            </>
-                                        )}
-                                        {/* <NavLink
-                                            to="/settings"
-                                            onClick={() => setShowUserDropdown(false)}
-                                            className="block px-4 py-2 hover:bg-gray-50 text-sm"
-                                        >
-                                            Settings
-                                        </NavLink> */}
-                                        <button
-                                            onClick={handleLogout}
-                                            disabled={logoutLoading}
-                                            className={`w-full text-left px-4 py-2 hover:bg-gray-50 text-sm ${logoutLoading ? 'opacity-50 cursor-wait' : ''
-                                                }`}
-                                        >
-                                            {logoutLoading ? 'Signing out...' : 'Sign out'}
-                                        </button>
-                                    </div>
-                                )}
+                                                <NavLink
+                                                    to="/orders"
+                                                    onClick={() => setShowUserDropdown(false)}
+                                                    className="flex items-center gap-3 px-3 py-3 text-white hover:bg-white/10 rounded-xl transition-all duration-300 text-sm font-medium"
+                                                >
+                                                    <FiShoppingBag className="text-lg" />
+                                                    My Orders
+                                                </NavLink>
+                                                <NavLink
+                                                    to="/products"
+                                                    onClick={() => setShowUserDropdown(false)}
+                                                    className="flex items-center gap-3 px-3 py-3 text-white hover:bg-white/10 rounded-xl transition-all duration-300 text-sm font-medium"
+                                                >
+                                                    <FiHeart className="text-lg" />
+                                                    Products
+                                                </NavLink>
+                                            </div>
+                                            
+                                            <div className="p-2 border-t border-white/10">
+                                                <motion.button
+                                                    whileHover={{ scale: 1.02 }}
+                                                    whileTap={{ scale: 0.98 }}
+                                                    onClick={handleLogout}
+                                                    disabled={logoutLoading}
+                                                    className={`w-full flex items-center gap-3 px-3 py-3 text-white hover:bg-red-500/20 rounded-xl transition-all duration-300 text-sm font-medium ${
+                                                        logoutLoading ? 'opacity-50 cursor-wait' : ''
+                                                    }`}
+                                                >
+                                                    <FiLogOut className="text-lg" />
+                                                    {logoutLoading ? 'Signing out...' : 'Sign out'}
+                                                </motion.button>
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
                             </div>
                         ) : (
-                            <div className="hidden md:flex space-x-3">
-                                <Link
+                            <div className="hidden lg:flex items-center gap-3">
+                                <motion(Link)
                                     to="/about"
-                                    className="text-purpleDark1 hover:text-purpleLight transition"
+                                    whileHover={{ scale: 1.05 }}
+                                    className="text-white hover:text-purple-200 transition-colors duration-300 font-medium"
                                 >
                                     About
-                                </Link>
-                                <Link
+                                </motion(Link>
+                                <motion(Link)
                                     to="/login"
-                                    className="text-purpleDark1 hover:text-purpleLight transition"
+                                    whileHover={{ scale: 1.05 }}
+                                    className="text-white hover:text-purple-200 transition-colors duration-300 font-medium"
                                 >
                                     Login
-                                </Link>
-                                <Link
+                                </motion(Link>
+                                <motion(Link)
                                     to="/register"
-                                    className="text-purpleDark1 hover:text-purpleLight transition"
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white py-2 px-6 rounded-2xl font-semibold transition-all duration-300 shadow-lg"
                                 >
                                     Register
-                                </Link>
+                                </motion(Link>
                             </div>
                         )}
                     </div>
                 </div>
 
-                {/* Mobile Search Bar (only visible when activated) */}
-                {mobileMenuOpen && (
-                    <div className="mt-3 md:hidden">
-                        <div className="relative">
- <input
-                                type="text"
-                                placeholder="Search products..."
-                                className="mobile-search-input w-full pl-4 pr-10 py-2 border border-purpleLight rounded-lg focus:outline-none focus:ring-2 focus:ring-purpleDark1 focus:border-transparent"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                                ref={searchRef}
-                            />
-                            <button
-                                onClick={handleSearch()}
-                                className="mobile-search-input absolute right-3 top-2.5 text-purpleLight hover:text-purpleLight transition"
-                            >
-                                <FiSearch size={18} />
-                            </button>
-                        </div>
-                    </div>
-                )}
+                {/* Mobile Search Bar */}
+                <AnimatePresence>
+                    {mobileMenuOpen && (
+                        <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="mt-3 lg:hidden"
+                        >
+                            <div className="relative">
+                                <input
+                                    type="text"
+                                    placeholder="Search cakes, pastries, and more..."
+                                    className="mobile-search-input w-full pl-4 pr-12 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all duration-300"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                                    ref={searchRef}
+                                />
+                                <motion.button
+                                    whileHover={{ scale: 1.1 }}
+                                    whileTap={{ scale: 0.9 }}
+                                    onClick={handleSearch}
+                                    className="mobile-search-input absolute right-3 top-1/2 transform -translate-y-1/2 text-white/60 hover:text-white transition-colors duration-300"
+                                >
+                                    <FiSearch size={20} />
+                                </motion.button>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </div>
 
             {/* Mobile Menu */}
-            {mobileMenuOpen && (
-                <div className="mobile-menu-container md:hidden bg-white border-t">
-                    <nav className="container mx-auto px-4 py-3 flex flex-col space-y-3">
-                        <NavLink
-                            to="/"
-                            onClick={() => setMobileMenuOpen(false)}
-                            className={({ isActive }) =>
-                                `py-2 ${isActive ? 'text-purpleDark1 font-medium' : 'text-purpleDark1'}`
-                            }
-                        >
-                            Home
-                        </NavLink>
-                        <NavLink
-                            to="/products"
-                            onClick={() => setMobileMenuOpen(false)}
-                            className={({ isActive }) =>
-                                `py-2 ${isActive ? 'text-purpleDark1 font-medium' : 'text-purpleDark1'}`
-                            }
-                        >
-                            Products
-                        </NavLink>
-                        {currentUser && (
-                            <>
-                                <NavLink
-                                    to="/orders"
-                                    onClick={() => setMobileMenuOpen(false)}
-                                    className={({ isActive }) =>
-                                        `py-2 ${isActive ? 'text-purpleDark1 font-medium' : 'text-purpleDark1'}`
-                                    }
-                                >
-                                    Orders
-                                </NavLink>
-                                {/* <NavLink
-                                    to="/profile"
-                                    onClick={() => setMobileMenuOpen(false)}
-                                    className={({ isActive }) =>
-                                        `py-2 ${isActive ? 'text-primary font-medium' : 'text-gray-600'}`
-                                    }
-                                >
-                                    Profile
-                                </NavLink> */}
-                                {currentUser.isAdmin && (
+            <AnimatePresence>
+                {mobileMenuOpen && (
+                    <motion.div
+                        initial={{ opacity: 0, x: -300 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -300 }}
+                        className="mobile-menu-container lg:hidden bg-gradient-to-b from-purple-900 to-pink-800 border-t border-white/20 fixed inset-0 z-40 pt-20"
+                    >
+                        <nav className="container mx-auto px-4 py-6 flex flex-col space-y-2">
+                            <NavLink
+                                to="/"
+                                onClick={() => setMobileMenuOpen(false)}
+                                className={({ isActive }) =>
+                                    `flex items-center gap-4 py-4 px-4 rounded-2xl text-lg font-medium transition-all duration-300 ${
+                                        isActive 
+                                            ? 'bg-white/20 text-white' 
+                                            : 'text-white/80 hover:bg-white/10 hover:text-white'
+                                    }`
+                                }
+                            >
+                                <FiHome className="text-xl" />
+                                Home
+                            </NavLink>
+                            
+                            <NavLink
+                                to="/products"
+                                onClick={() => setMobileMenuOpen(false)}
+                                className={({ isActive }) =>
+                                    `flex items-center gap-4 py-4 px-4 rounded-2xl text-lg font-medium transition-all duration-300 ${
+                                        isActive 
+                                            ? 'bg-white/20 text-white' 
+                                            : 'text-white/80 hover:bg-white/10 hover:text-white'
+                                    }`
+                                }
+                            >
+                                <FiShoppingBag className="text-xl" />
+                                Products
+                            </NavLink>
+
+                            {currentUser && (
+                                <>
                                     <NavLink
-                                        to="/admin"
+                                        to="/orders"
                                         onClick={() => setMobileMenuOpen(false)}
                                         className={({ isActive }) =>
-                                            `py-2 ${isActive ? 'text-purpleLight font-medium' : 'text-purpleDark1'}`
+                                            `flex items-center gap-4 py-4 px-4 rounded-2xl text-lg font-medium transition-all duration-300 ${
+                                                isActive 
+                                                    ? 'bg-white/20 text-white' 
+                                                    : 'text-white/80 hover:bg-white/10 hover:text-white'
+                                            }`
                                         }
                                     >
-                                        Dashboard
+                                        <FiPackage className="text-xl" />
+                                        Orders
                                     </NavLink>
-                                )}
+                                    
+                                    {currentUser.isAdmin && (
+                                        <NavLink
+                                            to="/admin"
+                                            onClick={() => setMobileMenuOpen(false)}
+                                            className={({ isActive }) =>
+                                                `flex items-center gap-4 py-4 px-4 rounded-2xl text-lg font-medium transition-all duration-300 ${
+                                                    isActive 
+                                                        ? 'bg-white/20 text-white' 
+                                                        : 'text-white/80 hover:bg-white/10 hover:text-white'
+                                                }`
+                                            }
+                                        >
+                                            <FiUser className="text-xl" />
+                                            Dashboard
+                                        </NavLink>
+                                    )}
+                                </>
+                            )}
 
-                            </>
-                        )}
-                        {currentUser ? (
-                            <>
-                                <div className="pt-2 border-t">
-                                    <button
+                            {currentUser ? (
+                                <div className="pt-6 border-t border-white/20 mt-4">
+                                    <motion.button
+                                        whileHover={{ scale: 1.02 }}
+                                        whileTap={{ scale: 0.98 }}
                                         onClick={handleLogout}
                                         disabled={logoutLoading}
-                                        className={`w-full text-left py-2 flex items-center space-x-2 ${logoutLoading ? 'opacity-50 cursor-wait' : 'text-purpleDark hover:text-purpleLight'
-                                            }`}
+                                        className={`w-full flex items-center gap-4 py-4 px-4 rounded-2xl text-lg font-medium transition-all duration-300 ${
+                                            logoutLoading 
+                                                ? 'opacity-50 cursor-wait bg-white/10 text-white/60' 
+                                                : 'bg-red-500/20 text-red-200 hover:bg-red-500/30'
+                                        }`}
                                     >
-                                        <FiLogOut className="h-5 w-5" />
-                                        <span>Logout</span>
-                                    </button>
+                                        <FiLogOut className="text-xl" />
+                                        {logoutLoading ? 'Signing out...' : 'Sign out'}
+                                    </motion.button>
                                 </div>
-                            </>
-                        ) : (
-                            <div className="pt-2 border-t flex flex-col space-y-2">
-                                <Link
-                                    to="/login"
-                                    onClick={() => setMobileMenuOpen(false)}
-                                    className="py-2 text-purpleDark hover:text-purpleLight transition"
-                                >
-                                    Login
-                                </Link>
-                                <Link
-                                    to="/register"
-                                    onClick={() => setMobileMenuOpen(false)}
-                                    className=" text-purpleDark1 py-2 hover:text-purpleLight  transition"
-                                >
-                                    Register
-                                </Link>
-                            </div>
-                        )}
-                    </nav>
-                </div>
-            )}
+                            ) : (
+                                <div className="pt-6 border-t border-white/20 mt-4 space-y-2">
+                                    <motion(Link)
+                                        to="/login"
+                                        onClick={() => setMobileMenuOpen(false)}
+                                        className="flex items-center gap-4 py-4 px-4 rounded-2xl text-lg font-medium text-white/80 hover:bg-white/10 hover:text-white transition-all duration-300"
+                                    >
+                                        <FiUser className="text-xl" />
+                                        Login
+                                    </motion(Link>
+                                    <motion(Link)
+                                        to="/register"
+                                        onClick={() => setMobileMenuOpen(false)}
+                                        className="flex items-center gap-4 py-4 px-4 rounded-2xl text-lg font-medium bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 transition-all duration-300"
+                                    >
+                                        <FiUser className="text-xl" />
+                                        Register
+                                    </motion(Link>
+                                </div>
+                            )}
+                        </nav>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </header>
     );
 }
