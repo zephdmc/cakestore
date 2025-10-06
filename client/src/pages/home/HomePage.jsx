@@ -260,39 +260,33 @@ export default function HomePage() {
                                 Scent & Hold
                             </motion.h1>
                             
-                            <motion.p
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.8, delay: 0.6 }}
-                                className="text-xl text-white/90 mb-8 leading-relaxed max-w-2xl"
-                            >
-                                Discover skincare made for you — Shop clean beauty, get expert recommendations, and follow the latest trends.
-                            </motion.p>
-
                             <motion.div
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.8, delay: 0.8 }}
-                                className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
-                            >
-                                <motion(Link)
-                                    to="/products"
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
-                                    className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white py-4 px-8 rounded-2xl font-semibold transition-all duration-300 shadow-2xl text-center backdrop-blur-sm border border-white/20"
-                                >
-                                    Shop Ready-Made
-                                </motion(Link>
-                                
-                                <motion.button
-                                    onClick={handleCustomOrderClick}
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
-                                    className="bg-white/10 hover:bg-white/20 text-white py-4 px-8 rounded-2xl font-semibold transition-all duration-300 shadow-2xl text-center backdrop-blur-sm border border-white/20"
-                                >
-                                    Order Custom
-                                </motion.button>
-                            </motion.div>
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.8, delay: 0.8 }}
+    className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
+>
+    <motion.div
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+    >
+        <Link
+            to="/products"
+            className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white py-4 px-8 rounded-2xl font-semibold transition-all duration-300 shadow-2xl text-center backdrop-blur-sm border border-white/20 block"
+        >
+            Shop Ready-Made
+        </Link>
+    </motion.div>
+    
+    <motion.button
+        onClick={handleCustomOrderClick}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        className="bg-white/10 hover:bg-white/20 text-white py-4 px-8 rounded-2xl font-semibold transition-all duration-300 shadow-2xl text-center backdrop-blur-sm border border-white/20"
+    >
+        Order Custom
+    </motion.button>
+</motion.div>
                         </motion.div>
 
                         {/* Image Slideshow */}
