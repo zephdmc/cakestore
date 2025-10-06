@@ -337,7 +337,7 @@ export default function HomePage() {
             </section>
 
             {/* Enhanced Feature Cards Section */}
-            <section className="py-16 px-4 bg-gray-50 ">
+            <section className="py-16 px-4 bg-gray ">
                 <div className="container mx-auto max-w-7xl">
                     <motion.div
                         initial="hidden"
