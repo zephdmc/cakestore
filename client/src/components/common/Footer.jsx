@@ -64,7 +64,7 @@ const ContactItem = ({ icon: Icon, children, delay = 0 }) => (
         <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center mr-4 mt-1 flex-shrink-0">
             <Icon className="text-white text-lg" />
         </div>
-        <span className="text-white/80 leading-relaxed">{children}</span>
+        <div className="text-white/80 leading-relaxed">{children}</div>
     </motion.li>
 );
 
@@ -96,6 +96,13 @@ export default function Footer() {
         { href: '#', icon: FaTiktok, delay: 0.3 },
         { href: 'https://wa.me/+2349014727839', icon: FaWhatsapp, delay: 0.4 }
     ];
+
+    // Handle newsletter submission
+    const handleNewsletterSubmit = (e) => {
+        e.preventDefault();
+        // Add your newsletter logic here
+        console.log('Newsletter subscription');
+    };
 
     return (
         <footer className="bg-gradient-to-br from-purple-900 via-purple-800 to-pink-700 relative overflow-hidden">
@@ -221,25 +228,28 @@ export default function Footer() {
                         {/* Newsletter Subscription */}
                         <div className="mt-6">
                             <h5 className="text-sm font-medium text-white mb-3">Stay Updated</h5>
-                            <motion.div 
+                            <motion.form 
                                 className="flex"
                                 initial={{ opacity: 0, scale: 0.9 }}
                                 whileInView={{ opacity: 1, scale: 1 }}
                                 transition={{ duration: 0.6, delay: 0.7 }}
+                                onSubmit={handleNewsletterSubmit}
                             >
                                 <input 
                                     type="email" 
                                     placeholder="Your email address" 
                                     className="px-4 py-3 w-full bg-white/10 backdrop-blur-sm border border-white/20 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent rounded-l-2xl text-sm transition-all duration-300"
+                                    required
                                 />
                                 <motion.button 
+                                    type="submit"
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
                                     className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-4 py-3 text-sm font-medium rounded-r-2xl transition-all duration-300 flex items-center gap-2"
                                 >
                                     <FiSend className="text-sm" />
                                 </motion.button>
-                            </motion.div>
+                            </motion.form>
                         </div>
                     </motion.div>
                 </div>
@@ -269,6 +279,7 @@ export default function Footer() {
                             initial={{ opacity: 0, scale: 0 }}
                             whileInView={{ opacity: 1, scale: 1 }}
                             transition={{ duration: 0.6, delay: 0.3 }}
+                            aria-label="Scroll to top"
                         >
                             <FiArrowUp className="text-lg" />
                         </motion.button>
