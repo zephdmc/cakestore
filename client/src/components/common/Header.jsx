@@ -33,6 +33,10 @@ import {
     markAllAsRead
 } from '../../services/notificationService';
 
+// Create motion-wrapped components at the top level
+const MotionLink = motion(Link);
+const MotionNavLink = motion(NavLink);
+
 // Notification Item Component
 const NotificationItem = ({ notification, onMarkAsRead }) => (
     <motion.div
@@ -264,7 +268,7 @@ export default function Header() {
         return (
             <header className="bg-gradient-to-r from-purple-900 to-pink-800 shadow-lg sticky top-0 z-50">
                 <div className="container mx-auto px-4 py-3 flex justify-end">
-                    <motion(Link)
+                    <MotionLink
                         to="/admin"
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
@@ -272,7 +276,7 @@ export default function Header() {
                     >
                         Admin Dashboard
                         <FiArrowRight className="text-sm" />
-                    </motion(Link>
+                    </MotionLink>
                 </div>
             </header>
         );
@@ -309,7 +313,7 @@ export default function Header() {
                             {mobileMenuOpen ? <FiX size={20} /> : <FiMenu size={20} />}
                         </motion.button>
                         
-                        <motion(Link)
+                        <MotionLink
                             to="/"
                             whileHover={{ scale: 1.02 }}
                             className="flex items-center gap-3 hover:opacity-90 transition-all duration-300 group"
@@ -329,7 +333,7 @@ export default function Header() {
                                     Bakeshop
                                 </span>
                             </div>
-                        </motion(Link>
+                        </MotionLink>
                     </div>
 
                     {/* Desktop Search Bar */}
@@ -458,7 +462,7 @@ export default function Header() {
                         )}
 
                         {/* Cart */}
-                        <motion(Link)
+                        <MotionLink
                             to="/cart"
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
@@ -474,7 +478,7 @@ export default function Header() {
                                     {cartCount}
                                 </motion.span>
                             )}
-                        </motion(Link>
+                        </MotionLink>
 
                         {/* Auth Section */}
                         {currentUser ? (
@@ -564,28 +568,28 @@ export default function Header() {
                             </div>
                         ) : (
                             <div className="hidden lg:flex items-center gap-3">
-                                <motion(Link)
+                                <MotionLink
                                     to="/about"
                                     whileHover={{ scale: 1.05 }}
                                     className="text-white hover:text-purple-200 transition-colors duration-300 font-medium"
                                 >
                                     About
-                                </motion(Link>
-                                <motion(Link)
+                                </MotionLink>
+                                <MotionLink
                                     to="/login"
                                     whileHover={{ scale: 1.05 }}
                                     className="text-white hover:text-purple-200 transition-colors duration-300 font-medium"
                                 >
                                     Login
-                                </motion(Link>
-                                <motion(Link)
+                                </MotionLink>
+                                <MotionLink
                                     to="/register"
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
                                     className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white py-2 px-6 rounded-2xl font-semibold transition-all duration-300 shadow-lg"
                                 >
                                     Register
-                                </motion(Link>
+                                </MotionLink>
                             </div>
                         )}
                     </div>
@@ -719,22 +723,22 @@ export default function Header() {
                                 </div>
                             ) : (
                                 <div className="pt-6 border-t border-white/20 mt-4 space-y-2">
-                                    <motion(Link)
+                                    <MotionLink
                                         to="/login"
                                         onClick={() => setMobileMenuOpen(false)}
                                         className="flex items-center gap-4 py-4 px-4 rounded-2xl text-lg font-medium text-white/80 hover:bg-white/10 hover:text-white transition-all duration-300"
                                     >
                                         <FiUser className="text-xl" />
                                         Login
-                                    </motion(Link>
-                                    <motion(Link)
+                                    </MotionLink>
+                                    <MotionLink
                                         to="/register"
                                         onClick={() => setMobileMenuOpen(false)}
                                         className="flex items-center gap-4 py-4 px-4 rounded-2xl text-lg font-medium bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 transition-all duration-300"
                                     >
                                         <FiUser className="text-xl" />
                                         Register
-                                    </motion(Link>
+                                    </MotionLink>
                                 </div>
                             )}
                         </nav>
