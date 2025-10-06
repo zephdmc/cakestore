@@ -19,6 +19,9 @@ import {
     FiSearch
 } from 'react-icons/fi';
 
+// Create motion-wrapped components at the top level
+const MotionLink = motion(Link);
+
 // Loading Skeleton Component
 const OrderSkeleton = () => (
     <div className="space-y-4">
@@ -133,7 +136,7 @@ const OrderCard = ({ order, index }) => (
                         {order.items.length} product{order.items.length > 1 ? 's' : ''}
                     </span>
                 </div>
-                <motion(Link)
+                <MotionLink
                     to={`/orders/${order.id}`}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
@@ -141,7 +144,7 @@ const OrderCard = ({ order, index }) => (
                 >
                     View Details
                     <FiChevronRight className="transition-transform group-hover:translate-x-1" />
-                </motion(Link>
+                </MotionLink>
             </div>
         </div>
     </motion.div>
@@ -261,7 +264,7 @@ export default function OrderHistory() {
                         <h1 className="text-3xl lg:text-4xl font-bold text-white mb-2">Order History</h1>
                         <p className="text-white/70">Track and manage all your orders in one place</p>
                     </div>
-                    <motion(Link)
+                    <MotionLink
                         to="/products"
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
@@ -269,7 +272,7 @@ export default function OrderHistory() {
                     >
                         <FiShoppingBag className="text-sm" />
                         Continue Shopping
-                    </motion(Link>
+                    </MotionLink>
                 </motion.div>
 
                 {/* Stats Cards */}
@@ -372,7 +375,7 @@ export default function OrderHistory() {
                             <p className="text-white/70 mb-8 max-w-md mx-auto">
                                 You haven't placed any orders yet. Start exploring our products and make your first purchase!
                             </p>
-                            <motion(Link)
+                            <MotionLink
                                 to="/products"
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
@@ -380,7 +383,7 @@ export default function OrderHistory() {
                             >
                                 <FiShoppingBag className="text-sm" />
                                 Start Shopping
-                            </motion(Link>
+                            </MotionLink>
                         </div>
                     </motion.div>
                 ) : (
