@@ -13,6 +13,9 @@ import {
 } from 'react-icons/fi';
 import { FaWhatsapp, FaRegCopy } from 'react-icons/fa';
 
+// Create motion-wrapped components at the top level
+const MotionLink = motion(Link);
+
 const OrderConfirmation = ({ order }) => {
   const [copied, setCopied] = useState(false);
   const [showAnimation, setShowAnimation] = useState(false);
@@ -258,7 +261,7 @@ const OrderConfirmation = ({ order }) => {
               variants={itemVariants}
               className="flex flex-col sm:flex-row gap-4 justify-center items-center"
             >
-              <motion(Link)
+              <MotionLink
                 to={`/orders/${order.data.id}`}
                 whileHover={{ scale: 1.02, y: -2 }}
                 whileTap={{ scale: 0.98 }}
@@ -266,9 +269,9 @@ const OrderConfirmation = ({ order }) => {
               >
                 View Order Details
                 <FiArrowRight className="text-lg" />
-              </motion(Link>
+              </MotionLink>
               
-              <motion(Link)
+              <MotionLink
                 to="/products"
                 whileHover={{ scale: 1.02, y: -2 }}
                 whileTap={{ scale: 0.98 }}
@@ -276,7 +279,7 @@ const OrderConfirmation = ({ order }) => {
               >
                 Continue Shopping
                 <FiStar className="text-lg" />
-              </motion(Link>
+              </MotionLink>
             </motion.div>
 
             {/* Share Section */}
