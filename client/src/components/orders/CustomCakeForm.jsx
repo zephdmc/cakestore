@@ -2,7 +2,7 @@
 import { useState, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiUpload, FiX, FiCheck, FiArrowLeft, FiArrowRight } from 'react-icons/fi';
+import { FiUpload, FiX, FiCheck, FiArrowLeft, FiArrowRight, FiImage, FiCalendar, FiInfo } from 'react-icons/fi';
 
 // Pricing configuration
 const PRICING = {
@@ -46,11 +46,32 @@ const PRICING = {
   }
 };
 
+const stepVariants = {
+  enter: (direction) => ({
+    x: direction > 0 ? 300 : -300,
+    opacity: 0,
+    scale: 0.95
+  }),
+  center: {
+    x: 0,
+    opacity: 1,
+    scale: 1
+  },
+  exit: (direction) => ({
+    x: direction > 0 ? -300 : 300,
+    opacity: 0,
+    scale: 0.95
+  })
+};
+
 export default function CustomCakeForm({ onClose, onSubmit }) {
   const { currentUser } = useAuth();
   const fileInputRef = useRef(null);
   const [step, setStep] = useState(1);
+  const [direction, setDirection] = useState(0);
   const [uploadedImage, setUploadedImage] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
+  
   const [formData, setFormData] = useState({
     occasion: '',
     size: '',
@@ -66,12 +87,33 @@ export default function CustomCakeForm({ onClose, onSubmit }) {
     referenceImage: null
   });
 
+  const navigateStep = (newStep) => {
+    setDirection(newStep > step ? 1 : -1);
+    setStep(newStep);
+  };
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files[0];
+    if (file) handleImageFile(file);
+  };
+
+  const handleImageFile = (file) => {
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
         alert('Please select an image smaller than 5MB');
@@ -87,6 +129,11 @@ export default function CustomCakeForm({ onClose, onSubmit }) {
     }
   };
 
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    handleImageFile(file);
+  };
+
   const removeImage = () => {
     setUploadedImage(null);
     setFormData({ ...formData, referenceImage: null });
@@ -98,27 +145,22 @@ export default function CustomCakeForm({ onClose, onSubmit }) {
   const calculatePrice = () => {
     let price = PRICING.basePrice;
     
-    // Add size cost
     if (formData.size && PRICING.sizes[formData.size]) {
       price *= PRICING.sizes[formData.size].multiplier;
     }
     
-    // Add flavor cost
     if (formData.flavor && PRICING.flavors[formData.flavor]) {
       price += PRICING.flavors[formData.flavor];
     }
     
-    // Add frosting cost
     if (formData.frosting && PRICING.frostings[formData.frosting]) {
       price += PRICING.frostings[formData.frosting];
     }
     
-    // Add filling cost
     if (formData.filling && PRICING.fillings[formData.filling]) {
       price += PRICING.fillings[formData.filling];
     }
     
-    // Add decorations cost
     if (formData.decorations && PRICING.decorations[formData.decorations]) {
       price += PRICING.decorations[formData.decorations];
     }
@@ -143,205 +185,197 @@ export default function CustomCakeForm({ onClose, onSubmit }) {
     onSubmit(orderData);
   };
 
-  const renderStep1 = () => (
-    <div className="space-y-4">
-      <h3 className="text-lg font-semibold text-purpleDark mb-2">Cake Details</h3>
-      
-      <div>
-        <label className="block text-sm font-medium mb-1">Occasion *</label>
-        <select 
-          name="occasion" 
-          value={formData.occasion}
+  const InputField = ({ label, name, type = 'text', required = false, children, ...props }) => (
+    <div className="mb-6">
+      <label className="block text-sm font-semibold text-gray-700 mb-3 flex items-center">
+        {label}
+        {required && <span className="text-red-500 ml-1">*</span>}
+      </label>
+      {children || (
+        <input
+          type={type}
+          name={name}
+          value={formData[name]}
           onChange={handleChange}
-          className="w-full p-3 border rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-          required
-        >
-          <option value="">Select an occasion</option>
-          <option value="birthday">Birthday</option>
-          <option value="anniversary">Anniversary</option>
-          <option value="wedding">Wedding</option>
-          <option value="baby-shower">Baby Shower</option>
-          <option value="corporate">Corporate Event</option>
-          <option value="other">Other</option>
-        </select>
-      </div>
-      
-      <div>
-        <label className="block text-sm font-medium mb-1">Cake Size *</label>
-        <select 
-          name="size" 
-          value={formData.size}
-          onChange={handleChange}
-          className="w-full p-3 border rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-          required
-        >
-          <option value="">Select size</option>
-          {Object.entries(PRICING.sizes).map(([size, details]) => (
-            <option key={size} value={size}>
-              {size} ({details.servings} servings)
-            </option>
-          ))}
-        </select>
-      </div>
-      
-      <div>
-        <label className="block text-sm font-medium mb-1">Flavor *</label>
-        <select 
-          name="flavor" 
-          value={formData.flavor}
-          onChange={handleChange}
-          className="w-full p-3 border rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-          required
-        >
-          <option value="">Select flavor</option>
-          {Object.entries(PRICING.flavors).map(([flavor, price]) => (
-            <option key={flavor} value={flavor}>
-              {flavor.charAt(0).toUpperCase() + flavor.slice(1)} {price > 0 ? `(+₦${price})` : ''}
-            </option>
-          ))}
-        </select>
-      </div>
-      
-      <div className="flex justify-end mt-6">
-        <button 
-          type="button" 
-          onClick={() => setStep(2)}
-          disabled={!formData.occasion || !formData.size || !formData.flavor}
-          className="flex items-center bg-purplegradient text-white py-2 px-6 rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Next
-          <FiArrowRight className="ml-2" />
-        </button>
-      </div>
+          required={required}
+          className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 placeholder-gray-400"
+          {...props}
+        />
+      )}
     </div>
   );
 
+  const SelectField = ({ label, name, options, required = false, priceMap = {} }) => (
+    <div className="mb-6">
+      <label className="block text-sm font-semibold text-gray-700 mb-3 flex items-center">
+        {label}
+        {required && <span className="text-red-500 ml-1">*</span>}
+      </label>
+      <select 
+        name={name} 
+        value={formData[name]}
+        onChange={handleChange}
+        required={required}
+        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 appearance-none cursor-pointer"
+      >
+        <option value="">Select {label.toLowerCase()}</option>
+        {Object.entries(options).map(([key, value]) => (
+          <option key={key} value={key} className="py-2">
+            {key.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')} 
+            {priceMap[key] > 0 && ` (+₦${priceMap[key].toLocaleString()})`}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+
+  const renderStep1 = () => (
+    <motion.div
+      key="step1"
+      custom={direction}
+      variants={stepVariants}
+      initial="enter"
+      animate="center"
+      exit="exit"
+      transition={{ duration: 0.3 }}
+      className="space-y-2"
+    >
+      <div className="text-center mb-8">
+        <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-4">
+          <FiInfo className="text-white text-2xl" />
+        </div>
+        <h3 className="text-2xl font-bold text-gray-800 mb-2">Cake Details</h3>
+        <p className="text-gray-600">Let's start with the basics of your dream cake</p>
+      </div>
+
+      <SelectField 
+        label="Occasion" 
+        name="occasion" 
+        options={{
+          'birthday': 'Birthday',
+          'anniversary': 'Anniversary', 
+          'wedding': 'Wedding',
+          'baby-shower': 'Baby Shower',
+          'corporate': 'Corporate Event',
+          'other': 'Other'
+        }}
+        required
+      />
+      
+      <SelectField 
+        label="Cake Size" 
+        name="size" 
+        options={PRICING.sizes}
+        required
+      />
+      
+      <SelectField 
+        label="Flavor" 
+        name="flavor" 
+        options={PRICING.flavors}
+        priceMap={PRICING.flavors}
+        required
+      />
+    </motion.div>
+  );
+
   const renderStep2 = () => (
-    <div className="space-y-4">
-      <h3 className="text-lg font-semibold text-purpleDark mb-2">Frosting & Fillings</h3>
+    <motion.div
+      key="step2"
+      custom={direction}
+      variants={stepVariants}
+      initial="enter"
+      animate="center"
+      exit="exit"
+      transition={{ duration: 0.3 }}
+      className="space-y-2"
+    >
+      <div className="text-center mb-8">
+        <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-4">
+          <FiImage className="text-white text-2xl" />
+        </div>
+        <h3 className="text-2xl font-bold text-gray-800 mb-2">Frosting & Fillings</h3>
+        <p className="text-gray-600">Customize the look and taste of your cake</p>
+      </div>
+
+      <SelectField 
+        label="Frosting Type" 
+        name="frosting" 
+        options={PRICING.frostings}
+        priceMap={PRICING.frostings}
+        required
+      />
       
-      <div>
-        <label className="block text-sm font-medium mb-1">Frosting Type *</label>
-        <select 
-          name="frosting" 
-          value={formData.frosting}
-          onChange={handleChange}
-          className="w-full p-3 border rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+      <SelectField 
+        label="Filling" 
+        name="filling" 
+        options={PRICING.fillings}
+        priceMap={PRICING.fillings}
+      />
+      
+      <SelectField 
+        label="Decorations" 
+        name="decorations" 
+        options={PRICING.decorations}
+        priceMap={PRICING.decorations}
+        required
+      />
+      
+      {(formData.decorations === 'message-only' || formData.decorations === 'custom-design') && (
+        <InputField 
+          label={formData.decorations === 'message-only' ? 'Message to write on cake' : 'Design details'}
+          name="message"
           required
         >
-          <option value="">Select frosting</option>
-          {Object.entries(PRICING.frostings).map(([frosting, price]) => (
-            <option key={frosting} value={frosting}>
-              {frosting.charAt(0).toUpperCase() + frosting.slice(1)} {price > 0 ? `(+₦${price})` : ''}
-            </option>
-          ))}
-        </select>
-      </div>
-      
-      <div>
-        <label className="block text-sm font-medium mb-1">Filling</label>
-        <select 
-          name="filling" 
-          value={formData.filling}
-          onChange={handleChange}
-          className="w-full p-3 border rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-        >
-          <option value="none">No filling</option>
-          {Object.entries(PRICING.fillings).map(([filling, price]) => {
-            if (filling === 'none') return null;
-            return (
-              <option key={filling} value={filling}>
-                {filling.charAt(0).toUpperCase() + filling.slice(1)} {price > 0 ? `(+₦${price})` : ''}
-              </option>
-            );
-          })}
-        </select>
-      </div>
-      
-      <div>
-        <label className="block text-sm font-medium mb-1">Decorations *</label>
-        <select 
-          name="decorations" 
-          value={formData.decorations}
-          onChange={handleChange}
-          className="w-full p-3 border rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-          required
-        >
-          <option value="">Select decoration style</option>
-          {Object.entries(PRICING.decorations).map(([decoration, price]) => (
-            <option key={decoration} value={decoration}>
-              {decoration.charAt(0).toUpperCase() + decoration.slice(1).replace(/-/g, ' ')} {price > 0 ? `(+₦${price})` : ''}
-            </option>
-          ))}
-        </select>
-      </div>
-      
-      {formData.decorations === 'message-only' || formData.decorations === 'custom-design' ? (
-        <div>
-          <label className="block text-sm font-medium mb-1">
-            {formData.decorations === 'message-only' ? 'Message to write on cake' : 'Design details'}
-            *
-          </label>
           <textarea 
             name="message" 
             value={formData.message}
             onChange={handleChange}
             rows="3"
-            className="w-full p-3 border rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            required
+            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 resize-none"
             placeholder={formData.decorations === 'message-only' 
               ? 'E.g., Happy Birthday Sarah!' 
-              : 'Please describe your design in detail'}
+              : 'Please describe your design in detail...'}
           />
-        </div>
-      ) : null}
-      
-      <div className="flex justify-between mt-6">
-        <button 
-          type="button" 
-          onClick={() => setStep(1)}
-          className="flex items-center text-purpleDark py-2 px-6 rounded-full border border-purpleDark"
-        >
-          <FiArrowLeft className="mr-2" />
-          Back
-        </button>
-        <button 
-          type="button" 
-          onClick={() => setStep(3)}
-          disabled={!formData.frosting || !formData.decorations}
-          className="flex items-center bg-purplegradient text-white py-2 px-6 rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Next
-          <FiArrowRight className="ml-2" />
-        </button>
-      </div>
-    </div>
+        </InputField>
+      )}
+    </motion.div>
   );
 
   const renderStep3 = () => (
-    <div className="space-y-4">
-      <h3 className="text-lg font-semibold text-purpleDark mb-2">Delivery & Special Requests</h3>
-      
-      <div>
-        <label className="block text-sm font-medium mb-1">Delivery Date *</label>
-        <input 
-          type="date" 
-          name="deliveryDate" 
-          value={formData.deliveryDate}
-          onChange={handleChange}
-          min={new Date().toISOString().split('T')[0]}
-          className="w-full p-3 border rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-          required
-        />
+    <motion.div
+      key="step3"
+      custom={direction}
+      variants={stepVariants}
+      initial="enter"
+      animate="center"
+      exit="exit"
+      transition={{ duration: 0.3 }}
+      className="space-y-2"
+    >
+      <div className="text-center mb-8">
+        <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-4">
+          <FiCalendar className="text-white text-2xl" />
+        </div>
+        <h3 className="text-2xl font-bold text-gray-800 mb-2">Delivery & Special Requests</h3>
+        <p className="text-gray-600">Tell us about delivery and any special requirements</p>
       </div>
+
+      <InputField 
+        label="Delivery Date" 
+        name="deliveryDate" 
+        type="date"
+        required
+        min={new Date().toISOString().split('T')[0]}
+      />
       
-      <div>
-        <label className="block text-sm font-medium mb-1">Preferred Delivery Time</label>
+      <div className="mb-6">
+        <label className="block text-sm font-semibold text-gray-700 mb-3">Preferred Delivery Time</label>
         <select 
           name="deliveryTime" 
           value={formData.deliveryTime}
           onChange={handleChange}
-          className="w-full p-3 border rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+          className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
         >
           <option value="">Any time</option>
           <option value="morning">Morning (8am - 12pm)</option>
@@ -350,235 +384,295 @@ export default function CustomCakeForm({ onClose, onSubmit }) {
         </select>
       </div>
       
-      <div>
-        <label className="block text-sm font-medium mb-1">Allergies or Dietary Restrictions</label>
-        <input 
-          type="text" 
-          name="allergies" 
-          value={formData.allergies}
-          onChange={handleChange}
-          placeholder="E.g., Nut allergy, gluten-free, etc."
-          className="w-full p-3 border rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-        />
-      </div>
+      <InputField 
+        label="Allergies or Dietary Restrictions" 
+        name="allergies"
+        placeholder="E.g., Nut allergy, gluten-free, etc."
+      />
       
-      <div>
-        <label className="block text-sm font-medium mb-1">Special Instructions</label>
+      <InputField label="Special Instructions" name="specialInstructions">
         <textarea 
           name="specialInstructions" 
           value={formData.specialInstructions}
           onChange={handleChange}
           rows="3"
-          placeholder="Any other special requests or instructions"
-          className="w-full p-3 border rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+          placeholder="Any other special requests or instructions..."
+          className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 resize-none"
         />
-      </div>
-      
-      <div>
-        <label className="block text-sm font-medium mb-1">Reference Image (Optional)</label>
-        <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed border-gray-300 rounded-md">
-          <div className="space-y-1 text-center">
-            {uploadedImage ? (
-              <div className="relative">
-                <img src={uploadedImage} alt="Reference" className="mx-auto h-32 object-contain" />
-                <button
-                  type="button"
-                  onClick={removeImage}
-                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1"
-                >
-                  <FiX size={16} />
-                </button>
-              </div>
-            ) : (
-              <>
-                <div className="flex text-sm text-gray-600">
-                  <label className="relative cursor-pointer bg-white rounded-md font-medium text-purple-600 hover:text-purple-500">
-                    <span>Upload a file</span>
-                    <input 
-                      ref={fileInputRef}
-                      id="file-upload" 
-                      name="file-upload" 
-                      type="file" 
-                      className="sr-only" 
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                    />
-                  </label>
-                  <p className="pl-1">or drag and drop</p>
-                </div>
-                <p className="text-xs text-gray-500">PNG, JPG, GIF up to 5MB</p>
-              </>
-            )}
-          </div>
+      </InputField>
+
+      <div className="mb-6">
+        <label className="block text-sm font-semibold text-gray-700 mb-3">Reference Image (Optional)</label>
+        <div 
+          className={`border-2 border-dashed rounded-2xl p-8 text-center transition-all duration-200 cursor-pointer ${
+            isDragging 
+              ? 'border-purple-500 bg-purple-50' 
+              : uploadedImage 
+                ? 'border-green-500 bg-green-50'
+                : 'border-gray-300 bg-gray-50 hover:border-purple-400 hover:bg-purple-50'
+          }`}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          onClick={() => fileInputRef.current?.click()}
+        >
+          {uploadedImage ? (
+            <div className="relative">
+              <img src={uploadedImage} alt="Reference" className="mx-auto h-32 object-contain rounded-lg" />
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); removeImage(); }}
+                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+              >
+                <FiX size={16} />
+              </button>
+              <p className="text-green-600 mt-2">Image uploaded successfully!</p>
+            </div>
+          ) : (
+            <>
+              <FiUpload className="mx-auto text-3xl text-gray-400 mb-3" />
+              <p className="text-gray-600 mb-1">
+                <span className="text-purple-600 font-semibold">Click to upload</span> or drag and drop
+              </p>
+              <p className="text-xs text-gray-500">PNG, JPG, GIF up to 5MB</p>
+            </>
+          )}
+          <input 
+            ref={fileInputRef}
+            type="file" 
+            className="sr-only" 
+            accept="image/*"
+            onChange={handleImageUpload}
+          />
         </div>
       </div>
-      
-      <div className="flex justify-between mt-6">
-        <button 
-          type="button" 
-          onClick={() => setStep(2)}
-          className="flex items-center text-purpleDark py-2 px-6 rounded-full border border-purpleDark"
-        >
-          <FiArrowLeft className="mr-2" />
-          Back
-        </button>
-        <button 
-          type="button" 
-          onClick={() => setStep(4)}
-          disabled={!formData.deliveryDate}
-          className="flex items-center bg-purplegradient text-white py-2 px-6 rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Review Order
-          <FiArrowRight className="ml-2" />
-        </button>
-      </div>
-    </div>
+    </motion.div>
   );
 
   const renderStep4 = () => (
-    <div className="space-y-6">
-      <h3 className="text-lg font-semibold text-purpleDark mb-2">Review Your Order</h3>
-      
-      <div className="bg-gray-50 p-4 rounded-lg">
-        <h4 className="font-medium text-purpleDark mb-2">Cake Details</h4>
-        <div className="grid grid-cols-2 gap-2">
-          <div><span className="text-gray-600">Occasion:</span> {formData.occasion}</div>
-          <div><span className="text-gray-600">Size:</span> {formData.size}</div>
-          <div><span className="text-gray-600">Flavor:</span> {formData.flavor}</div>
-          <div><span className="text-gray-600">Frosting:</span> {formData.frosting}</div>
-          <div><span className="text-gray-600">Filling:</span> {formData.filling || 'None'}</div>
-          <div><span className="text-gray-600">Decorations:</span> {formData.decorations}</div>
-          {formData.message && <div className="col-span-2"><span className="text-gray-600">Message:</span> {formData.message}</div>}
+    <motion.div
+      key="step4"
+      custom={direction}
+      variants={stepVariants}
+      initial="enter"
+      animate="center"
+      exit="exit"
+      transition={{ duration: 0.3 }}
+      className="space-y-6"
+    >
+      <div className="text-center mb-8">
+        <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+          <FiCheck className="text-white text-2xl" />
+        </div>
+        <h3 className="text-2xl font-bold text-gray-800 mb-2">Review Your Order</h3>
+        <p className="text-gray-600">Almost there! Review your custom cake details</p>
+      </div>
+
+      <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 rounded-2xl border border-purple-100">
+        <h4 className="font-bold text-purple-900 mb-4 text-lg">Cake Details</h4>
+        <div className="grid md:grid-cols-2 gap-4">
+          {[
+            ['Occasion', formData.occasion],
+            ['Size', formData.size],
+            ['Flavor', formData.flavor],
+            ['Frosting', formData.frosting],
+            ['Filling', formData.filling || 'None'],
+            ['Decorations', formData.decorations]
+          ].map(([label, value]) => (
+            <div key={label} className="bg-white rounded-lg p-3">
+              <span className="text-gray-600 text-sm">{label}:</span>
+              <p className="font-semibold text-gray-800">{value}</p>
+            </div>
+          ))}
+          {formData.message && (
+            <div className="md:col-span-2 bg-white rounded-lg p-3">
+              <span className="text-gray-600 text-sm">Message:</span>
+              <p className="font-semibold text-gray-800">{formData.message}</p>
+            </div>
+          )}
         </div>
       </div>
-      
-      <div className="bg-gray-50 p-4 rounded-lg">
-        <h4 className="font-medium text-purpleDark mb-2">Delivery Information</h4>
-        <div className="grid grid-cols-2 gap-2">
-          <div><span className="text-gray-600">Delivery Date:</span> {formData.deliveryDate}</div>
-          <div><span className="text-gray-600">Preferred Time:</span> {formData.deliveryTime || 'Any time'}</div>
-          {formData.allergies && <div className="col-span-2"><span className="text-gray-600">Allergies:</span> {formData.allergies}</div>}
-          {formData.specialInstructions && <div className="col-span-2"><span className="text-gray-600">Special Instructions:</span> {formData.specialInstructions}</div>}
+
+      <div className="bg-gradient-to-r from-blue-50 to-cyan-50 p-6 rounded-2xl border border-blue-100">
+        <h4 className="font-bold text-blue-900 mb-4 text-lg">Delivery Information</h4>
+        <div className="grid md:grid-cols-2 gap-4">
+          {[
+            ['Delivery Date', formData.deliveryDate],
+            ['Preferred Time', formData.deliveryTime || 'Any time'],
+            ...(formData.allergies ? [['Allergies', formData.allergies]] : []),
+            ...(formData.specialInstructions ? [['Special Instructions', formData.specialInstructions]] : [])
+          ].map(([label, value]) => (
+            <div key={label} className="bg-white rounded-lg p-3">
+              <span className="text-gray-600 text-sm">{label}:</span>
+              <p className="font-semibold text-gray-800">{value}</p>
+            </div>
+          ))}
         </div>
       </div>
-      
+
       {uploadedImage && (
-        <div className="bg-gray-50 p-4 rounded-lg">
-          <h4 className="font-medium text-purpleDark mb-2">Reference Image</h4>
-          <img src={uploadedImage} alt="Reference" className="h-40 object-contain mx-auto" />
+        <div className="bg-white p-6 rounded-2xl border border-gray-200">
+          <h4 className="font-bold text-gray-800 mb-4 text-lg">Reference Image</h4>
+          <img src={uploadedImage} alt="Reference" className="h-48 object-contain mx-auto rounded-xl shadow-sm" />
         </div>
       )}
-      
-      <div className="bg-purple-50 p-4 rounded-lg">
-        <h4 className="font-medium text-purpleDark mb-2">Price Breakdown</h4>
-        <div className="space-y-2">
-          <div className="flex justify-between">
-            <span>Base price:</span>
-            <span>₦{PRICING.basePrice.toLocaleString()}</span>
-          </div>
-          {formData.size && (
-            <div className="flex justify-between">
-              <span>Size ({formData.size}):</span>
-              <span>+₦{(PRICING.basePrice * (PRICING.sizes[formData.size].multiplier - 1)).toLocaleString()}</span>
+
+      <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-2xl border border-green-100">
+        <h4 className="font-bold text-green-900 mb-4 text-lg">Price Breakdown</h4>
+        <div className="space-y-3">
+          {[
+            ['Base Price', PRICING.basePrice],
+            ...(formData.size ? [['Size Premium', PRICING.basePrice * (PRICING.sizes[formData.size].multiplier - 1)]] : []),
+            ...(formData.flavor && PRICING.flavors[formData.flavor] > 0 ? [['Flavor Upgrade', PRICING.flavors[formData.flavor]]] : []),
+            ...(formData.frosting && PRICING.frostings[formData.frosting] > 0 ? [['Frosting', PRICING.frostings[formData.frosting]]] : []),
+            ...(formData.filling && PRICING.fillings[formData.filling] > 0 ? [['Filling', PRICING.fillings[formData.filling]]] : []),
+            ...(formData.decorations && PRICING.decorations[formData.decorations] > 0 ? [['Decorations', PRICING.decorations[formData.decorations]]] : [])
+          ].map(([label, amount]) => (
+            <div key={label} className="flex justify-between items-center py-2 border-b border-green-100 last:border-b-0">
+              <span className="text-gray-700">{label}:</span>
+              <span className="font-semibold text-gray-800">+₦{amount.toLocaleString()}</span>
             </div>
-          )}
-          {formData.flavor && PRICING.flavors[formData.flavor] > 0 && (
-            <div className="flex justify-between">
-              <span>Flavor ({formData.flavor}):</span>
-              <span>+₦{PRICING.flavors[formData.flavor].toLocaleString()}</span>
+          ))}
+          <div className="border-t border-green-200 pt-3 mt-2">
+            <div className="flex justify-between items-center text-lg font-bold">
+              <span className="text-green-900">Total Amount:</span>
+              <span className="text-green-900">₦{calculatePrice().toLocaleString()}</span>
             </div>
-          )}
-          {formData.frosting && PRICING.frostings[formData.frosting] > 0 && (
-            <div className="flex justify-between">
-              <span>Frosting ({formData.frosting}):</span>
-              <span>+₦{PRICING.frostings[formData.frosting].toLocaleString()}</span>
-            </div>
-          )}
-          {formData.filling && PRICING.fillings[formData.filling] > 0 && (
-            <div className="flex justify-between">
-              <span>Filling ({formData.filling}):</span>
-              <span>+₦{PRICING.fillings[formData.filling].toLocaleString()}</span>
-            </div>
-          )}
-          {formData.decorations && PRICING.decorations[formData.decorations] > 0 && (
-            <div className="flex justify-between">
-              <span>Decorations ({formData.decorations}):</span>
-              <span>+₦{PRICING.decorations[formData.decorations].toLocaleString()}</span>
-            </div>
-          )}
-          <div className="border-t pt-2 mt-2 font-semibold flex justify-between">
-            <span>Total:</span>
-            <span>₦{calculatePrice().toLocaleString()}</span>
           </div>
         </div>
       </div>
-      
-      <div className="flex justify-between mt-6">
-        <button 
-          type="button" 
-          onClick={() => setStep(3)}
-          className="flex items-center text-purpleDark py-2 px-6 rounded-full border border-purpleDark"
-        >
-          <FiArrowLeft className="mr-2" />
-          Back
-        </button>
-        <button 
-          type="submit" 
-          className="flex items-center bg-green-600 text-white py-2 px-6 rounded-full hover:bg-green-700"
-        >
-          Place Order - ₦{calculatePrice().toLocaleString()}
-          <FiCheck className="ml-2" />
-        </button>
-      </div>
+    </motion.div>
+  );
+
+  const StepIndicator = () => (
+    <div className="flex justify-between items-center mb-8 relative">
+      <div className="absolute top-1/2 left-0 right-0 h-1 bg-gray-200 -translate-y-1/2 -z-10"></div>
+      <div 
+        className="absolute top-1/2 left-0 h-1 bg-gradient-to-r from-purple-500 to-pink-500 -translate-y-1/2 transition-all duration-500 -z-10"
+        style={{ width: `${((step - 1) / 3) * 100}%` }}
+      ></div>
+      {[1, 2, 3, 4].map((stepNumber) => (
+        <div key={stepNumber} className="flex flex-col items-center">
+          <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${
+            step >= stepNumber 
+              ? 'bg-gradient-to-r from-purple-500 to-pink-500 border-transparent text-white scale-110 shadow-lg'
+              : 'bg-white border-gray-300 text-gray-400'
+          }`}>
+            {stepNumber}
+          </div>
+          <span className={`text-xs mt-2 font-medium ${
+            step >= stepNumber ? 'text-purple-600' : 'text-gray-400'
+          }`}>
+            {['Details', 'Style', 'Delivery', 'Review'][stepNumber - 1]}
+          </span>
+        </div>
+      ))}
     </div>
   );
 
   return (
-    <AnimatePresence>
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <AnimatePresence mode="wait">
+      <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
         <motion.div 
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.9 }}
-          className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+          initial={{ opacity: 0, scale: 0.9, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.9, y: 20 }}
+          transition={{ duration: 0.3, type: "spring", damping: 25 }}
+          className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-hidden"
         >
-          <div className="p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-bold text-purpleDark">Custom Cake Order</h2>
-              <button onClick={onClose} className="text-gray-500 hover:text-gray-700 text-2xl">
-                &times;
-              </button>
-            </div>
-
-            {/* Progress Steps */}
-            <div className="flex mb-6">
-              {[1, 2, 3, 4].map((stepNumber) => (
-                <div key={stepNumber} className={`flex-1 text-center border-b-2 ${step >= stepNumber ? 'border-purple-500' : 'border-gray-300'}`}>
-                  <span className={`inline-block py-2 px-4 rounded-full ${step >= stepNumber ? 'bg-purple-500 text-white' : 'bg-gray-200'}`}>
-                    {stepNumber}
-                  </span>
+          <div className="relative">
+            {/* Header */}
+            <div className="px-8 py-6 border-b border-gray-100 bg-gradient-to-r from-purple-600 to-pink-600 text-white">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h2 className="text-2xl font-bold">Custom Cake Order</h2>
+                  <p className="text-purple-100 opacity-90">Create your perfect cake in 4 simple steps</p>
                 </div>
-              ))}
+                <button 
+                  onClick={onClose}
+                  className="w-10 h-10 rounded-full bg-white bg-opacity-20 hover:bg-opacity-30 flex items-center justify-center transition-all duration-200 backdrop-blur-sm"
+                >
+                  <FiX className="text-xl" />
+                </button>
+              </div>
             </div>
 
-            {!currentUser ? (
-              <div className="text-center py-8">
-                <p className="mb-4">Please log in to place a custom order</p>
-                <Link 
-                  to="/login" 
-                  className="bg-purplegradient text-white py-2 px-4 rounded-full"
-                  onClick={onClose}
+            {/* Progress Bar */}
+            <div className="px-8 pt-6">
+              <StepIndicator />
+            </div>
+
+            {/* Content */}
+            <div className="px-8 pb-8 max-h-[60vh] overflow-y-auto">
+              {!currentUser ? (
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="text-center py-12"
                 >
-                  Login
-                </Link>
+                  <div className="w-20 h-20 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <FiInfo className="text-white text-3xl" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-800 mb-4">Login Required</h3>
+                  <p className="text-gray-600 mb-8 max-w-md mx-auto">
+                    Please log in to place a custom cake order and access all our features
+                  </p>
+                  <button 
+                    className="bg-gradient-to-r from-purple-500 to-pink-500 text-white py-3 px-8 rounded-full font-semibold hover:shadow-lg transition-all duration-200 transform hover:scale-105"
+                    onClick={() => window.location.href = '/login'}
+                  >
+                    Login to Continue
+                  </button>
+                </motion.div>
+              ) : (
+                <form onSubmit={handleSubmit}>
+                  {step === 1 && renderStep1()}
+                  {step === 2 && renderStep2()}
+                  {step === 3 && renderStep3()}
+                  {step === 4 && renderStep4()}
+                </form>
+              )}
+            </div>
+
+            {/* Footer Navigation */}
+            {currentUser && (
+              <div className="px-8 py-6 border-t border-gray-100 bg-gray-50">
+                <div className="flex justify-between items-center">
+                  <button 
+                    type="button" 
+                    onClick={() => navigateStep(step - 1)}
+                    disabled={step === 1}
+                    className="flex items-center px-6 py-3 rounded-xl border-2 border-gray-300 text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed hover:border-purple-500 hover:text-purple-600 transition-all duration-200 font-semibold"
+                  >
+                    <FiArrowLeft className="mr-2" />
+                    Back
+                  </button>
+
+                  {step < 4 ? (
+                    <button 
+                      type="button" 
+                      onClick={() => navigateStep(step + 1)}
+                      disabled={
+                        (step === 1 && (!formData.occasion || !formData.size || !formData.flavor)) ||
+                        (step === 2 && (!formData.frosting || !formData.decorations)) ||
+                        (step === 3 && !formData.deliveryDate)
+                      }
+                      className="flex items-center px-8 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg transform hover:scale-105 transition-all duration-200 font-semibold"
+                    >
+                      Continue
+                      <FiArrowRight className="ml-2" />
+                    </button>
+                  ) : (
+                    <button 
+                      type="submit" 
+                      className="flex items-center px-8 py-3 rounded-xl bg-gradient-to-r from-green-500 to-green-600 text-white hover:shadow-lg transform hover:scale-105 transition-all duration-200 font-semibold"
+                    >
+                      Place Order - ₦{calculatePrice().toLocaleString()}
+                      <FiCheck className="ml-2" />
+                    </button>
+                  )}
+                </div>
               </div>
-            ) : (
-              <form onSubmit={handleSubmit}>
-                {step === 1 && renderStep1()}
-                {step === 2 && renderStep2()}
-                {step === 3 && renderStep3()}
-                {step === 4 && renderStep4()}
-              </form>
             )}
           </div>
         </motion.div>
