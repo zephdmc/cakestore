@@ -20,6 +20,9 @@ import {
     FiAlertCircle
 } from 'react-icons/fi';
 
+// Create motion-wrapped components at the top level
+const MotionLink = motion(Link);
+
 // Loading Skeleton Component
 const OrderSkeleton = () => (
     <div className="container mx-auto px-4 py-8">
@@ -173,7 +176,7 @@ export default function OrderDetails() {
                         <FiAlertCircle className="text-4xl text-red-400 mx-auto mb-4" />
                         <h3 className="text-xl font-semibold text-white mb-2">Error Loading Order</h3>
                         <p className="text-white/80 mb-6">{error}</p>
-                        <motion(Link)
+                        <MotionLink
                             to="/orders"
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
@@ -181,7 +184,7 @@ export default function OrderDetails() {
                         >
                             <FiArrowLeft className="text-sm" />
                             Back to Orders
-                        </motion(Link>
+                        </MotionLink>
                     </div>
                 </motion.div>
             </div>
@@ -202,7 +205,7 @@ export default function OrderDetails() {
                         </div>
                         <h3 className="text-2xl font-bold text-white mb-3">Order Not Found</h3>
                         <p className="text-white/70 mb-8">We couldn't find the order you're looking for.</p>
-                        <motion(Link)
+                        <MotionLink
                             to="/orders"
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
@@ -210,7 +213,7 @@ export default function OrderDetails() {
                         >
                             <FiArrowLeft className="text-sm" />
                             Back to Orders
-                        </motion(Link>
+                        </MotionLink>
                     </div>
                 </motion.div>
             </div>
@@ -310,7 +313,7 @@ export default function OrderDetails() {
                 >
                     <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
                         <div className="flex items-center gap-4">
-                            <motion(Link)
+                            <MotionLink
                                 to="/orders"
                                 whileHover={{ scale: 1.05, x: -5 }}
                                 whileTap={{ scale: 0.95 }}
@@ -318,7 +321,7 @@ export default function OrderDetails() {
                             >
                                 <FiArrowLeft className="text-sm" />
                                 Back to Orders
-                            </motion(Link>
+                            </MotionLink>
                             <div>
                                 <h1 className="text-3xl lg:text-4xl font-bold text-white">
                                     Order #{order.id.substring(0, 8)}
