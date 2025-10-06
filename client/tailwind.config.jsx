@@ -17,6 +17,7 @@ module.exports = {
                 'purpleDark': '#770077',
                 'purpleLight': '#C1A5C1',
                 'purpleDark2': '#380638',
+                'white': '#ffffff',
                 'Dark': '#000000',
                 'green': 'radial-gradient(to right, #6ab6b6, #c6c6c6)',
                  'greengrade': 'linear-gradient(to right, #6ab6b6, #c6c6c6)',
