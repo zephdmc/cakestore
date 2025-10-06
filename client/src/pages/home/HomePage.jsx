@@ -21,10 +21,10 @@ import { createCustomOrder } from '../../services/customOrderService';
 // Enhanced ImageSlideShow Component
 const ImageSlideShow = ({ isMobile = false }) => {
   const images = [
-    "/images/hero1.jpeg",
-    "/images/hero2.jpeg",
-    "/images/hero3.jpeg",
-    "/images/hero4.jpeg"
+    "/images/hero1.png",
+    "/images/hero2.png",
+    "/images/hero3.png",
+    "/images/hero4.png"
   ];
   
   const [currentIndex, setCurrentIndex] = useState(0);
