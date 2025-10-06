@@ -136,17 +136,20 @@ export default function CartSummary() {
                 >
                     <AnimatePresence>
                         {!isCartEmpty && (
-                            <motion(Link)
-                                to="/checkout"
+                            <motion.div
                                 variants={buttonVariants}
                                 whileHover="hover"
                                 whileTap="tap"
-                                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-4 px-6 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-3"
                             >
-                                <FiCreditCard className="text-lg" />
-                                Proceed to Checkout
-                                <FiArrowRight className="text-lg" />
-                            </motion(Link>
+                                <Link
+                                    to="/checkout"
+                                    className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-4 px-6 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-3 block"
+                                >
+                                    <FiCreditCard className="text-lg" />
+                                    Proceed to Checkout
+                                    <FiArrowRight className="text-lg" />
+                                </Link>
+                            </motion.div>
                         )}
                     </AnimatePresence>
 
