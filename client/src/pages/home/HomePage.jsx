@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import ProductCard from '../../components/products/ProductCard';
 import { getProducts } from '../../services/productServic';
 import TestimonialSlider from '../../pages/home/HomePageComponent/TestimonialSlider';
-import AboutSection from '../../pages/home/HomePageComponent/Aboutsection';
+import AboutSection from '../../pages/home/HomePageComponent/AboutSection';
 import { FiHeart, FiAward, FiLoader, FiAlertTriangle, FiShoppingBag, FiArrowRight, FiStar } from 'react-icons/fi';
 import { FaWhatsapp } from 'react-icons/fa';
 import { useAuth } from '../../context/AuthContext';
