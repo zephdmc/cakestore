@@ -22,54 +22,38 @@ const app = express();
 
 // ==================== CORS FIX - GUARANTEED WORKING ====================
 
-// OPTION 1: Simple & Effective CORS
+// CORS Middleware - MUST BE FIRST
 app.use(cors({
   origin: [
     'https://www.stefanosbakeshop.com',
     'https://stefanosbakeshop.com',
-    'http://localhost:3000' // for development
+    'http://localhost:3000',
+    'http://localhost:5173'
   ],
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH', 'HEAD'],
   allowedHeaders: [
-    'Content-Type', 
-    'Authorization', 
-    'X-Requested-With', 
+    'Content-Type',
+    'Authorization',
+    'X-Requested-With',
     'Accept',
     'Origin',
     'Access-Control-Request-Method',
-    'Access-Control-Request-Headers'
+    'Access-Control-Request-Headers',
+    'X-CSRF-Token'
   ],
-  optionsSuccessStatus: 200
+  exposedHeaders: ['Content-Range', 'X-Content-Range'],
+  optionsSuccessStatus: 200,
+  preflightContinue: false,
+  maxAge: 86400 // 24 hours
 }));
 
-// OPTION 2: Manual CORS as backup (uncomment if Option 1 doesn't work)
-/*
-app.use((req, res, next) => {
-  const allowedOrigins = [
-    'https://www.stefanosbakeshop.com',
-    'https://stefanosbakeshop.com',
-    'http://localhost:3000'
-  ];
-  const origin = req.headers.origin;
-  
-  if (allowedOrigins.includes(origin)) {
-    res.header('Access-Control-Allow-Origin', origin);
-  }
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-  next();
-});
-*/
+// Handle preflight requests globally
+app.options('*', cors());
 
 // ==================== SECURITY MIDDLEWARE ====================
 
-// Security headers - CORS compatible
+// Security headers
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" },
   crossOriginEmbedderPolicy: false,
@@ -78,16 +62,16 @@ app.use(helmet({
       defaultSrc: ["'self'"],
       scriptSrc: ["'self'", "'unsafe-inline'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
-      imgSrc: ["'self'", "data:", "https:"],
+      imgSrc: ["'self'", "data:", "https:", "blob:"],
       connectSrc: ["'self'", "https://cakestore-8pe7.onrender.com", "https://www.stefanosbakeshop.com"]
     }
   }
 }));
 
-// Rate limiting - temporarily increased for testing
+// Rate limiting - temporarily relaxed
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 500, // Increased for testing
+  max: 1000,
   message: {
     error: 'Too many requests from this IP, please try again later.'
   },
@@ -96,15 +80,30 @@ const limiter = rateLimit({
 });
 app.use('/api', limiter);
 
-// Body parser
-app.use(express.json({ limit: '10mb' })); // Increased limit
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+// Body parser with increased limits for file uploads
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(cookieParser());
 
 // Data sanitization
 app.use(mongoSanitize());
 app.use(xss());
 app.use(hpp());
+
+// ==================== REQUEST LOGGING MIDDLEWARE ====================
+
+// Add request logging to debug CORS issues
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`, {
+    origin: req.headers.origin,
+    'user-agent': req.headers['user-agent'],
+    'content-type': req.headers['content-type']
+  });
+  
+  // Add CORS headers to every response
+  res.header('Access-Control-Allow-Credentials', 'true');
+  next();
+});
 
 // ==================== ROUTES ====================
 
@@ -119,67 +118,36 @@ app.use('/api/custom-orders', customOrderRoutes);
 
 // ==================== TEST ENDPOINTS ====================
 
-// Health check with detailed CORS info
+// Health check
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'OK', 
-    message: 'Server is running with CORS enabled',
+    message: 'Server is running with CORS',
     timestamp: new Date().toISOString(),
     origin: req.headers.origin,
-    cors: {
-      enabled: true,
-      allowedOrigins: ['https://www.stefanosbakeshop.com', 'https://stefanosbakeshop.com'],
-      credentials: true
-    }
+    cors: 'enabled'
   });
 });
 
-// CORS test endpoint
-app.get('/api/test-cors', (req, res) => {
+// Test POST endpoint for products
+app.post('/api/test-product-create', (req, res) => {
+  console.log('Test product creation received:', req.body);
+  res.json({ 
+    success: true,
+    message: 'Product creation endpoint is working!',
+    receivedData: req.body,
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Test CORS endpoint
+app.get('/api/cors-test', (req, res) => {
   res.json({ 
     success: true,
     message: 'CORS is working perfectly!',
     yourOrigin: req.headers.origin,
-    timestamp: new Date().toISOString(),
-    headers: {
-      origin: req.headers.origin,
-      'access-control-request-method': req.headers['access-control-request-method'],
-      'access-control-request-headers': req.headers['access-control-request-headers']
-    }
+    timestamp: new Date().toISOString()
   });
-});
-
-// Test products endpoint
-app.get('/api/test-products', (req, res) => {
-  res.json({
-    success: true,
-    products: [
-      { id: 1, name: 'Test Chocolate Cake', price: 29.99, inStock: true },
-      { id: 2, name: 'Test Vanilla Cake', price: 24.99, inStock: true }
-    ],
-    message: 'Products endpoint is working with CORS'
-  });
-});
-
-// Test orders endpoint
-app.get('/api/test-orders', (req, res) => {
-  res.json({
-    success: true,
-    orders: [
-      { id: 1, status: 'pending', total: 29.99 },
-      { id: 2, status: 'completed', total: 45.50 }
-    ],
-    message: 'Orders endpoint is working with CORS'
-  });
-});
-
-// Pre-flight test endpoint
-app.options('/api/test-preflight', (req, res) => {
-  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  res.status(200).send();
 });
 
 // ==================== ERROR HANDLING ====================
@@ -187,31 +155,17 @@ app.options('/api/test-preflight', (req, res) => {
 // Error handling middleware
 app.use(errorMiddleware);
 
-// 404 handler with CORS headers
+// 404 handler
 app.use('*', (req, res) => {
   res.status(404).json({
     status: 'error',
     message: `Route ${req.originalUrl} not found`,
     availableEndpoints: [
       '/api/health',
-      '/api/test-cors',
-      '/api/test-products',
-      '/api/test-orders',
-      '/api/auth/*',
-      '/api/products/*',
-      '/api/orders/*'
+      '/api/cors-test',
+      '/api/test-product-create (POST)',
+      '/api/products (GET, POST)'
     ]
-  });
-});
-
-// Global error handler
-app.use((err, req, res, next) => {
-  console.error('Global Error Handler:', err);
-  
-  res.status(err.status || 500).json({
-    status: 'error',
-    message: err.message || 'Internal server error',
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
   });
 });
 
