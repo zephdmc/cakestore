@@ -15,7 +15,6 @@ import {
     FiEdit3,
     FiCoffee,
     FiHeart,
-    FiRuler,
     FiSave,
     FiTrash2,
     FiCheckCircle,
@@ -482,7 +481,7 @@ export default function EditProductPage() {
                                 Size/Portion
                             </label>
                             <div className="relative">
-                                <FiRuler className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                                <FiHeart className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
                                 <input
                                     type="text"
                                     name="size"
