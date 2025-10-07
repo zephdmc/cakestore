@@ -20,14 +20,30 @@ const errorMiddleware = require('./middlewares/errorMiddleware');
 
 const app = express();
 
-// ==================== NUCLEAR CORS OPTION ====================
+// ==================== CORS FIX - WORKING WITH CREDENTIALS ====================
 
-// Remove all CORS restrictions temporarily - MUST BE FIRST
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
+  const allowedOrigins = [
+    'https://www.stefanosbakeshop.com',
+    'https://stefanosbakeshop.com',
+    'http://localhost:3000',
+    'http://localhost:5173'
+  ];
+  
+  const origin = req.headers.origin;
+  
+  // Allow credentials only for specific origins
+  if (allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Access-Control-Allow-Credentials', 'true');
+  } else {
+    // For other origins, don't allow credentials
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Credentials', 'false');
+  }
+  
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH, HEAD');
-  res.header('Access-Control-Allow-Headers', '*');
-  res.header('Access-Control-Allow-Credentials', 'false');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, Access-Control-Request-Method, Access-Control-Request-Headers');
   res.header('Access-Control-Max-Age', '86400');
   
   if (req.method === 'OPTIONS') {
@@ -38,14 +54,13 @@ app.use((req, res, next) => {
 
 // ==================== SECURITY MIDDLEWARE ====================
 
-// Security headers (adjusted for nuclear CORS)
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" },
   crossOriginEmbedderPolicy: false,
-  contentSecurityPolicy: false // Temporarily disable for testing
+  contentSecurityPolicy: false
 }));
 
-// Rate limiting - temporarily relaxed
+// Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 1000,
@@ -69,13 +84,13 @@ app.use(hpp());
 
 // ==================== REQUEST LOGGING MIDDLEWARE ====================
 
-// Add request logging to debug CORS issues
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`, {
     origin: req.headers.origin,
     'user-agent': req.headers['user-agent'],
     'content-type': req.headers['content-type'],
-    'content-length': req.headers['content-length']
+    'content-length': req.headers['content-length'],
+    'authorization': req.headers['authorization'] ? 'Present' : 'Missing'
   });
   next();
 });
@@ -97,10 +112,10 @@ app.use('/api/custom-orders', customOrderRoutes);
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'OK', 
-    message: 'Server is running with NUCLEAR CORS',
+    message: 'Server is running with CORS + Credentials',
     timestamp: new Date().toISOString(),
     origin: req.headers.origin,
-    cors: 'nuclear-enabled'
+    credentials: 'enabled-for-your-domain'
   });
 });
 
@@ -109,10 +124,12 @@ app.post('/api/test-product-create', (req, res) => {
   console.log('Test product creation received:', req.body);
   res.json({ 
     success: true,
-    message: 'Product creation endpoint is working with nuclear CORS!',
+    message: 'Product creation endpoint is working!',
     receivedData: req.body,
     timestamp: new Date().toISOString(),
-    headers: req.headers
+    headers: {
+      authorization: req.headers.authorization ? 'Present' : 'Missing'
+    }
   });
 });
 
@@ -131,7 +148,7 @@ app.post('/api/products/test', (req, res) => {
 app.get('/api/cors-test', (req, res) => {
   res.json({ 
     success: true,
-    message: 'NUCLEAR CORS is working perfectly!',
+    message: 'CORS is working perfectly with credentials!',
     yourOrigin: req.headers.origin,
     timestamp: new Date().toISOString(),
     method: 'GET'
@@ -142,7 +159,7 @@ app.get('/api/cors-test', (req, res) => {
 app.post('/api/cors-test', (req, res) => {
   res.json({ 
     success: true,
-    message: 'NUCLEAR CORS is working with POST!',
+    message: 'CORS is working with POST + credentials!',
     yourOrigin: req.headers.origin,
     receivedData: req.body,
     timestamp: new Date().toISOString(),
@@ -152,17 +169,25 @@ app.post('/api/cors-test', (req, res) => {
 
 // ==================== ERROR HANDLING ====================
 
-// Error handling middleware
 app.use(errorMiddleware);
 
 // Global error handler with CORS headers
 app.use((err, req, res, next) => {
   console.error('Global Error:', err);
   
-  // Ensure CORS headers are set even on errors
-  res.header('Access-Control-Allow-Origin', '*');
+  const origin = req.headers.origin;
+  const allowedOrigins = ['https://www.stefanosbakeshop.com', 'https://stefanosbakeshop.com'];
+  
+  if (allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Access-Control-Allow-Credentials', 'true');
+  } else {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Credentials', 'false');
+  }
+  
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
-  res.header('Access-Control-Allow-Headers', '*');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
   
   res.status(err.status || 500).json({
     status: 'error',
@@ -173,10 +198,19 @@ app.use((err, req, res, next) => {
 
 // 404 handler with CORS headers
 app.use('*', (req, res) => {
-  // Ensure CORS headers are set for 404 responses
-  res.header('Access-Control-Allow-Origin', '*');
+  const origin = req.headers.origin;
+  const allowedOrigins = ['https://www.stefanosbakeshop.com', 'https://stefanosbakeshop.com'];
+  
+  if (allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Access-Control-Allow-Credentials', 'true');
+  } else {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Credentials', 'false');
+  }
+  
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
-  res.header('Access-Control-Allow-Headers', '*');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
   
   res.status(404).json({
     status: 'error',
