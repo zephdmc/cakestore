@@ -8,7 +8,7 @@ const {
     getCustomOrderById
 } = require('../controllers/customOrderController');
 const { protect, authorize } = require('../middlewares/authMiddleware');
-//const upload = require('../middlewares/uploadMiddleware');
+const upload = require('../middlewares/uploadMiddleware');
 
 const router = express.Router();
 
