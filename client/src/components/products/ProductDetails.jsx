@@ -1,8 +1,22 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
-import { getProductById } from '../../services/productServic'; // Fixed typo: productServic -> productService
-import { useEffect } from 'react';
+import { getProductById } from '../../services/productService';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+    FiArrowLeft, 
+    FiShoppingCart, 
+    FiStar, 
+    FiHeart, 
+    FiShare2, 
+    FiPackage,
+    FiClock,
+    FiChevronLeft,
+    FiChevronRight,
+    FiTag,
+    FiCoffee,
+    FiUsers
+} from 'react-icons/fi';
 
 export default function ProductDetail() {
     const { id } = useParams();
@@ -11,6 +25,7 @@ export default function ProductDetail() {
     const [error, setError] = useState('');
     const [quantity, setQuantity] = useState(1);
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+    const [isImageZoomed, setIsImageZoomed] = useState(false);
     const { addToCart } = useCart();
     const navigate = useNavigate();
 
@@ -31,19 +46,91 @@ export default function ProductDetail() {
 
     const handleAddToCart = () => {
         addToCart(product, quantity);
-        navigate('/cart');
+        // Show success notification here if needed
     };
 
-    if (loading) return (
-        <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purpleDark"></div>
-        </div>
-    );
-    
-    if (error) return <div className="text-red-500 text-center py-8">{error}</div>;
-    if (!product) return <div className="text-center py-8">Product not found</div>;
+    const navigateImage = (direction) => {
+        if (!product.images) return;
+        
+        if (direction === 'next') {
+            setSelectedImageIndex((prev) => 
+                prev === product.images.length - 1 ? 0 : prev + 1
+            );
+        } else {
+            setSelectedImageIndex((prev) => 
+                prev === 0 ? product.images.length - 1 : prev - 1
+            );
+        }
+    };
 
-    // Calculate discounted price (price after discount)
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
+                <div className="container mx-auto px-4">
+                    <div className="flex justify-center items-center h-96">
+                        <div className="text-center">
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+                            <p className="text-gray-600 font-medium">Loading product details...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+    
+    if (error) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
+                <div className="container mx-auto px-4">
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="bg-white rounded-2xl shadow-lg p-8 text-center"
+                    >
+                        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <FiPackage className="text-red-500 text-2xl" />
+                        </div>
+                        <h3 className="text-2xl font-bold text-gray-900 mb-4">Product Not Found</h3>
+                        <p className="text-gray-600 mb-6">{error}</p>
+                        <button
+                            onClick={() => navigate('/products')}
+                            className="bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 px-8 rounded-xl hover:shadow-lg transition-all duration-200 font-semibold"
+                        >
+                            Browse Products
+                        </button>
+                    </motion.div>
+                </div>
+            </div>
+        );
+    }
+
+    if (!product) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
+                <div className="container mx-auto px-4">
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="bg-white rounded-2xl shadow-lg p-8 text-center"
+                    >
+                        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <FiPackage className="text-gray-500 text-2xl" />
+                        </div>
+                        <h3 className="text-2xl font-bold text-gray-900 mb-4">Product Not Available</h3>
+                        <p className="text-gray-600 mb-6">The product you're looking for is no longer available.</p>
+                        <button
+                            onClick={() => navigate('/products')}
+                            className="bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 px-8 rounded-xl hover:shadow-lg transition-all duration-200 font-semibold"
+                        >
+                            Browse Products
+                        </button>
+                    </motion.div>
+                </div>
+            </div>
+        );
+    }
+
+    // Calculate discounted price
     const hasDiscount = product.discountPercentage && product.discountPercentage > 0;
     const discountedPrice = hasDiscount 
         ? product.price - (product.price * (product.discountPercentage / 100))
@@ -54,208 +141,341 @@ export default function ProductDetail() {
         ? product.images[selectedImageIndex] 
         : '/placeholder-product.png';
 
-    // Check if product can be added to cart (in stock or custom)
+    // Check if product can be added to cart
     const canAddToCart = product.isCustom || product.countInStock > 0;
 
     return (
-        <div className="container mx-auto px-4 py-8">
-            {/* Breadcrumb Navigation */}
-            <nav className="mb-6">
-                <button 
-                    onClick={() => navigate(-1)} 
-                    className="text-purpleDark hover:text-purpleDark1 flex items-center"
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
+            <div className="container mx-auto px-4 max-w-7xl">
+                {/* Breadcrumb Navigation */}
+                <motion.nav
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="mb-8"
                 >
-                    ← Back to Products
-                </button>
-            </nav>
+                    <button 
+                        onClick={() => navigate(-1)} 
+                        className="flex items-center text-purple-600 hover:text-purple-700 font-semibold transition-colors duration-200 group"
+                    >
+                        <FiArrowLeft className="mr-2 group-hover:-translate-x-1 transition-transform" />
+                        Back to Products
+                    </button>
+                </motion.nav>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Image Gallery */}
-                <div className="bg-white p-6 rounded-lg shadow-lg">
-                    {/* Discount Badge */}
-                    {hasDiscount && (
-                        <div className="absolute top-6 left-6 bg-white text-purpleDark1 text-sm font-bold px-3 py-1 rounded-full z-10 transform -rotate-12 shadow-md">
-                            {product.discountPercentage}% OFF
-                        </div>
-                    )}
-                    
-                    {/* Custom Product Badge */}
-                    {product.isCustom && (
-                        <div className="absolute top-6 right-6 bg-purpleDark text-white text-sm font-bold px-3 py-1 rounded-full z-10 shadow-md">
-                            Custom Order
-                        </div>
-                    )}
-
-                    {/* Main Image */}
-                    <div className="mb-4">
-                        <img
-                            src={displayImage}
-                            alt={product.name}
-                            className="w-full h-96 object-contain rounded-lg"
-                            onError={(e) => {
-                                e.target.src = '/placeholder-product.png';
-                            }}
-                        />
-                    </div>
-
-                    {/* Thumbnail Gallery */}
-                    {product.images && product.images.length > 1 && (
-                        <div className="flex gap-2 overflow-x-auto py-2">
-                            {product.images.map((image, index) => (
-                                <button
-                                    key={index}
-                                    onClick={() => setSelectedImageIndex(index)}
-                                    className={`flex-shrink-0 w-16 h-16 border-2 rounded-lg overflow-hidden ${
-                                        selectedImageIndex === index 
-                                            ? 'border-purpleDark' 
-                                            : 'border-gray-200'
-                                    }`}
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                    {/* Image Gallery */}
+                    <motion.div
+                        initial={{ opacity: 0, x: -50 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.1 }}
+                        className="bg-white rounded-2xl shadow-xl overflow-hidden relative"
+                    >
+                        {/* Badges */}
+                        <div className="absolute top-4 left-4 z-10 space-y-2">
+                            {hasDiscount && (
+                                <motion.span
+                                    initial={{ scale: 0 }}
+                                    animate={{ scale: 1 }}
+                                    className="bg-gradient-to-r from-red-500 to-pink-500 text-white text-sm font-bold px-3 py-2 rounded-full shadow-lg transform -rotate-6"
                                 >
-                                    <img
-                                        src={image}
-                                        alt={`Thumbnail ${index + 1}`}
-                                        className="w-full h-full object-cover"
-                                    />
-                                </button>
-                            ))}
-                        </div>
-                    )}
-                </div>
-
-                {/* Product Info */}
-                <div className="bg-purpleLight p-6 rounded-lg shadow-lg">
-                    <h1 className="text-3xl font-bold mb-4 text-white">{product.name}</h1>
-
-                    {/* Size */}
-                    {product.size && (
-                        <p className="text-white mb-3">
-                            <span className="font-semibold">Size: </span>
-                            {product.size}
-                        </p>
-                    )}
-
-                    {/* Price Section */}
-                    <div className="mb-6 p-4 bg-white rounded-lg">
-                        <div className="flex items-center gap-3 mb-2">
-                            {hasDiscount ? (
-                                <>
-                                    <span className="text-2xl font-bold text-purpleDark1">
-                                        ₦{discountedPrice.toLocaleString()}
-                                    </span>
-                                    <span className="text-lg text-gray-500 line-through">
-                                        ₦{product.price.toLocaleString()}
-                                    </span>
-                                </>
-                            ) : (
-                                <span className="text-2xl font-bold text-purpleDark1">
-                                    ₦{product.price.toLocaleString()}
-                                </span>
+                                    {product.discountPercentage}% OFF
+                                </motion.span>
+                            )}
+                            
+                            {product.isCustom && (
+                                <motion.span
+                                    initial={{ scale: 0 }}
+                                    animate={{ scale: 1 }}
+                                    transition={{ delay: 0.2 }}
+                                    className="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-bold px-3 py-2 rounded-full shadow-lg block"
+                                >
+                                    Custom Order
+                                </motion.span>
                             )}
                         </div>
 
-                        {/* Stock Status - Only show for non-custom products */}
-                        {!product.isCustom && (
-                            <p className={product.countInStock > 0 ? "text-green-600" : "text-red-600"}>
-                                {product.countInStock > 0 ? '✓ In Stock' : '✗ Out of Stock'}
-                            </p>
+                        {/* Main Image */}
+                        <div className="relative aspect-square bg-gray-50">
+                            <motion.img
+                                key={selectedImageIndex}
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                src={displayImage}
+                                alt={product.name}
+                                className="w-full h-full object-contain cursor-zoom-in p-8"
+                                onClick={() => setIsImageZoomed(true)}
+                                onError={(e) => {
+                                    e.target.src = '/placeholder-product.png';
+                                }}
+                            />
+                            
+                            {/* Image Navigation */}
+                            {product.images && product.images.length > 1 && (
+                                <>
+                                    <button
+                                        onClick={() => navigateImage('prev')}
+                                        className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 rounded-full p-2 shadow-lg transition-all duration-200"
+                                    >
+                                        <FiChevronLeft size={20} />
+                                    </button>
+                                    <button
+                                        onClick={() => navigateImage('next')}
+                                        className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 rounded-full p-2 shadow-lg transition-all duration-200"
+                                    >
+                                        <FiChevronRight size={20} />
+                                    </button>
+                                </>
+                            )}
+                        </div>
+
+                        {/* Thumbnail Gallery */}
+                        {product.images && product.images.length > 1 && (
+                            <div className="p-4 border-t border-gray-200">
+                                <div className="flex gap-3 overflow-x-auto py-2">
+                                    {product.images.map((image, index) => (
+                                        <motion.button
+                                            key={index}
+                                            whileHover={{ scale: 1.05 }}
+                                            whileTap={{ scale: 0.95 }}
+                                            onClick={() => setSelectedImageIndex(index)}
+                                            className={`flex-shrink-0 w-16 h-16 border-2 rounded-xl overflow-hidden transition-all duration-200 ${
+                                                selectedImageIndex === index 
+                                                    ? 'border-purple-500 shadow-md' 
+                                                    : 'border-gray-200 hover:border-purple-300'
+                                            }`}
+                                        >
+                                            <img
+                                                src={image}
+                                                alt={`Thumbnail ${index + 1}`}
+                                                className="w-full h-full object-cover"
+                                            />
+                                        </motion.button>
+                                    ))}
+                                </div>
+                            </div>
                         )}
-                    </div>
+                    </motion.div>
 
-                    {/* Description */}
-                    <div className="mb-6">
-                        <h3 className="text-xl font-semibold mb-2 text-white">Description</h3>
-                        <p className="text-white leading-relaxed">{product.description}</p>
-                    </div>
-
-                    {/* Ingredients */}
-                    {product.ingredients && product.ingredients.length > 0 && (
-                        <div className="mb-6">
-                            <h3 className="text-xl font-semibold mb-2 text-white">Ingredients</h3>
-                            <ul className="list-disc list-inside text-white">
-                                {product.ingredients.map((ingredient, index) => (
-                                    <li key={index}>{ingredient}</li>
-                                ))}
-                            </ul>
-                        </div>
-                    )}
-
-                    {/* Dietary Information */}
-                    {product.dietaryTags && product.dietaryTags.length > 0 && (
-                        <div className="mb-6">
-                            <h3 className="text-xl font-semibold mb-2 text-white">Dietary Information</h3>
-                            <div className="flex flex-wrap gap-2">
-                                {product.dietaryTags.map((tag, index) => (
-                                    <span 
-                                        key={index} 
-                                        className="bg-white text-purpleDark px-3 py-1 rounded-full text-sm"
-                                    >
-                                        {tag}
-                                    </span>
-                                ))}
+                    {/* Product Info */}
+                    <motion.div
+                        initial={{ opacity: 0, x: 50 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.2 }}
+                        className="bg-white rounded-2xl shadow-xl p-8"
+                    >
+                        <div className="space-y-6">
+                            {/* Header */}
+                            <div>
+                                <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-3">
+                                    {product.name}
+                                </h1>
+                                
+                                {product.size && (
+                                    <div className="flex items-center text-gray-600 mb-4">
+                                        <FiRuler className="mr-2" />
+                                        <span className="font-medium">{product.size}</span>
+                                    </div>
+                                )}
                             </div>
-                        </div>
-                    )}
 
-                    {/* Flavor Profile */}
-                    {product.flavorTags && product.flavorTags.length > 0 && (
-                        <div className="mb-6">
-                            <h3 className="text-xl font-semibold mb-2 text-white">Flavor Profile</h3>
-                            <div className="flex flex-wrap gap-2">
-                                {product.flavorTags.map((tag, index) => (
-                                    <span 
-                                        key={index} 
-                                        className="bg-purpleDark text-white px-3 py-1 rounded-full text-sm"
-                                    >
-                                        {tag}
-                                    </span>
-                                ))}
+                            {/* Price Section */}
+                            <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-6 border border-purple-100">
+                                <div className="flex items-center gap-4 mb-3">
+                                    {hasDiscount ? (
+                                        <>
+                                            <span className="text-3xl font-bold text-purple-600">
+                                                ₦{discountedPrice.toLocaleString()}
+                                            </span>
+                                            <span className="text-xl text-gray-500 line-through">
+                                                ₦{product.price.toLocaleString()}
+                                            </span>
+                                        </>
+                                    ) : (
+                                        <span className="text-3xl font-bold text-purple-600">
+                                            ₦{product.price.toLocaleString()}
+                                        </span>
+                                    )}
+                                </div>
+
+                                {/* Stock Status */}
+                                {!product.isCustom && (
+                                    <div className="flex items-center">
+                                        <div className={`w-3 h-3 rounded-full mr-2 ${
+                                            product.countInStock > 0 ? 'bg-green-500' : 'bg-red-500'
+                                        }`}></div>
+                                        <span className={product.countInStock > 0 ? "text-green-600 font-medium" : "text-red-600 font-medium"}>
+                                            {product.countInStock > 0 ? `${product.countInStock} in stock` : 'Out of stock'}
+                                        </span>
+                                    </div>
+                                )}
                             </div>
-                        </div>
-                    )}
 
-                    {/* Add to Cart Section */}
-                    {canAddToCart && (
-                        <div className="mb-6">
-                            {!product.isCustom && (
-                                <div className="mb-4">
-                                    <label className="block text-white mb-2 font-semibold">Quantity</label>
-                                    <select
-                                        value={quantity}
-                                        onChange={(e) => setQuantity(parseInt(e.target.value))}
-                                        className="border rounded p-2 w-20 bg-white"
-                                    >
-                                        {[...Array(Math.min(product.countInStock, 10)).keys()].map((x) => (
-                                            <option key={x + 1} value={x + 1}>
-                                                {x + 1}
-                                            </option>
+                            {/* Description */}
+                            <div>
+                                <h3 className="text-xl font-semibold mb-3 text-gray-900 flex items-center">
+                                    <FiPackage className="mr-2 text-purple-500" />
+                                    Description
+                                </h3>
+                                <p className="text-gray-700 leading-relaxed text-lg">{product.description}</p>
+                            </div>
+
+                            {/* Ingredients */}
+                            {product.ingredients && product.ingredients.length > 0 && (
+                                <div>
+                                    <h3 className="text-xl font-semibold mb-3 text-gray-900 flex items-center">
+                                        <FiCoffee className="mr-2 text-purple-500" />
+                                        Ingredients
+                                    </h3>
+                                    <div className="flex flex-wrap gap-2">
+                                        {product.ingredients.map((ingredient, index) => (
+                                            <motion.span
+                                                key={index}
+                                                initial={{ opacity: 0, scale: 0.8 }}
+                                                animate={{ opacity: 1, scale: 1 }}
+                                                transition={{ delay: index * 0.1 }}
+                                                className="bg-gray-100 text-gray-700 px-3 py-2 rounded-xl text-sm font-medium"
+                                            >
+                                                {ingredient}
+                                            </motion.span>
                                         ))}
-                                    </select>
+                                    </div>
                                 </div>
                             )}
 
-                            <button
-                                onClick={handleAddToCart}
-                                className="w-full bg-purpleDark text-white py-3 px-6 rounded-lg hover:bg-purpleDark1 transition-colors font-semibold text-lg"
-                            >
-                                {product.isCustom ? 'Start Custom Order' : 'Add to Cart'}
-                            </button>
-                        </div>
-                    )}
+                            {/* Dietary Information */}
+                            {product.dietaryTags && product.dietaryTags.length > 0 && (
+                                <div>
+                                    <h3 className="text-xl font-semibold mb-3 text-gray-900 flex items-center">
+                                        <FiHeart className="mr-2 text-purple-500" />
+                                        Dietary Information
+                                    </h3>
+                                    <div className="flex flex-wrap gap-2">
+                                        {product.dietaryTags.map((tag, index) => (
+                                            <motion.span
+                                                key={index}
+                                                initial={{ opacity: 0, scale: 0.8 }}
+                                                animate={{ opacity: 1, scale: 1 }}
+                                                transition={{ delay: index * 0.1 }}
+                                                className="bg-green-100 text-green-800 px-3 py-2 rounded-xl text-sm font-semibold"
+                                            >
+                                                {tag}
+                                            </motion.span>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
 
-                    {/* Out of Stock Message */}
-                    {!canAddToCart && (
-                        <div className="text-center py-4">
-                            <p className="text-red-600 font-semibold mb-4">This product is currently unavailable</p>
-                            <button
-                                onClick={() => navigate('/products')}
-                                className="bg-purpleDark text-white py-2 px-6 rounded hover:bg-purpleDark1 transition"
-                            >
-                                Browse Other Products
-                            </button>
+                            {/* Flavor Profile */}
+                            {product.flavorTags && product.flavorTags.length > 0 && (
+                                <div>
+                                    <h3 className="text-xl font-semibold mb-3 text-gray-900 flex items-center">
+                                        <FiStar className="mr-2 text-purple-500" />
+                                        Flavor Profile
+                                    </h3>
+                                    <div className="flex flex-wrap gap-2">
+                                        {product.flavorTags.map((tag, index) => (
+                                            <motion.span
+                                                key={index}
+                                                initial={{ opacity: 0, scale: 0.8 }}
+                                                animate={{ opacity: 1, scale: 1 }}
+                                                transition={{ delay: index * 0.1 }}
+                                                className="bg-purple-100 text-purple-800 px-3 py-2 rounded-xl text-sm font-semibold"
+                                            >
+                                                {tag}
+                                            </motion.span>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Add to Cart Section */}
+                            {canAddToCart && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.4 }}
+                                    className="bg-gray-50 rounded-2xl p-6 border border-gray-200"
+                                >
+                                    {!product.isCustom && (
+                                        <div className="mb-4">
+                                            <label className="block text-gray-700 mb-3 font-semibold text-lg">Quantity</label>
+                                            <select
+                                                value={quantity}
+                                                onChange={(e) => setQuantity(parseInt(e.target.value))}
+                                                className="border-2 border-gray-300 rounded-xl p-3 w-24 bg-white focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all duration-200 font-semibold"
+                                            >
+                                                {[...Array(Math.min(product.countInStock, 10)).keys()].map((x) => (
+                                                    <option key={x + 1} value={x + 1}>
+                                                        {x + 1}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    )}
+
+                                    <motion.button
+                                        whileHover={{ scale: 1.02 }}
+                                        whileTap={{ scale: 0.98 }}
+                                        onClick={handleAddToCart}
+                                        className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-4 px-6 rounded-xl hover:shadow-lg transition-all duration-200 font-semibold text-lg flex items-center justify-center"
+                                    >
+                                        <FiShoppingCart className="mr-3 text-xl" />
+                                        {product.isCustom ? 'Start Custom Order' : 'Add to Cart'}
+                                    </motion.button>
+                                </motion.div>
+                            )}
+
+                            {/* Out of Stock Message */}
+                            {!canAddToCart && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="text-center bg-red-50 rounded-2xl p-6 border border-red-200"
+                                >
+                                    <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                        <FiPackage className="text-red-500 text-xl" />
+                                    </div>
+                                    <p className="text-red-700 font-semibold mb-4 text-lg">This product is currently unavailable</p>
+                                    <button
+                                        onClick={() => navigate('/products')}
+                                        className="bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 px-8 rounded-xl hover:shadow-lg transition-all duration-200 font-semibold"
+                                    >
+                                        Browse Other Products
+                                    </button>
+                                </motion.div>
+                            )}
                         </div>
-                    )}
+                    </motion.div>
                 </div>
             </div>
+
+            {/* Image Zoom Modal */}
+            <AnimatePresence>
+                {isImageZoomed && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4"
+                        onClick={() => setIsImageZoomed(false)}
+                    >
+                        <motion.img
+                            initial={{ scale: 0.8 }}
+                            animate={{ scale: 1 }}
+                            exit={{ scale: 0.8 }}
+                            src={displayImage}
+                            alt={product.name}
+                            className="max-w-full max-h-full object-contain"
+                        />
+                        <button
+                            onClick={() => setIsImageZoomed(false)}
+                            className="absolute top-4 right-4 text-white text-2xl bg-black bg-opacity-50 rounded-full w-10 h-10 flex items-center justify-center hover:bg-opacity-70 transition-all duration-200"
+                        >
+                            ×
+                        </button>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
