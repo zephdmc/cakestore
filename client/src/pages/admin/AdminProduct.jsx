@@ -1,13 +1,32 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { getProducts, deleteProduct } from '../../services/productServic';
+import { getProducts, deleteProduct } from '../../services/productService';
 import Loader from '../../components/common/Loader';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+    FiPlus, 
+    FiEdit, 
+    FiTrash2, 
+    FiPackage, 
+    FiDollarSign, 
+    FiTag, 
+    FiShoppingCart,
+    FiSearch,
+    FiFilter,
+    FiRefreshCw,
+    FiAlertCircle,
+    FiCheckCircle
+} from 'react-icons/fi';
 
 export default function AdminProducts() {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+    const [searchQuery, setSearchQuery] = useState('');
+    const [categoryFilter, setCategoryFilter] = useState('all');
+    const [stockFilter, setStockFilter] = useState('all');
+    const [deletingProduct, setDeletingProduct] = useState(null);
 
     useEffect(() => {
         const fetchProducts = async () => {
@@ -27,6 +46,7 @@ export default function AdminProducts() {
 
     const handleDelete = async (productId) => {
         if (window.confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
+            setDeletingProduct(productId);
             try {
                 await deleteProduct(productId);
                 setProducts(prevProducts =>
@@ -36,133 +56,445 @@ export default function AdminProducts() {
                 setTimeout(() => setSuccess(''), 3000);
             } catch (err) {
                 setError(err.message || 'Failed to delete product');
+            } finally {
+                setDeletingProduct(null);
             }
         }
     };
 
-    return (
-        <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-                <h2 className="text-xl sm:text-2xl font-bold">Manage Products</h2>
-                <Link
-                    to="/admin/products/new"
-                    className="bg-primary text-gray-600 py-2 px-4 rounded hover:bg-primary-dark transition flex items-center gap-2 text-sm sm:text-base"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
-                    </svg>
-                    Add Product
-                </Link>
+    const refreshProducts = () => {
+        setLoading(true);
+        getProducts()
+            .then(response => {
+                setProducts(Array.isArray(response?.data) ? response.data : []);
+            })
+            .catch(err => {
+                setError(err.message || 'Failed to refresh products');
+            })
+            .finally(() => {
+                setLoading(false);
+            });
+    };
+
+    // Get unique categories for filter
+    const categories = ['all', ...new Set(products.map(product => product.category).filter(Boolean))];
+
+    // Filter products
+    const filteredProducts = products.filter(product => {
+        const matchesSearch = product.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                            product.category?.toLowerCase().includes(searchQuery.toLowerCase());
+        
+        const matchesCategory = categoryFilter === 'all' || product.category === categoryFilter;
+        
+        const matchesStock = stockFilter === 'all' || 
+                           (stockFilter === 'in-stock' && product.countInStock > 0) ||
+                           (stockFilter === 'out-of-stock' && product.countInStock === 0);
+
+        return matchesSearch && matchesCategory && matchesStock;
+    });
+
+    // Get product statistics
+    const getProductStats = () => {
+        const totalProducts = products.length;
+        const inStockProducts = products.filter(p => p.countInStock > 0).length;
+        const outOfStockProducts = products.filter(p => p.countInStock === 0).length;
+        const categoriesCount = new Set(products.map(p => p.category)).size;
+
+        return { totalProducts, inStockProducts, outOfStockProducts, categoriesCount };
+    };
+
+    const stats = getProductStats();
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
+                <div className="container mx-auto px-4">
+                    <div className="flex justify-center items-center h-96">
+                        <div className="text-center">
+                            <Loader />
+                            <p className="mt-4 text-gray-600 font-medium">Loading products...</p>
+                        </div>
+                    </div>
+                </div>
             </div>
+        );
+    }
 
-            {/* Success Message */}
-            {success && (
-                <div className="bg-green-50 border-l-4 border-green-500 p-3 sm:p-4 mb-4 sm:mb-6">
-                    <p className="text-green-700 text-sm sm:text-base">{success}</p>
-                </div>
-            )}
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
+            <div className="container mx-auto px-4 max-w-7xl">
+                {/* Header */}
+                <motion.div
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mb-8"
+                >
+                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8">
+                        <div>
+                            <h1 className="text-3xl font-bold text-gray-900 mb-2">Product Management</h1>
+                            <p className="text-gray-600">Manage your product catalog and inventory</p>
+                        </div>
+                        <div className="flex flex-col sm:flex-row gap-4 mt-4 lg:mt-0">
+                            <button
+                                onClick={refreshProducts}
+                                className="flex items-center bg-white text-gray-700 py-3 px-6 rounded-xl border border-gray-200 hover:shadow-lg transition-all duration-200 font-semibold"
+                            >
+                                <FiRefreshCw className="mr-2" />
+                                Refresh
+                            </button>
+                            <Link
+                                to="/admin/products/new"
+                                className="flex items-center bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 px-6 rounded-xl hover:shadow-lg transition-all duration-200 font-semibold"
+                            >
+                                <FiPlus className="mr-2" />
+                                Add New Product
+                            </Link>
+                        </div>
+                    </div>
 
-            {/* Error Message */}
-            {error && (
-                <div className="bg-red-50 border-l-4 border-red-500 p-3 sm:p-4 mb-4 sm:mb-6">
-                    <p className="text-red-700 text-sm sm:text-base">{error}</p>
-                </div>
-            )}
+                    {/* Statistics */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                        {[
+                            { label: 'Total Products', value: stats.totalProducts, color: 'bg-gradient-to-r from-purple-500 to-pink-500', icon: FiPackage },
+                            { label: 'In Stock', value: stats.inStockProducts, color: 'bg-gradient-to-r from-green-500 to-green-600', icon: FiShoppingCart },
+                            { label: 'Out of Stock', value: stats.outOfStockProducts, color: 'bg-gradient-to-r from-red-500 to-red-600', icon: FiAlertCircle },
+                            { label: 'Categories', value: stats.categoriesCount, color: 'bg-gradient-to-r from-blue-500 to-blue-600', icon: FiTag }
+                        ].map(({ label, value, color, icon: Icon }) => (
+                            <motion.div
+                                key={label}
+                                whileHover={{ scale: 1.02 }}
+                                className="bg-white rounded-2xl shadow-lg p-6"
+                            >
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-2xl font-bold text-gray-900">{value}</p>
+                                        <p className="text-sm text-gray-600 mt-1">{label}</p>
+                                    </div>
+                                    <div className={`${color} rounded-xl p-3`}>
+                                        <Icon className="text-white text-xl" />
+                                    </div>
+                                </div>
+                            </motion.div>
+                        ))}
+                    </div>
 
-            {/* Loading State */}
-            {loading ? (
-                <div className="flex justify-center items-center h-64">
-                    <Loader />
-                </div>
-            ) : (
-                <div className="bg-white rounded-lg shadow overflow-hidden">
-                    {products.length > 0 ? (
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Image</th>
-                                        <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                                        <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
-                                        <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">Category</th>
-                                        <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">Stock</th>
-                                        <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
-                                    {products.map((product) => (
-                                        <tr key={product.id} className="hover:bg-gray-50">
-                                            <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
-                                                <img
-                                                    src={product.image || '/placeholder-product.png'}
-                                                    alt={product.name}
-                                                    className="h-10 w-10 object-cover rounded"
-                                                    onError={(e) => {
-                                                        e.target.src = '/placeholder-product.png';
-                                                    }}
-                                                />
-                                            </td>
-                                            <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 max-w-[120px] sm:max-w-none truncate">
-                                                {product.name || 'Untitled Product'}
-                                            </td>
-                                            <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                ₦{product.price?.toLocaleString() || '0'}
-                                            </td>
-                                            <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 capitalize hidden sm:table-cell">
+                    {/* Filters */}
+                    <div className="bg-white rounded-2xl shadow-lg p-6">
+                        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                            <div className="flex items-center">
+                                <FiFilter className="text-purple-600 mr-3 text-xl" />
+                                <h3 className="text-lg font-semibold text-gray-900">Filter Products</h3>
+                            </div>
+                            
+                            <div className="flex flex-col sm:flex-row gap-4 flex-1 lg:justify-end">
+                                {/* Search */}
+                                <div className="relative flex-1 sm:max-w-xs">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <FiSearch className="text-gray-400" />
+                                    </div>
+                                    <input
+                                        type="text"
+                                        placeholder="Search products..."
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        className="block w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-gray-50 transition-all duration-200"
+                                    />
+                                </div>
+
+                                {/* Category Filter */}
+                                <div className="relative">
+                                    <select
+                                        value={categoryFilter}
+                                        onChange={(e) => setCategoryFilter(e.target.value)}
+                                        className="block w-full pl-4 pr-10 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-gray-50 appearance-none cursor-pointer transition-all duration-200"
+                                    >
+                                        <option value="all">All Categories</option>
+                                        {categories.filter(cat => cat !== 'all').map(category => (
+                                            <option key={category} value={category}>
+                                                {category.charAt(0).toUpperCase() + category.slice(1)}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                        <FiTag className="text-gray-400" />
+                                    </div>
+                                </div>
+
+                                {/* Stock Filter */}
+                                <div className="relative">
+                                    <select
+                                        value={stockFilter}
+                                        onChange={(e) => setStockFilter(e.target.value)}
+                                        className="block w-full pl-4 pr-10 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-gray-50 appearance-none cursor-pointer transition-all duration-200"
+                                    >
+                                        <option value="all">All Stock</option>
+                                        <option value="in-stock">In Stock</option>
+                                        <option value="out-of-stock">Out of Stock</option>
+                                    </select>
+                                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                        <FiShoppingCart className="text-gray-400" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </motion.div>
+
+                {/* Status Messages */}
+                <AnimatePresence>
+                    {success && (
+                        <motion.div
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            className="bg-green-50 border-l-4 border-green-500 rounded-r-xl p-4 mb-6 shadow-sm"
+                        >
+                            <div className="flex items-center">
+                                <FiCheckCircle className="text-green-500 text-xl mr-3" />
+                                <p className="text-green-700 font-medium">{success}</p>
+                            </div>
+                        </motion.div>
+                    )}
+
+                    {error && (
+                        <motion.div
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            className="bg-red-50 border-l-4 border-red-500 rounded-r-xl p-4 mb-6 shadow-sm"
+                        >
+                            <div className="flex items-center">
+                                <FiAlertCircle className="text-red-500 text-xl mr-3" />
+                                <p className="text-red-700 font-medium">{error}</p>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
+                {/* Products Content */}
+                <AnimatePresence mode="wait">
+                    {filteredProducts.length > 0 ? (
+                        <motion.div
+                            key="products-list"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                        >
+                            {/* Desktop Table */}
+                            <div className="hidden lg:block bg-white rounded-2xl shadow-lg overflow-hidden">
+                                <div className="overflow-x-auto">
+                                    <table className="min-w-full divide-y divide-gray-200">
+                                        <thead className="bg-gradient-to-r from-purple-600 to-pink-600">
+                                            <tr>
+                                                {['Product', 'Price', 'Category', 'Stock', 'Actions'].map((header) => (
+                                                    <th
+                                                        key={header}
+                                                        className="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider"
+                                                    >
+                                                        {header}
+                                                    </th>
+                                                ))}
+                                            </tr>
+                                        </thead>
+                                        <tbody className="bg-white divide-y divide-gray-200">
+                                            {filteredProducts.map((product, index) => (
+                                                <motion.tr
+                                                    key={product.id}
+                                                    initial={{ opacity: 0, y: 20 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    transition={{ delay: index * 0.05 }}
+                                                    className="hover:bg-gray-50 transition-colors duration-200"
+                                                >
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <div className="flex items-center">
+                                                            <img
+                                                                src={product.image || '/placeholder-product.png'}
+                                                                alt={product.name}
+                                                                className="h-12 w-12 object-cover rounded-xl border border-gray-200 mr-4"
+                                                                onError={(e) => {
+                                                                    e.target.src = '/placeholder-product.png';
+                                                                }}
+                                                            />
+                                                            <div>
+                                                                <p className="text-sm font-semibold text-gray-900">
+                                                                    {product.name || 'Untitled Product'}
+                                                                </p>
+                                                                <p className="text-sm text-gray-500 line-clamp-1">
+                                                                    {product.description || 'No description'}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <div className="flex items-center">
+                                                            <FiDollarSign className="text-gray-400 mr-2" />
+                                                            <span className="text-sm font-semibold text-gray-900">
+                                                                ₦{product.price?.toLocaleString() || '0'}
+                                                            </span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <div className="flex items-center">
+                                                            <FiTag className="text-gray-400 mr-2" />
+                                                            <span className="text-sm text-gray-900 capitalize">
+                                                                {product.category || 'Uncategorized'}
+                                                            </span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border ${
+                                                            product.countInStock > 0 
+                                                                ? 'bg-green-100 text-green-800 border-green-200' 
+                                                                : 'bg-red-100 text-red-800 border-red-200'
+                                                        }`}>
+                                                            <FiShoppingCart className="mr-1" size={12} />
+                                                            {product.countInStock || 0} in stock
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                        <div className="flex items-center justify-end space-x-3">
+                                                            <Link
+                                                                to={`/admin/products/${product.id}/edit`}
+                                                                className="flex items-center text-blue-600 hover:text-blue-700 font-semibold transition-colors duration-200"
+                                                            >
+                                                                <FiEdit className="mr-1" />
+                                                                Edit
+                                                            </Link>
+                                                            <button
+                                                                onClick={() => handleDelete(product.id)}
+                                                                disabled={deletingProduct === product.id}
+                                                                className="flex items-center text-red-600 hover:text-red-700 font-semibold disabled:opacity-50 transition-colors duration-200"
+                                                            >
+                                                                {deletingProduct === product.id ? (
+                                                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600 mr-2"></div>
+                                                                ) : (
+                                                                    <FiTrash2 className="mr-1" />
+                                                                )}
+                                                                Delete
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </motion.tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            {/* Mobile Cards */}
+                            <div className="lg:hidden space-y-4">
+                                {filteredProducts.map((product, index) => (
+                                    <motion.div
+                                        key={product.id}
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: index * 0.1 }}
+                                        className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-all duration-300"
+                                    >
+                                        <div className="flex items-start space-x-4">
+                                            <img
+                                                src={product.image || '/placeholder-product.png'}
+                                                alt={product.name}
+                                                className="h-16 w-16 object-cover rounded-xl border border-gray-200 flex-shrink-0"
+                                                onError={(e) => {
+                                                    e.target.src = '/placeholder-product.png';
+                                                }}
+                                            />
+                                            <div className="flex-1 min-w-0">
+                                                <h3 className="font-semibold text-gray-900 truncate">
+                                                    {product.name || 'Untitled Product'}
+                                                </h3>
+                                                <p className="text-sm text-gray-500 mt-1 line-clamp-2">
+                                                    {product.description || 'No description'}
+                                                </p>
+                                                <div className="flex items-center justify-between mt-3">
+                                                    <div className="flex items-center text-sm text-gray-600">
+                                                        <FiDollarSign className="mr-1" />
+                                                        <span className="font-semibold">₦{product.price?.toLocaleString() || '0'}</span>
+                                                    </div>
+                                                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold border ${
+                                                        product.countInStock > 0 
+                                                            ? 'bg-green-100 text-green-800 border-green-200' 
+                                                            : 'bg-red-100 text-red-800 border-red-200'
+                                                    }`}>
+                                                        {product.countInStock || 0} in stock
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
+                                            <span className="text-sm text-gray-500 capitalize">
                                                 {product.category || 'Uncategorized'}
-                                            </td>
-                                            <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden sm:table-cell">
-                                                <span className={`px-2 py-1 rounded-full text-xs ${product.countInStock > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                                                    {product.countInStock || '0'} in stock
-                                                </span>
-                                            </td>
-                                            <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 space-x-1 sm:space-x-2">
+                                            </span>
+                                            <div className="flex space-x-3">
                                                 <Link
                                                     to={`/admin/products/${product.id}/edit`}
-                                                    className="text-primary hover:text-primary-dark inline-flex items-center text-xs sm:text-sm"
+                                                    className="flex items-center text-blue-600 hover:text-blue-700 font-semibold text-sm transition-colors duration-200"
                                                 >
-                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 sm:h-4 sm:w-4 mr-0 sm:mr-1" viewBox="0 0 20 20" fill="currentColor">
-                                                        <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                                                    </svg>
-                                                    <span className="hidden sm:inline">Edit</span>
+                                                    <FiEdit className="mr-1" />
+                                                    Edit
                                                 </Link>
                                                 <button
                                                     onClick={() => handleDelete(product.id)}
-                                                    className="text-red-500 hover:text-red-700 inline-flex items-center text-xs sm:text-sm"
+                                                    disabled={deletingProduct === product.id}
+                                                    className="flex items-center text-red-600 hover:text-red-700 font-semibold text-sm disabled:opacity-50 transition-colors duration-200"
                                                 >
-                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 sm:h-4 sm:w-4 mr-0 sm:mr-1" viewBox="0 0 20 20" fill="currentColor">
-                                                        <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-                                                    </svg>
-                                                    <span className="hidden sm:inline">Delete</span>
+                                                    {deletingProduct === product.id ? (
+                                                        <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-red-600 mr-2"></div>
+                                                    ) : (
+                                                        <FiTrash2 className="mr-1" />
+                                                    )}
+                                                    Delete
                                                 </button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                ))}
+                            </div>
+                        </motion.div>
                     ) : (
-                        <div className="text-center py-8 sm:py-12">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 sm:h-16 sm:w-16 mx-auto text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                            </svg>
-                            <h3 className="mt-3 sm:mt-4 text-base sm:text-lg font-medium text-gray-900">No products found</h3>
-                            <p className="mt-1 text-xs sm:text-sm text-gray-500">Get started by creating a new product</p>
-                            <div className="mt-4 sm:mt-6">
+                        <motion.div
+                            key="empty-state"
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="text-center bg-white rounded-2xl shadow-lg p-12"
+                        >
+                            <div className="w-20 h-20 bg-gradient-to-r from-gray-400 to-gray-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <FiPackage className="text-white text-3xl" />
+                            </div>
+                            <h3 className="text-2xl font-bold text-gray-900 mb-4">No Products Found</h3>
+                            <p className="text-gray-600 mb-8 max-w-md mx-auto">
+                                {products.length === 0 
+                                    ? "Get started by adding your first product to the catalog" 
+                                    : "No products match your current filters"
+                                }
+                            </p>
+                            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                                {(searchQuery || categoryFilter !== 'all' || stockFilter !== 'all') && (
+                                    <button
+                                        onClick={() => {
+                                            setSearchQuery('');
+                                            setCategoryFilter('all');
+                                            setStockFilter('all');
+                                        }}
+                                        className="bg-white text-gray-700 py-3 px-6 rounded-xl border border-gray-200 hover:shadow-lg transition-all duration-200 font-semibold"
+                                    >
+                                        Clear Filters
+                                    </button>
+                                )}
                                 <Link
                                     to="/admin/products/new"
-                                    className="bg-primary text-gray-600 py-2 px-4 rounded hover:bg-primary-dark transition inline-flex items-center text-sm sm:text-base"
+                                    className="bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 px-6 rounded-xl hover:shadow-lg transition-all duration-200 font-semibold"
                                 >
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
-                                    </svg>
+                                    <FiPlus className="mr-2 inline" />
                                     Add New Product
                                 </Link>
                             </div>
-                        </div>
+                        </motion.div>
                     )}
-                </div>
-            )}
+                </AnimatePresence>
+            </div>
         </div>
     );
 }
