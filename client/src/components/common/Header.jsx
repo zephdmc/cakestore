@@ -216,7 +216,7 @@ export default function Header() {
         }
     };
 
-    // ✅ FIXED: Added proper dependency array
+    // Search function
     const handleSearch = useCallback(debounce(() => {
         if (searchQuery.trim()) {
             navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
@@ -534,7 +534,7 @@ export default function Header() {
                                                     to="/orders"
                                                     onClick={() => setShowUserDropdown(false)}
                                                     className="flex items-center gap-3 px-3 py-3 text-white hover:bg-white/10 rounded-xl transition-all duration-300 text-sm font-medium"
-                                                    >
+                                                >
                                                     <FiShoppingBag className="text-lg" />
                                                     My Orders
                                                 </NavLink>
