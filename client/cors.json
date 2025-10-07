@@ -1,6 +1,6 @@
 [
   {
-    "origin": ["https://zephstore.vercel.app"],
+    "origin": ["https://cakestore-6bc5l3wro-stefanos-projects-ea9eedaa.vercel.app"],
     "method": ["GET", "POST", "PUT"],
     "maxAgeSeconds": 3600,
     "responseHeader": ["Content-Type", "Authorization", "x-goog-meta-foo"]
