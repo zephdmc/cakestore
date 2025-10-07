@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createProduct } from '../../services/productService'; // Fixed typo
+import { createProduct } from '../../services/productServic'; // Fixed typo
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { auth, storage } from '../../firebase/config';
 import { 
