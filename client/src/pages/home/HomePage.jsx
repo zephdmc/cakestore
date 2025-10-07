@@ -5,7 +5,7 @@ import ProductCard from '../../components/products/ProductCard';
 import { getProducts } from '../../services/productServic';
 import TestimonialSlider from '../../pages/home/HomePageComponent/TestimonialSlider';
 import AboutSection from '../../pages/home/HomePageComponent/AboutSection';
-import { FiHeart, FiAward, FiLoader, FiAlertTriangle, FiShoppingBag, FiArrowRight, FiStar } from 'react-icons/fi';
+import { FiHeart, FiAward, FiLoader, FiAlertTriangle, FiEye, FiShoppingBag, FiArrowRight, FiStar } from 'react-icons/fi';
 import { FaWhatsapp } from 'react-icons/fa';
 import { useAuth } from '../../context/AuthContext';
 import { getBlogPosts } from '../../services/contentful';
@@ -18,7 +18,6 @@ import { IoPeopleOutline } from "react-icons/io5";
 import { GiTwoFeathers } from "react-icons/gi";
 import CustomCakeForm from '../../components/orders/CustomCakeForm';
 import { createCustomOrder } from '../../services/customOrderService';
-
 // Enhanced ImageSlideShow Component
 const ImageSlideShow = ({ isMobile = false }) => {
   const images = [
