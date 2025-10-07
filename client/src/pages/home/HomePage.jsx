@@ -337,188 +337,227 @@ export default function HomePage() {
             </section>
 
             {/* Enhanced Feature Cards Section */}
-            <section className="py-16 px-4 bg-gray ">
-                <div className="container mx-auto max-w-7xl">
+           {/* Enhanced Featured Products Section */}
+<section className="py-20 px-4 bg-gradient-to-b from-purple-900/50 to-purple-800/30">
+    <div className="container mx-auto max-w-7xl">
+        <motion.div
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true }}
+            variants={containerVariants}
+        >
+            <motion.div
+                variants={itemVariants}
+                className="text-center mb-16"
+            >
+                <h2 className="text-5xl lg:text-6xl font-bold text-white mb-6">
+                    Customer Favorites
                     <motion.div
-                        initial="hidden"
-                        whileInView="show"
-                        viewport={{ once: true }}
-                        variants={containerVariants}
-                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6"
+                        animate={{ scale: [1, 1.2, 1] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                        className="inline-block ml-4"
                     >
-                        {[
-                            { icon: BiBookReader, title: "Birthday Cake", description: "Embracing the essence of holistic development" },
-                            { icon: FaGraduationCap, title: "Anniversaries Cake", description: "A Culmination of Achievements, a stepping stone to a brighter future" },
-                            { icon: GiTrophyCup, title: "Weddings Cake", description: "Achieving excellence, We stand As the best in every game" },
-                            { icon: IoPeopleOutline, title: "Corporate Events", description: "Fostering connection, building friendships that last a lifetime" },
-                            { icon: GiTwoFeathers, title: "Church Events", description: "Nurturing the soul, finding meaning in shared values" }
-                        ].map((feature, index) => (
-                            <FeatureCard
-                                key={feature.title}
-                                icon={feature.icon}
-                                title={feature.title}
-                                description={feature.description}
-                                delay={index * 0.1}
-                            />
-                        ))}
+                        <FiHeart className="inline text-pink-400" />
                     </motion.div>
-                </div>
-            </section>
+                </h2>
+                <p className="text-xl text-white/80 max-w-3xl mx-auto leading-relaxed">
+                    Curated selections loved by our community{' '}
+                    <FiAward className="inline text-yellow-400 ml-2" />
+                </p>
+            </motion.div>
 
-            {/* Enhanced Featured Products Section */}
-            <section className="py-20 px-4 bg-gradient-to-b from-purple-900/50 to-purple-800/30">
-                <div className="container mx-auto max-w-7xl">
+            {loading ? (
+                <motion.div variants={itemVariants} className="text-center py-20">
                     <motion.div
-                        initial="hidden"
-                        whileInView="show"
-                        viewport={{ once: true }}
-                        variants={containerVariants}
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        className="inline-block mb-4"
                     >
+                        <FiLoader className="text-4xl text-purple-300" />
+                    </motion.div>
+                    <p className="text-white/80 text-lg">Loading featured products...</p>
+                </motion.div>
+            ) : error ? (
+                <motion.div variants={itemVariants} className="text-center py-12">
+                    <div className="bg-red-500/20 backdrop-blur-sm border border-red-500/30 rounded-2xl p-6 max-w-md mx-auto">
+                        <FiAlertTriangle className="text-3xl text-red-400 mx-auto mb-3" />
+                        <p className="text-white">{error}</p>
+                    </div>
+                </motion.div>
+            ) : (
+                <motion.div
+                    variants={containerVariants}
+                    className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 md:gap-6"
+                >
+                    {(products.length > 0 ? products : Array.from({ length: 8 })).map((product, index) => (
                         <motion.div
+                            key={product?.id || index}
                             variants={itemVariants}
-                            className="text-center mb-16"
+                            initial="hidden"
+                            whileInView="show"
+                            viewport={{ once: true }}
+                            whileHover={{ 
+                                y: -8,
+                                scale: 1.02,
+                                transition: { duration: 0.3 }
+                            }}
+                            className="group"
                         >
-                            <h2 className="text-5xl lg:text-6xl font-bold text-white mb-6">
-                                Customer Favorites
-                                <motion.div
-                                    animate={{ scale: [1, 1.2, 1] }}
-                                    transition={{ duration: 2, repeat: Infinity }}
-                                    className="inline-block ml-4"
-                                >
-                                    <FiHeart className="inline text-pink-400" />
-                                </motion.div>
-                            </h2>
-                            <p className="text-xl text-white/80 max-w-3xl mx-auto leading-relaxed">
-                                Curated selections loved by our community{' '}
-                                <FiAward className="inline text-yellow-400 ml-2" />
-                            </p>
-                        </motion.div>
-
-                        {loading ? (
-                            <motion.div variants={itemVariants} className="text-center py-20">
-                                <motion.div
-                                    animate={{ rotate: 360 }}
-                                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                                    className="inline-block mb-4"
-                                >
-                                    <FiLoader className="text-4xl text-purple-300" />
-                                </motion.div>
-                                <p className="text-white/80 text-lg">Loading featured products...</p>
-                            </motion.div>
-                        ) : error ? (
-                            <motion.div variants={itemVariants} className="text-center py-12">
-                                <div className="bg-red-500/20 backdrop-blur-sm border border-red-500/30 rounded-2xl p-6 max-w-md mx-auto">
-                                    <FiAlertTriangle className="text-3xl text-red-400 mx-auto mb-3" />
-                                    <p className="text-white">{error}</p>
-                                </div>
-                            </motion.div>
-                        ) : null}
-
-                        <div className="relative">
-                            <div className="overflow-x-auto pb-8 scrollbar-thin scrollbar-thumb-purple-500 scrollbar-track-purple-900/50">
-                                <div className="inline-flex space-x-6 px-2 min-w-max">
-                                    {(products.length > 0 ? products : Array.from({ length: 7 })).map((product, index) => (
-                                        <motion.div
-                                            key={product?.id || index}
-                                            variants={itemVariants}
-                                            initial="hidden"
-                                            whileInView="show"
-                                            viewport={{ once: true }}
-                                            className="w-64 flex-shrink-0 group"
-                                            whileHover={{ 
-                                                y: -12,
-                                                transition: { duration: 0.4 }
-                                            }}
-                                        >
-                                            <Link 
-                                                to={product ? `/products/${product.id}` : '#'}
-                                                className="block"
-                                            >
-                                                <div className="bg-white/10 backdrop-blur-sm rounded-3xl shadow-2xl overflow-hidden border border-white/20 hover:border-white/40 transition-all duration-500 h-full flex flex-col">
-                                                    <div className="relative pt-[100%] bg-gradient-to-br from-purple-400/10 to-pink-400/10 overflow-hidden">
-                                                        {product ? (
-                                                            <>
-                                                                {product.discountPercentage > 0 && (
-                                                                    <div className="absolute top-4 left-4 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs font-bold px-3 py-1 rounded-full z-10 transform -rotate-6 shadow-lg">
-                                                                        {product.discountPercentage}% OFF
-                                                                    </div>
-                                                                )}
-                                                                <img 
-                                                                    src={product.image} 
-                                                                    alt={product.name}
-                                                                    className="absolute top-0 left-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                                                                />
-                                                                <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                                                            </>
-                                                        ) : (
-                                                            <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-purple-400/20 to-pink-400/20 animate-pulse rounded-3xl" />
-                                                        )}
-                                                    </div>
-                                                    
-                                                    <div className="p-6 flex-grow flex flex-col">
-                                                        {product ? (
-                                                            <>
-                                                                <h3 className="font-semibold text-white text-lg mb-2 line-clamp-2 leading-tight">
-                                                                    {product.name}
-                                                                </h3>
-                                                                <div className="mt-auto">
-                                                                    {product.discountPercentage > 0 ? (
-                                                                        <div className="flex items-center gap-3">
-                                                                            <span className="text-white/60 text-sm line-through">
-                                                                                ₦{(product.price + (product.price * (product.discountPercentage / 100))).toLocaleString()}
-                                                                            </span>
-                                                                            <span className="text-white font-bold text-lg">
-                                                                                ₦{product.price.toLocaleString()}
-                                                                            </span>
-                                                                        </div>
-                                                                    ) : (
-                                                                        <span className="text-white font-bold text-lg">
-                                                                            ₦{product.price.toLocaleString()}
-                                                                        </span>
-                                                                    )}
-                                                                </div>
-                                                                <div className="flex items-center justify-between mt-4">
-                                                                    <FiShoppingBag className="text-white/60 group-hover:text-white transition-colors duration-300" />
-                                                                    <motion.div
-                                                                        whileHover={{ scale: 1.1 }}
-                                                                        className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center"
-                                                                    >
-                                                                        <FiArrowRight className="text-white text-sm" />
-                                                                    </motion.div>
-                                                                </div>
-                                                            </>
-                                                        ) : (
-                                                            <>
-                                                                <div className="h-6 bg-white/20 rounded w-3/4 mb-3 animate-pulse"></div>
-                                                                <div className="h-6 bg-white/20 rounded w-1/2 mt-auto animate-pulse"></div>
-                                                            </>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </Link>
-                                        </motion.div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-
-                        <motion.div 
-                            variants={itemVariants} 
-                            className="text-center mt-16"
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                        >
-                            <Link
-                                to="/products"
-                                className="inline-flex items-center justify-center bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold py-4 px-10 rounded-2xl transition-all duration-300 shadow-2xl backdrop-blur-sm border border-white/20"
+                            <Link 
+                                to={product ? `/products/${product.id}` : '#'}
+                                className="block"
                             >
-                                View All Products
-                                <FiArrowRight className="ml-3 transition-transform group-hover:translate-x-1" />
+                                <div className="bg-white/10 backdrop-blur-sm rounded-2xl md:rounded-3xl shadow-xl hover:shadow-2xl overflow-hidden border border-white/20 hover:border-white/40 transition-all duration-500 h-full flex flex-col">
+                                    {/* Product Image */}
+                                    <div className="relative pt-[100%] bg-gradient-to-br from-purple-400/10 to-pink-400/10 overflow-hidden">
+                                        {product ? (
+                                            <>
+                                                {/* Discount Badge */}
+                                                {product.discountPercentage > 0 && (
+                                                    <div className="absolute top-3 left-3 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs font-bold px-2 py-1 rounded-full z-10 transform -rotate-6 shadow-lg">
+                                                        {product.discountPercentage}% OFF
+                                                    </div>
+                                                )}
+                                                
+                                                {/* Wishlist Button */}
+                                                <button className="absolute top-3 right-3 w-8 h-8 bg-black/30 backdrop-blur-sm rounded-full flex items-center justify-center z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                                    <FiHeart className="text-white text-sm" />
+                                                </button>
+
+                                                <img 
+                                                    src={product.image} 
+                                                    alt={product.name}
+                                                    className="absolute top-0 left-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                                />
+                                                <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                                            </>
+                                        ) : (
+                                            <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-purple-400/20 to-pink-400/20 animate-pulse rounded-2xl md:rounded-3xl" />
+                                        )}
+                                    </div>
+                                    
+                                    {/* Product Info */}
+                                    <div className="p-4 md:p-5 flex-grow flex flex-col">
+                                        {product ? (
+                                            <>
+                                                {/* Category Tag */}
+                                                <div className="mb-2">
+                                                    <span className="inline-block bg-white/20 text-white/80 text-xs px-2 py-1 rounded-full">
+                                                        {product.category || 'Cake'}
+                                                    </span>
+                                                </div>
+
+                                                {/* Product Name */}
+                                                <h3 className="font-semibold text-white text-sm md:text-base mb-2 line-clamp-2 leading-tight min-h-[2.5rem]">
+                                                    {product.name}
+                                                </h3>
+
+                                                {/* Rating */}
+                                                <div className="flex items-center mb-3">
+                                                    <div className="flex text-yellow-400 text-xs">
+                                                        {[...Array(5)].map((_, i) => (
+                                                            <FiStar key={i} 
+                                                                className={i < 4 ? "fill-current" : "text-white/30"} 
+                                                            />
+                                                        ))}
+                                                    </div>
+                                                    <span className="text-white/60 text-xs ml-1">(48)</span>
+                                                </div>
+
+                                                {/* Price Section */}
+                                                <div className="mt-auto">
+                                                    {product.discountPercentage > 0 ? (
+                                                        <div className="flex items-center gap-2 flex-wrap">
+                                                            <span className="text-white/60 text-xs line-through">
+                                                                ₦{(product.price + (product.price * (product.discountPercentage / 100))).toLocaleString()}
+                                                            </span>
+                                                            <span className="text-white font-bold text-base md:text-lg bg-gradient-to-r from-green-400 to-emerald-500 bg-clip-text text-transparent">
+                                                                ₦{product.price.toLocaleString()}
+                                                            </span>
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-white font-bold text-base md:text-lg">
+                                                            ₦{product.price.toLocaleString()}
+                                                        </span>
+                                                    )}
+                                                </div>
+
+                                                {/* Add to Cart Button */}
+                                                <motion.button
+                                                    whileHover={{ scale: 1.05 }}
+                                                    whileTap={{ scale: 0.95 }}
+                                                    className="w-full mt-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white py-2 md:py-2.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all duration-300 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0"
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        // Add to cart logic here
+                                                    }}
+                                                >
+                                                    <FiShoppingBag className="text-sm" />
+                                                    Add to Cart
+                                                </motion.button>
+
+                                                {/* Quick View on Mobile */}
+                                                <div className="flex items-center justify-between mt-3 md:hidden">
+                                                    <button className="text-white/60 hover:text-white text-xs flex items-center gap-1">
+                                                        <FiEye className="text-sm" />
+                                                        Quick View
+                                                    </button>
+                                                    <motion.div
+                                                        whileHover={{ scale: 1.1 }}
+                                                        className="w-6 h-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center"
+                                                    >
+                                                        <FiArrowRight className="text-white text-xs" />
+                                                    </motion.div>
+                                                </div>
+                                            </>
+                                        ) : (
+                                            // Skeleton Loader
+                                            <>
+                                                <div className="h-4 bg-white/20 rounded w-3/4 mb-2 animate-pulse"></div>
+                                                <div className="h-4 bg-white/20 rounded w-1/2 mb-3 animate-pulse"></div>
+                                                <div className="h-4 bg-white/20 rounded w-2/3 mt-auto animate-pulse"></div>
+                                            </>
+                                        )}
+                                    </div>
+
+                                    {/* Stock Status */}
+                                    {product && (
+                                        <div className="px-4 md:px-5 pb-4 md:pb-5">
+                                            <div className="flex items-center justify-between text-xs">
+                                                <span className={`px-2 py-1 rounded-full ${product.countInStock > 0 ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'}`}>
+                                                    {product.countInStock > 0 ? 'In Stock' : 'Out of Stock'}
+                                                </span>
+                                                <span className="text-white/60">
+                                                    {product.countInStock} left
+                                                </span>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
                             </Link>
                         </motion.div>
-                    </motion.div>
-                </div>
-            </section>
+                    ))}
+                </motion.div>
+            )}
+
+            {/* View All Products Button */}
+            <motion.div 
+                variants={itemVariants} 
+                className="text-center mt-12 md:mt-16"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+            >
+                <Link
+                    to="/products"
+                    className="group inline-flex items-center justify-center bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold py-4 px-8 md:px-10 rounded-2xl transition-all duration-300 shadow-2xl backdrop-blur-sm border border-white/20"
+                >
+                    View All Products
+                    <FiArrowRight className="ml-3 transition-transform group-hover:translate-x-1" />
+                </Link>
+            </motion.div>
+        </motion.div>
+    </div>
+</section>
 
             {/* Enhanced Blog Section */}
             <section className="py-20 bg-gradient-to-b from-purple-800/30 to-purple-900/50">
