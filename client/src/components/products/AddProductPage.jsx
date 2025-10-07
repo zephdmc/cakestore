@@ -13,7 +13,6 @@ import {
     FiPackage,
     FiCoffee,
     FiHeart,
-    FiHeart,
     FiSave,
     FiTrash2,
     FiCheckCircle,
