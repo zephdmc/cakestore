@@ -1,5 +1,5 @@
 require('dotenv').config(); // Must be first line!
-const app = require('./app');
+const app = require('./app.js');
 const http = require('http');
 const { db, auth } = require('./config/firebaseConfig');
 const { verifyFirebase } = require('./config/firebaseConfig');
