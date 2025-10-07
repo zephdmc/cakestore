@@ -20,22 +20,24 @@ const errorMiddleware = require('./middlewares/errorMiddleware');
 
 const app = express();
 
-// 1. CORS - SIMPLEST POSSIBLE CONFIGURATION
+// 1. CORS - Comprehensive configuration (REPLACED)
 app.use(cors({
-  origin: true, // Allow ALL origins temporarily
+  origin: ['https://www.stefanosbakeshop.com', 'https://stefanosbakeshop.com'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
+  allowedHeaders: [
+    'Content-Type', 
+    'Authorization', 
+    'X-Requested-With', 
+    'Accept',
+    'Origin',
+    'Access-Control-Request-Method',
+    'Access-Control-Request-Headers'
+  ],
+  optionsSuccessStatus: 200
 }));
 
-// 2. Handle preflight requests manually
-app.options('*', (req, res) => {
-  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  res.status(200).send();
-});
+// 2. REMOVED the manual app.options('*') handler - it conflicts with cors middleware
 
 // 3. Security headers (CORS compatible)
 app.use(helmet({
