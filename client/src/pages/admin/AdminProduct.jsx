@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { getProducts, deleteProduct } from '../../services/productService';
+import { getProducts, deleteProduct } from '../../services/productServic';
 import Loader from '../../components/common/Loader';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
