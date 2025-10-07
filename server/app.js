@@ -20,52 +20,29 @@ const errorMiddleware = require('./middlewares/errorMiddleware');
 
 const app = express();
 
-// ==================== CORS FIX - GUARANTEED WORKING ====================
+// ==================== NUCLEAR CORS OPTION ====================
 
-// CORS Middleware - MUST BE FIRST
-app.use(cors({
-  origin: [
-    'https://www.stefanosbakeshop.com',
-    'https://stefanosbakeshop.com',
-    'http://localhost:3000',
-    'http://localhost:5173'
-  ],
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH', 'HEAD'],
-  allowedHeaders: [
-    'Content-Type',
-    'Authorization',
-    'X-Requested-With',
-    'Accept',
-    'Origin',
-    'Access-Control-Request-Method',
-    'Access-Control-Request-Headers',
-    'X-CSRF-Token'
-  ],
-  exposedHeaders: ['Content-Range', 'X-Content-Range'],
-  optionsSuccessStatus: 200,
-  preflightContinue: false,
-  maxAge: 86400 // 24 hours
-}));
-
-// Handle preflight requests globally
-app.options('*', cors());
+// Remove all CORS restrictions temporarily - MUST BE FIRST
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH, HEAD');
+  res.header('Access-Control-Allow-Headers', '*');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Max-Age', '86400');
+  
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  next();
+});
 
 // ==================== SECURITY MIDDLEWARE ====================
 
-// Security headers
+// Security headers (adjusted for nuclear CORS)
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" },
   crossOriginEmbedderPolicy: false,
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      imgSrc: ["'self'", "data:", "https:", "blob:"],
-      connectSrc: ["'self'", "https://cakestore-8pe7.onrender.com", "https://www.stefanosbakeshop.com"]
-    }
-  }
+  contentSecurityPolicy: false // Temporarily disable for testing
 }));
 
 // Rate limiting - temporarily relaxed
@@ -97,11 +74,9 @@ app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`, {
     origin: req.headers.origin,
     'user-agent': req.headers['user-agent'],
-    'content-type': req.headers['content-type']
+    'content-type': req.headers['content-type'],
+    'content-length': req.headers['content-length']
   });
-  
-  // Add CORS headers to every response
-  res.header('Access-Control-Allow-Credentials', 'true');
   next();
 });
 
@@ -122,10 +97,10 @@ app.use('/api/custom-orders', customOrderRoutes);
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'OK', 
-    message: 'Server is running with CORS',
+    message: 'Server is running with NUCLEAR CORS',
     timestamp: new Date().toISOString(),
     origin: req.headers.origin,
-    cors: 'enabled'
+    cors: 'nuclear-enabled'
   });
 });
 
@@ -134,8 +109,20 @@ app.post('/api/test-product-create', (req, res) => {
   console.log('Test product creation received:', req.body);
   res.json({ 
     success: true,
-    message: 'Product creation endpoint is working!',
+    message: 'Product creation endpoint is working with nuclear CORS!',
     receivedData: req.body,
+    timestamp: new Date().toISOString(),
+    headers: req.headers
+  });
+});
+
+// Test actual product creation
+app.post('/api/products/test', (req, res) => {
+  console.log('Actual products endpoint test:', req.body);
+  res.json({ 
+    success: true,
+    message: 'Actual products endpoint is working!',
+    data: req.body,
     timestamp: new Date().toISOString()
   });
 });
@@ -144,9 +131,22 @@ app.post('/api/test-product-create', (req, res) => {
 app.get('/api/cors-test', (req, res) => {
   res.json({ 
     success: true,
-    message: 'CORS is working perfectly!',
+    message: 'NUCLEAR CORS is working perfectly!',
     yourOrigin: req.headers.origin,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    method: 'GET'
+  });
+});
+
+// Test CORS with POST
+app.post('/api/cors-test', (req, res) => {
+  res.json({ 
+    success: true,
+    message: 'NUCLEAR CORS is working with POST!',
+    yourOrigin: req.headers.origin,
+    receivedData: req.body,
+    timestamp: new Date().toISOString(),
+    method: 'POST'
   });
 });
 
@@ -155,17 +155,40 @@ app.get('/api/cors-test', (req, res) => {
 // Error handling middleware
 app.use(errorMiddleware);
 
-// 404 handler
+// Global error handler with CORS headers
+app.use((err, req, res, next) => {
+  console.error('Global Error:', err);
+  
+  // Ensure CORS headers are set even on errors
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+  res.header('Access-Control-Allow-Headers', '*');
+  
+  res.status(err.status || 500).json({
+    status: 'error',
+    message: err.message || 'Internal server error',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// 404 handler with CORS headers
 app.use('*', (req, res) => {
+  // Ensure CORS headers are set for 404 responses
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+  res.header('Access-Control-Allow-Headers', '*');
+  
   res.status(404).json({
     status: 'error',
     message: `Route ${req.originalUrl} not found`,
     availableEndpoints: [
       '/api/health',
-      '/api/cors-test',
+      '/api/cors-test (GET, POST)',
       '/api/test-product-create (POST)',
+      '/api/products/test (POST)',
       '/api/products (GET, POST)'
-    ]
+    ],
+    timestamp: new Date().toISOString()
   });
 });
 
