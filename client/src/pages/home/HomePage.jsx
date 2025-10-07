@@ -560,43 +560,7 @@ export default function HomePage() {
     </div>
 </section>
 
-            {/* Enhanced Blog Section */}
-            <section className="py-20 bg-gradient-to-b from-purple-800/30 to-purple-900/50">
-                <div className="container mx-auto max-w-7xl px-4">
-                    <motion.div
-                        initial={{ opacity: 0, y: 30 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.6 }}
-                        className="text-center mb-16"
-                    >
-                        <h2 className="text-5xl font-bold text-white mb-6">From Our Blog</h2>
-                        <p className="text-xl text-white/80 max-w-2xl mx-auto">
-                            Skincare insights, tips & beauty trends from the experts
-                        </p>
-                    </motion.div>
-
-                    {blogs && blogs.length > 0 ? (
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                            {blogs.map((post, index) => (
-                                <motion.div
-                                    key={post.sys.id}
-                                    initial={{ opacity: 0, y: 30 }}
-                                    whileInView={{ opacity: 1, y: 0 }}
-                                    viewport={{ once: true }}
-                                    transition={{ duration: 0.6, delay: index * 0.1 }}
-                                >
-                                    <BlogTeaser post={post} />
-                                </motion.div>
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="text-center py-12">
-                            <p className="text-white/60 text-lg">No blog posts available at the moment.</p>
-                        </div>
-                    )}
-                </div>
-            </section>
+            <AboutSection />
 
             {/* Enhanced Testimonials Section */}
             <section className="py-20 bg-gradient-to-br from-pink-50 to-purple-50">
