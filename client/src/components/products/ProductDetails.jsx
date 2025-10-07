@@ -272,7 +272,7 @@ export default function ProductDetail() {
                                 
                                 {product.size && (
                                     <div className="flex items-center text-gray-600 mb-4">
-                                        <FiRuler className="mr-2" />
+                                        <FiCoffee className="mr-2" />
                                         <span className="font-medium">{product.size}</span>
                                     </div>
                                 )}
