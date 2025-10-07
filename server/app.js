@@ -20,38 +20,37 @@ const errorMiddleware = require('./middlewares/errorMiddleware');
 
 const app = express();
 
-// 1. CORS - Comprehensive configuration (REPLACED)
+// CRITICAL: CORS must be FIRST middleware
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`, {
+    origin: req.headers.origin,
+    'access-control-request-method': req.headers['access-control-request-method'],
+    'access-control-request-headers': req.headers['access-control-request-headers']
+  });
+  next();
+});
+
+// SIMPLEST POSSIBLE CORS - Remove all complexity
 app.use(cors({
-  origin: ['https://www.stefanosbakeshop.com', 'https://stefanosbakeshop.com'],
+  origin: 'https://www.stefanosbakeshop.com',
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: [
-    'Content-Type', 
-    'Authorization', 
-    'X-Requested-With', 
-    'Accept',
-    'Origin',
-    'Access-Control-Request-Method',
-    'Access-Control-Request-Headers'
-  ],
-  optionsSuccessStatus: 200
 }));
 
-// 2. REMOVED the manual app.options('*') handler - it conflicts with cors middleware
+// Handle preflight requests globally
+app.options('*', cors());
 
-// 3. Security headers (CORS compatible)
+// Security headers
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" },
   crossOriginEmbedderPolicy: false
 }));
 
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-  message: 'Too many requests from this IP, please try again later.'
-});
-app.use('/api', limiter);
+// Rate limiting - TEMPORARILY DISABLE for testing
+// const limiter = rateLimit({
+//   windowMs: 15 * 60 * 1000,
+//   max: 1000
+// });
+// app.use('/api', limiter);
 
 // Body parser
 app.use(express.json({ limit: '10kb' }));
@@ -72,19 +71,18 @@ app.use('/api/users', users);
 app.use('/api/payments', payments);
 app.use('/api/custom-orders', customOrderRoutes);
 
-// Health check
+// Test endpoints
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'OK', 
-    message: 'CORS should be working now',
+    message: 'Server is running',
     timestamp: new Date().toISOString()
   });
 });
 
-// Test CORS endpoint
 app.get('/api/cors-test', (req, res) => {
   res.json({ 
-    message: 'CORS is working!',
+    message: 'CORS test successful',
     origin: req.headers.origin,
     timestamp: new Date().toISOString()
   });
