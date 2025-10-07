@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createProduct } from '../../services/productServic';
+import { createProduct } from '../../services/productService'; // Fixed typo
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { auth, storage } from '../../firebase/config';
-import { motion, AnimatePresence } from 'framer-motion';
 import { 
     FiArrowLeft, 
     FiUpload, 
@@ -226,11 +225,7 @@ export default function AddProductPage() {
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
             <div className="container mx-auto px-4 max-w-4xl">
                 {/* Header */}
-                <motion.div
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="mb-8"
-                >
+                <div className="mb-8">
                     <div className="flex items-center mb-6">
                         <button
                             onClick={() => navigate(-1)}
@@ -244,43 +239,31 @@ export default function AddProductPage() {
                             <p className="text-gray-600">Create a new product for your cake shop</p>
                         </div>
                     </div>
-                </motion.div>
+                </div>
 
                 {/* Status Messages */}
-                <AnimatePresence>
+                <div>
                     {error && (
-                        <motion.div
-                            initial={{ opacity: 0, y: -10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -10 }}
-                            className="bg-red-50 border-l-4 border-red-500 rounded-r-xl p-4 mb-6 shadow-sm"
-                        >
+                        <div className="bg-red-50 border-l-4 border-red-500 rounded-r-xl p-4 mb-6 shadow-sm">
                             <div className="flex items-center">
                                 <FiAlertCircle className="text-red-500 text-xl mr-3" />
                                 <p className="text-red-700 font-medium">{error}</p>
                             </div>
-                        </motion.div>
+                        </div>
                     )}
 
                     {success && (
-                        <motion.div
-                            initial={{ opacity: 0, y: -10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -10 }}
-                            className="bg-green-50 border-l-4 border-green-500 rounded-r-xl p-4 mb-6 shadow-sm"
-                        >
+                        <div className="bg-green-50 border-l-4 border-green-500 rounded-r-xl p-4 mb-6 shadow-sm">
                             <div className="flex items-center">
                                 <FiCheckCircle className="text-green-500 text-xl mr-3" />
                                 <p className="text-green-700 font-medium">{success}</p>
                             </div>
-                        </motion.div>
+                        </div>
                     )}
-                </AnimatePresence>
+                </div>
 
                 {/* Form */}
-                <motion.form
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
+                <form
                     onSubmit={handleSubmit}
                     className="bg-white rounded-2xl shadow-xl p-8"
                 >
@@ -451,9 +434,8 @@ export default function AddProductPage() {
                             </label>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                                 {DIETARY_TAGS.map(tag => (
-                                    <motion.label
+                                    <label
                                         key={tag}
-                                        whileHover={{ scale: 1.02 }}
                                         className="flex items-center p-3 bg-gray-50 rounded-xl border border-gray-200 hover:border-purple-300 transition-all duration-200 cursor-pointer"
                                     >
                                         <input
@@ -463,7 +445,7 @@ export default function AddProductPage() {
                                             className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
                                         />
                                         <span className="ml-3 text-sm font-medium text-gray-700">{tag}</span>
-                                    </motion.label>
+                                    </label>
                                 ))}
                             </div>
                         </div>
@@ -476,9 +458,8 @@ export default function AddProductPage() {
                             </label>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                                 {FLAVOR_TAGS.map(tag => (
-                                    <motion.label
+                                    <label
                                         key={tag}
-                                        whileHover={{ scale: 1.02 }}
                                         className="flex items-center p-3 bg-gray-50 rounded-xl border border-gray-200 hover:border-purple-300 transition-all duration-200 cursor-pointer"
                                     >
                                         <input
@@ -488,7 +469,7 @@ export default function AddProductPage() {
                                             className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
                                         />
                                         <span className="ml-3 text-sm font-medium text-gray-700">{tag}</span>
-                                    </motion.label>
+                                    </label>
                                 ))}
                             </div>
                         </div>
@@ -502,10 +483,8 @@ export default function AddProductPage() {
                             {formData.images.length > 0 && (
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                                     {formData.images.map((image, index) => (
-                                        <motion.div
+                                        <div
                                             key={index}
-                                            initial={{ opacity: 0, scale: 0.8 }}
-                                            animate={{ opacity: 1, scale: 1 }}
                                             className="relative group"
                                         >
                                             <img
@@ -513,16 +492,14 @@ export default function AddProductPage() {
                                                 alt={`Preview ${index + 1}`}
                                                 className="w-full h-32 object-cover rounded-xl border-2 border-gray-200 group-hover:border-purple-300 transition-all duration-200"
                                             />
-                                            <motion.button
-                                                whileHover={{ scale: 1.1 }}
-                                                whileTap={{ scale: 0.9 }}
+                                            <button
                                                 type="button"
                                                 onClick={() => removeImage(index, image)}
                                                 className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-lg"
                                             >
                                                 <FiX size={14} />
-                                            </motion.button>
-                                        </motion.div>
+                                            </button>
+                                        </div>
                                     ))}
                                 </div>
                             )}
@@ -556,16 +533,14 @@ export default function AddProductPage() {
                                     className="flex-1 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
                                     onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addIngredient())}
                                 />
-                                <motion.button
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
+                                <button
                                     type="button"
                                     onClick={addIngredient}
                                     className="bg-purple-600 text-white py-3 px-6 rounded-xl hover:bg-purple-700 transition-all duration-200 font-semibold"
                                 >
                                     <FiPlus className="inline mr-2" />
                                     Add
-                                </motion.button>
+                                </button>
                             </div>
                             
                             {formData.ingredients.length > 0 && (
@@ -573,10 +548,8 @@ export default function AddProductPage() {
                                     <h4 className="text-sm font-semibold text-gray-700 mb-3">Current Ingredients:</h4>
                                     <div className="flex flex-wrap gap-2">
                                         {formData.ingredients.map((ingredient, index) => (
-                                            <motion.span
+                                            <span
                                                 key={index}
-                                                initial={{ opacity: 0, scale: 0.8 }}
-                                                animate={{ opacity: 1, scale: 1 }}
                                                 className="bg-white text-gray-700 px-3 py-2 rounded-lg text-sm font-medium border border-gray-200 flex items-center"
                                             >
                                                 {ingredient}
@@ -587,7 +560,7 @@ export default function AddProductPage() {
                                                 >
                                                     <FiTrash2 size={14} />
                                                 </button>
-                                            </motion.span>
+                                            </span>
                                         ))}
                                     </div>
                                 </div>
@@ -612,12 +585,7 @@ export default function AddProductPage() {
                     </div>
 
                     {/* Action Buttons */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.3 }}
-                        className="flex flex-col sm:flex-row justify-end gap-4 mt-8 pt-8 border-t border-gray-200"
-                    >
+                    <div className="flex flex-col sm:flex-row justify-end gap-4 mt-8 pt-8 border-t border-gray-200">
                         <button
                             type="button"
                             onClick={() => navigate('/admin/products')}
@@ -625,9 +593,7 @@ export default function AddProductPage() {
                         >
                             Cancel
                         </button>
-                        <motion.button
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
+                        <button
                             type="submit"
                             disabled={loading}
                             className="flex items-center justify-center bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 px-8 rounded-xl hover:shadow-lg transition-all duration-200 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
@@ -643,9 +609,9 @@ export default function AddProductPage() {
                                     Create Product
                                 </>
                             )}
-                        </motion.button>
-                    </motion.div>
-                </motion.form>
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     );
