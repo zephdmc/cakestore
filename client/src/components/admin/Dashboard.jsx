@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { getAllOrders } from '../../services/orderService';
 import { getProducts } from '../../services/productServic';
-import { getAllCustomOrders } from '../../services/customOrderServic';
+import { getAllCustomOrders } from '../../services/customOrderService';
 import AdminLayout from '../../components/admin/AdminLayout';
 import StatsCard from '../../components/admin/StatsCard';
 import { motion, AnimatePresence } from 'framer-motion';
