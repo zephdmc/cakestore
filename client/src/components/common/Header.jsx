@@ -637,7 +637,46 @@ export default function Header() {
                         exit={{ opacity: 0, x: -300 }}
                         className="mobile-menu-container lg:hidden bg-gradient-to-b from-purple-900 to-pink-800 border-t border-white/20 fixed inset-0 z-40 pt-20"
                     >
-                        <nav className="container mx-auto px-4 py-6 flex flex-col space-y-2">
+                        {/* Close Button */}
+                        <div className="absolute top-4 right-4">
+                            <motion.button
+                                whileHover={{ scale: 1.1 }}
+                                whileTap={{ scale: 0.9 }}
+                                onClick={() => setMobileMenuOpen(false)}
+                                className="text-white hover:text-purple-200 transition-colors duration-300 p-3 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20"
+                            >
+                                <FiX size={24} />
+                            </motion.button>
+                        </div>
+
+                        {/* User Profile Section */}
+                        {currentUser && (
+                            <div className="px-6 py-4 border-b border-white/20 mb-4">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center overflow-hidden border-2 border-white/20">
+                                        {currentUser.photoURL ? (
+                                            <img
+                                                src={currentUser.photoURL}
+                                                alt="User"
+                                                className="w-full h-full object-cover"
+                                            />
+                                        ) : (
+                                            <FiUser className="text-white text-2xl" />
+                                        )}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <div className="font-semibold text-white text-lg truncate">
+                                            {currentUser.displayName || currentUser.email.split('@')[0]}
+                                        </div>
+                                        <div className="text-white/60 text-sm truncate">
+                                            {currentUser.email}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        <nav className="container mx-auto px-6 py-4 flex flex-col space-y-2">
                             <NavLink
                                 to="/"
                                 onClick={() => setMobileMenuOpen(false)}
