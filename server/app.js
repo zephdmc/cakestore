@@ -18,6 +18,9 @@ const payments = require('./routes/paymentroute');
 const customOrderRoutes = require('./routes/customOrderRoutes');
 const errorMiddleware = require('./middlewares/errorMiddleware');
 
+// ADD FIREBASE ADMIN IMPORT
+const admin = require('firebase-admin');
+
 const app = express();
 
 // ==================== CORS FIX - WORKING WITH CREDENTIALS ====================
@@ -105,6 +108,79 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/users', users);
 app.use('/api/payments', payments);
 app.use('/api/custom-orders', customOrderRoutes);
+
+// ==================== ADMIN SETUP ROUTES (ADD THESE) ====================
+
+// Temporary admin setup - run this once then remove
+app.post('/api/setup-admin', async (req, res) => {
+    try {
+        const uid = 'D9dO87pBZbc9LR94xFszD87vboU2'; // Your user ID from logs
+        
+        // Update user in Firestore with admin role
+        await admin.firestore().collection('users').doc(uid).set({
+            email: 'set@gmail.com',
+            role: 'admin', // ← THIS IS THE KEY
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            isAdmin: true
+        }, { merge: true });
+
+        console.log('✅ Admin user created in database');
+
+        // Verify the update
+        const userDoc = await admin.firestore().collection('users').doc(uid).get();
+        const userData = userDoc.data();
+        
+        res.json({
+            success: true,
+            message: 'Admin user setup successfully',
+            user: {
+                uid: uid,
+                email: userData.email,
+                role: userData.role,
+                isAdmin: userData.isAdmin
+            }
+        });
+    } catch (error) {
+        console.error('Setup admin error:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+});
+
+// Check current user role
+app.get('/api/check-user-role', async (req, res) => {
+    try {
+        const uid = 'D9dO87pBZbc9LR94xFszD87vboU2';
+        const userDoc = await admin.firestore().collection('users').doc(uid).get();
+        
+        if (!userDoc.exists) {
+            return res.json({
+                success: false,
+                message: 'User not found in database'
+            });
+        }
+
+        const userData = userDoc.data();
+        
+        res.json({
+            success: true,
+            user: {
+                uid: uid,
+                email: userData.email,
+                role: userData.role || 'user',
+                isAdmin: userData.isAdmin || false
+            }
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+});
 
 // ==================== TEST ENDPOINTS ====================
 
@@ -220,7 +296,9 @@ app.use('*', (req, res) => {
       '/api/cors-test (GET, POST)',
       '/api/test-product-create (POST)',
       '/api/products/test (POST)',
-      '/api/products (GET, POST)'
+      '/api/products (GET, POST)',
+      '/api/setup-admin (POST)', // ← ADD THIS
+      '/api/check-user-role (GET)' // ← ADD THIS
     ],
     timestamp: new Date().toISOString()
   });
