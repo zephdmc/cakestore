@@ -337,7 +337,7 @@ export default function HomePage() {
             </section>
 
             {/* Enhanced Feature Cards Section */}
-           {/* Enhanced Featured Products Section */}
+          {/* Enhanced Featured Products Section */}
 <section className="py-20 px-4 bg-gradient-to-b from-purple-900/50 to-purple-800/30">
     <div className="container mx-auto max-w-7xl">
         <motion.div
@@ -419,11 +419,6 @@ export default function HomePage() {
                                                     </div>
                                                 )}
                                                 
-                                                {/* Wishlist Button */}
-                                                <button className="absolute top-3 right-3 w-8 h-8 bg-black/30 backdrop-blur-sm rounded-full flex items-center justify-center z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                                    <FiHeart className="text-white text-sm" />
-                                                </button>
-
                                                 <img 
                                                     src={product.image} 
                                                     alt={product.name}
@@ -452,18 +447,6 @@ export default function HomePage() {
                                                     {product.name}
                                                 </h3>
 
-                                                {/* Rating */}
-                                                <div className="flex items-center mb-3">
-                                                    <div className="flex text-yellow-400 text-xs">
-                                                        {[...Array(5)].map((_, i) => (
-                                                            <FiStar key={i} 
-                                                                className={i < 4 ? "fill-current" : "text-white/30"} 
-                                                            />
-                                                        ))}
-                                                    </div>
-                                                    <span className="text-white/60 text-xs ml-1">(48)</span>
-                                                </div>
-
                                                 {/* Price Section */}
                                                 <div className="mt-auto">
                                                     {product.discountPercentage > 0 ? (
@@ -481,34 +464,6 @@ export default function HomePage() {
                                                         </span>
                                                     )}
                                                 </div>
-
-                                                {/* Add to Cart Button */}
-                                                <motion.button
-                                                    whileHover={{ scale: 1.05 }}
-                                                    whileTap={{ scale: 0.95 }}
-                                                    className="w-full mt-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white py-2 md:py-2.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all duration-300 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0"
-                                                    onClick={(e) => {
-                                                        e.preventDefault();
-                                                        // Add to cart logic here
-                                                    }}
-                                                >
-                                                    <FiShoppingBag className="text-sm" />
-                                                    Add to Cart
-                                                </motion.button>
-
-                                                {/* Quick View on Mobile */}
-                                                <div className="flex items-center justify-between mt-3 md:hidden">
-                                                    <button className="text-white/60 hover:text-white text-xs flex items-center gap-1">
-                                                        <FiEye className="text-sm" />
-                                                        Quick View
-                                                    </button>
-                                                    <motion.div
-                                                        whileHover={{ scale: 1.1 }}
-                                                        className="w-6 h-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center"
-                                                    >
-                                                        <FiArrowRight className="text-white text-xs" />
-                                                    </motion.div>
-                                                </div>
                                             </>
                                         ) : (
                                             // Skeleton Loader
@@ -519,20 +474,6 @@ export default function HomePage() {
                                             </>
                                         )}
                                     </div>
-
-                                    {/* Stock Status */}
-                                    {product && (
-                                        <div className="px-4 md:px-5 pb-4 md:pb-5">
-                                            <div className="flex items-center justify-between text-xs">
-                                                <span className={`px-2 py-1 rounded-full ${product.countInStock > 0 ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'}`}>
-                                                    {product.countInStock > 0 ? 'In Stock' : 'Out of Stock'}
-                                                </span>
-                                                <span className="text-white/60">
-                                                    {product.countInStock} left
-                                                </span>
-                                            </div>
-                                        </div>
-                                    )}
                                 </div>
                             </Link>
                         </motion.div>
