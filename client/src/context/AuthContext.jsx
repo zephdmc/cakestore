@@ -327,6 +327,9 @@
 //     }
 //     return context;
 // }
+
+
+
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import {
     auth,
@@ -398,21 +401,23 @@ export function AuthProvider({ children }) {
         }
     }, [navigate]);
 
-    // 3. ADD THIS FUNCTION: Get Firebase ID Token
+    // 3. FIXED: Get Firebase ID Token - Use auth.currentUser directly
     const getIdToken = useCallback(async (forceRefresh = false) => {
         try {
-            if (!state.currentUser) {
+            // Use auth.currentUser directly instead of state.currentUser
+            const currentAuthUser = auth.currentUser;
+            if (!currentAuthUser) {
                 throw new Error('No user is currently logged in');
             }
             
-            // Get the ID token from the current user
-            const token = await state.currentUser.getIdToken(forceRefresh);
+            // Get the ID token from the Firebase auth currentUser
+            const token = await currentAuthUser.getIdToken(forceRefresh);
             return token;
         } catch (error) {
             console.error('Error getting ID token:', error);
             throw new Error('Failed to get authentication token');
         }
-    }, [state.currentUser]);
+    }, []); // Remove dependency on state.currentUser
 
     // 4. Clean Auth Setup
     useEffect(() => {
