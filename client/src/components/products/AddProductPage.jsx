@@ -231,7 +231,7 @@ export default function AddProductPage() {
                             className="flex items-center text-purple-600 hover:text-purple-700 font-semibold mr-6 group transition-colors duration-200"
                         >
                             <FiArrowLeft className="mr-2 group-hover:-translate-x-1 transition-transform" />
-                            Back to Products
+                            Back to Product
                         </button>
                         <div>
                             <h1 className="text-3xl font-bold text-gray-900 mb-2">Add New Cake Product</h1>
