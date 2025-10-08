@@ -20,7 +20,7 @@ const PaymentForm = ({
     isCustomOrder = false,
     shippingData
 }) => {
-    const { currentUser } = useAuth(); // Remove getIdToken since we don't need it for Flutterwave
+    const { currentUser } = useAuth();
     const [isLoading, setIsLoading] = useState(false);
     const [scriptReady, setScriptReady] = useState(false);
     const [error, setError] = useState(null);
@@ -94,18 +94,32 @@ const PaymentForm = ({
             // Validate inputs
             if (!currentUser?.email) throw new Error('You must be logged in to pay.');
             if (!amount || amount <= 0) throw new Error('Invalid payment amount.');
+            if (amount > 100000000) throw new Error('Amount is too large. Please contact support for large orders.');
             if (!cartItems?.length && !isCustomOrder) throw new Error('Your cart is empty.');
 
+            // Validate Flutterwave public key
+            const publicKey = import.meta.env.VITE_FLUTTERWAVE_PUBLIC_KEY;
+            if (!publicKey || publicKey === 'undefined' || publicKey.startsWith('rt')) {
+                throw new Error('Payment configuration error. Please contact support.');
+            }
+
             // Generate transaction reference
-            const txRef = `BBA_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
+            const txRef = `BBA_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
             // Use customer data from shipping form if available
             const customerEmail = currentUser.email;
-            const customerName = shippingData 
-                ? `${shippingData.firstName} ${shippingData.lastName}`.trim()
-                : (currentUser.displayName || 'Customer');
+            
+            // FIX: Handle undefined shipping data properly
+            let customerName = 'Customer';
+            if (shippingData) {
+                const firstName = shippingData.firstName || '';
+                const lastName = shippingData.lastName || '';
+                customerName = `${firstName} ${lastName}`.trim() || currentUser.displayName || 'Customer';
+            } else {
+                customerName = currentUser.displayName || 'Customer';
+            }
 
-            // Prepare metadata (simplified - no token needed for Flutterwave)
+            // Prepare metadata
             const metaPayload = {
                 userId: currentUser.uid,
                 txRef: txRef,
@@ -117,12 +131,17 @@ const PaymentForm = ({
                 amount,
                 txRef,
                 customerEmail,
-                customerName
+                customerName,
+                publicKey: publicKey ? '***' + publicKey.slice(-4) : 'MISSING'
             });
 
-            // Initialize Flutterwave
-            window.FlutterwaveCheckout({
-                public_key: import.meta.env.VITE_FLUTTERWAVE_PUBLIC_KEY,
+            // Initialize Flutterwave with proper error handling
+            if (typeof window.FlutterwaveCheckout !== 'function') {
+                throw new Error('Payment processor not loaded properly. Please refresh the page.');
+            }
+
+            const flutterwaveConfig = {
+                public_key: publicKey,
                 tx_ref: txRef,
                 amount: amount,
                 currency: 'NGN',
@@ -140,7 +159,11 @@ const PaymentForm = ({
                 },
                 callback: handlePaymentCallback,
                 onclose: handlePaymentClose
-            });
+            };
+
+            console.log('Flutterwave config:', flutterwaveConfig);
+
+            window.FlutterwaveCheckout(flutterwaveConfig);
 
         } catch (error) {
             console.error('Payment initialization error:', error);
