@@ -420,7 +420,7 @@ export default function HomePage() {
                                                 )}
                                                 
                                                 <img 
-                                                    src={product.image} 
+                                                    src={product.images} 
                                                     alt={product.name}
                                                     className="absolute top-0 left-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                                 />
