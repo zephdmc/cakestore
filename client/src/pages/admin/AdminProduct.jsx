@@ -308,7 +308,7 @@ export default function AdminProducts() {
                                                     <td className="px-6 py-4 whitespace-nowrap">
                                                         <div className="flex items-center">
                                                             <img
-                                                                src={product.image || '/placeholder-product.png'}
+                                                                src={product.images || '/placeholder-product.png'}
                                                                 alt={product.name}
                                                                 className="h-12 w-12 object-cover rounded-xl border border-gray-200 mr-4"
                                                                 onError={(e) => {
@@ -393,7 +393,7 @@ export default function AdminProducts() {
                                     >
                                         <div className="flex items-start space-x-4">
                                             <img
-                                                src={product.image || '/placeholder-product.png'}
+                                                src={product.images || '/placeholder-product.png'}
                                                 alt={product.name}
                                                 className="h-16 w-16 object-cover rounded-xl border border-gray-200 flex-shrink-0"
                                                 onError={(e) => {
