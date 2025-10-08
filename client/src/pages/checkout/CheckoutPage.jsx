@@ -186,7 +186,7 @@ export default function CheckoutPage() {
                         name: item.name,
                         price: Number(item.price),
                         quantity: Number(item.quantity),
-                        image: item.image
+                        image: item.images
                     })),
                     shippingAddress: shippingData,
                     paymentMethod: 'flutterwave',
@@ -378,7 +378,7 @@ export default function CheckoutPage() {
                                             className="flex items-center gap-3 bg-white/5 rounded-xl p-3 border border-white/10"
                                         >
                                             <img
-                                                src={item.image}
+                                                src={item.images}
                                                 alt={item.name}
                                                 className="w-12 h-12 rounded-lg object-cover border border-white/20"
                                             />
