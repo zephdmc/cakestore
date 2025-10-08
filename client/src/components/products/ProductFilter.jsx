@@ -315,7 +315,7 @@ export default function ProductFilter({ categories, onFilter }) {
                                 onClick={() => setIsExpanded(true)}
                                 className="text-white hover:text-purple-100 text-sm font-medium transition-colors duration-200"
                             >
-                                Edit Filter
+                                Edit Filters
                             </button>
                         </div>
                     </div>
