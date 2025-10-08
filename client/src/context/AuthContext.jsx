@@ -327,7 +327,6 @@
 //     }
 //     return context;
 // }
-
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import {
     auth,
@@ -338,9 +337,6 @@ import {
 import { useNavigate } from 'react-router-dom';
 
 const AuthContext = createContext(null);
-
-
-
 
 export function AuthProvider({ children }) {
     const [state, setState] = useState({
@@ -402,12 +398,27 @@ export function AuthProvider({ children }) {
         }
     }, [navigate]);
 
-    // 3. Clean Auth Setup
+    // 3. ADD THIS FUNCTION: Get Firebase ID Token
+    const getIdToken = useCallback(async (forceRefresh = false) => {
+        try {
+            if (!state.currentUser) {
+                throw new Error('No user is currently logged in');
+            }
+            
+            // Get the ID token from the current user
+            const token = await state.currentUser.getIdToken(forceRefresh);
+            return token;
+        } catch (error) {
+            console.error('Error getting ID token:', error);
+            throw new Error('Failed to get authentication token');
+        }
+    }, [state.currentUser]);
+
+    // 4. Clean Auth Setup
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, handleTokenUpdate);
         return () => unsubscribe();
     }, [handleTokenUpdate]);
-
 
     useEffect(() => {
         console.log('Auth state changed:', {
@@ -421,7 +432,8 @@ export function AuthProvider({ children }) {
         <AuthContext.Provider value={{
             ...state,
             signOut: handleSignOut,
-            refreshToken: () => auth.currentUser?.getIdToken(true)
+            refreshToken: () => auth.currentUser?.getIdToken(true),
+            getIdToken // ADD THIS to the context value
         }}>
             {children}
         </AuthContext.Provider>
