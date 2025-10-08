@@ -13,14 +13,17 @@ import {
   FiCreditCard,
   FiArrowRight,
   FiShoppingBag,
-  FiTag
+  FiTag,
+  FiUser
 } from 'react-icons/fi';
 
-export default function ShippingForm({ onSubmit }) {
+export default function ShippingForm({ onSubmit, isCustomOrder = false }) {
     const { currentUser } = useAuth();
     const { cartTotal } = useCart();
 
     const [formData, setFormData] = useState({
+        firstName: '',
+        lastName: '',
         address: '',
         city: '',
         state: '',
@@ -80,8 +83,22 @@ export default function ShippingForm({ onSubmit }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        
+        // Validate required fields
         if (!formData.email) {
             alert('Please enter a valid email address');
+            return;
+        }
+        if (!formData.firstName || !formData.lastName) {
+            alert('Please enter your first and last name');
+            return;
+        }
+        if (!formData.phone) {
+            alert('Please enter your phone number');
+            return;
+        }
+        if (!formData.address) {
+            alert('Please enter your address');
             return;
         }
         
@@ -135,7 +152,9 @@ export default function ShippingForm({ onSubmit }) {
                     </div>
                     <div>
                         <h2 className="text-2xl md:text-3xl font-bold mb-2">Shipping Information</h2>
-                        <p className="text-purple-100">Enter your delivery details to complete your order</p>
+                        <p className="text-purple-100">
+                            {isCustomOrder ? 'Enter details for your custom cake delivery' : 'Enter your delivery details to complete your order'}
+                        </p>
                     </div>
                 </div>
             </motion.div>
@@ -148,6 +167,40 @@ export default function ShippingForm({ onSubmit }) {
                         onSubmit={handleSubmit}
                         className="bg-white rounded-3xl shadow-xl p-6 md:p-8 border border-gray-100"
                     >
+                        {/* Personal Information */}
+                        <div className="mb-8">
+                            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                                <FiUser className="text-purple-500" />
+                                Personal Information
+                            </h3>
+                            <div className="grid md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">First Name *</label>
+                                    <input
+                                        type="text"
+                                        name="firstName"
+                                        value={formData.firstName}
+                                        onChange={handleChange}
+                                        className="w-full p-4 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
+                                        required
+                                        placeholder="Enter your first name"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Last Name *</label>
+                                    <input
+                                        type="text"
+                                        name="lastName"
+                                        value={formData.lastName}
+                                        onChange={handleChange}
+                                        className="w-full p-4 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
+                                        required
+                                        placeholder="Enter your last name"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
                         {/* Contact Information */}
                         <div className="mb-8">
                             <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
@@ -156,7 +209,7 @@ export default function ShippingForm({ onSubmit }) {
                             </h3>
                             <div className="grid md:grid-cols-2 gap-4">
                                 <div className="md:col-span-2">
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Email Address *</label>
                                     <input
                                         type="email"
                                         name="email"
@@ -167,8 +220,8 @@ export default function ShippingForm({ onSubmit }) {
                                         disabled={!!currentUser?.email}
                                     />
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                                <div className="md:col-span-2">
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number *</label>
                                     <input
                                         type="tel"
                                         name="phone"
@@ -176,6 +229,7 @@ export default function ShippingForm({ onSubmit }) {
                                         onChange={handleChange}
                                         className="w-full p-4 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
                                         required
+                                        placeholder="e.g., 08012345678"
                                     />
                                 </div>
                             </div>
@@ -189,7 +243,7 @@ export default function ShippingForm({ onSubmit }) {
                             </h3>
                             <div className="grid md:grid-cols-2 gap-4">
                                 <div className="md:col-span-2">
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Street Address</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Street Address *</label>
                                     <input
                                         type="text"
                                         name="address"
@@ -201,7 +255,7 @@ export default function ShippingForm({ onSubmit }) {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">City</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">City *</label>
                                     <input
                                         type="text"
                                         name="city"
@@ -209,10 +263,11 @@ export default function ShippingForm({ onSubmit }) {
                                         onChange={handleChange}
                                         className="w-full p-4 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
                                         required
+                                        placeholder="e.g., Port Harcourt"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">State</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">State *</label>
                                     <input
                                         type="text"
                                         name="state"
@@ -220,6 +275,7 @@ export default function ShippingForm({ onSubmit }) {
                                         onChange={handleChange}
                                         className="w-full p-4 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
                                         required
+                                        placeholder="e.g., Rivers"
                                     />
                                 </div>
                                 <div>
@@ -230,11 +286,11 @@ export default function ShippingForm({ onSubmit }) {
                                         value={formData.postalCode}
                                         onChange={handleChange}
                                         className="w-full p-4 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
-                                        required
+                                        placeholder="Optional"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Country</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Country *</label>
                                     <select
                                         name="country"
                                         value={formData.country}
@@ -306,7 +362,7 @@ export default function ShippingForm({ onSubmit }) {
                                     value={formData.promocode}
                                     onChange={handleChange}
                                     className="flex-1 p-4 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
-                                    placeholder="Enter promo code"
+                                    placeholder="Enter promo code (optional)"
                                 />
                                 <button
                                     type="button"
