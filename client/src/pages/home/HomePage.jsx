@@ -229,112 +229,112 @@ export default function HomePage() {
                 </motion.div>
             )}
 
-            {/* Enhanced Hero Section */}
-            <section className="relative overflow-hidden min-h-[90vh] flex items-center px-4">
-                {/* Animated Background Elements */}
-                <div className="absolute inset-0 overflow-hidden">
-                    <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500/20 rounded-full blur-3xl"></div>
-                    <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-pink-500/20 rounded-full blur-3xl"></div>
-                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-white/5 rounded-full blur-3xl"></div>
-                </div>
+        {/* Enhanced Hero Section */}
+<section className="relative overflow-hidden min-h-[90vh] flex items-center px-4">
+    {/* Animated Background Elements */}
+    <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500/20 rounded-full blur-3xl"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-pink-500/20 rounded-full blur-3xl"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-white/5 rounded-full blur-3xl"></div>
+    </div>
 
-                <div className="container mx-auto max-w-7xl relative z-10">
-                    <div className="grid lg:grid-cols-2 gap-12 items-center">
-                        {/* Text Content */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 30 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.8, delay: 0.2 }}
-                            className="text-center lg:text-left"
+    <div className="container mx-auto max-w-7xl relative z-10">
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+            {/* Text Content */}
+            <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.2 }}
+                className="text-center lg:text-left"
+            >
+                <motion.h1
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8, delay: 0.4 }}
+                    className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold text-white mb-4 lg:mb-6 leading-tight"
+                >
+                    Crafting Moments{' '}
+                    <span className="bg-gradient-to-r from-yellow-300 to-pink-300 bg-clip-text text-transparent">
+                        You Can Taste,
+                    </span>{' '}
+                    Scent & Hold
+                </motion.h1>
+                
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8, delay: 0.8 }}
+                    className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start"
+                >
+                    <motion.div
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                    >
+                        <Link
+                            to="/products"
+                            className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white py-3 sm:py-4 px-6 sm:px-8 rounded-xl sm:rounded-2xl font-semibold transition-all duration-300 shadow-2xl text-center backdrop-blur-sm border border-white/20 block text-sm sm:text-base"
                         >
-                            <motion.h1
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.8, delay: 0.4 }}
-                                className="text-5xl lg:text-7xl font-bold text-white mb-6 leading-tight"
-                            >
-                                Crafting Moments{' '}
-                                <span className="bg-gradient-to-r from-yellow-300 to-pink-300 bg-clip-text text-transparent">
-                                    You Can Taste,
-                                </span>{' '}
-                                Scent & Hold
-                            </motion.h1>
-                            
-                            <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.8, delay: 0.8 }}
-    className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
->
-    <motion.div
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-    >
-        <Link
-            to="/products"
-            className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white py-4 px-8 rounded-2xl font-semibold transition-all duration-300 shadow-2xl text-center backdrop-blur-sm border border-white/20 block"
-        >
-            Shop Ready-Made
-        </Link>
-    </motion.div>
-    
-    <motion.button
-        onClick={handleCustomOrderClick}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        className="bg-white/10 hover:bg-white/20 text-white py-4 px-8 rounded-2xl font-semibold transition-all duration-300 shadow-2xl text-center backdrop-blur-sm border border-white/20"
-    >
-        Order Custom
-    </motion.button>
-</motion.div>
-                        </motion.div>
+                            Shop Ready-Made
+                        </Link>
+                    </motion.div>
+                    
+                    <motion.button
+                        onClick={handleCustomOrderClick}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="bg-white/10 hover:bg-white/20 text-white py-3 sm:py-4 px-6 sm:px-8 rounded-xl sm:rounded-2xl font-semibold transition-all duration-300 shadow-2xl text-center backdrop-blur-sm border border-white/20 text-sm sm:text-base"
+                    >
+                        Order Custom
+                    </motion.button>
+                </motion.div>
+            </motion.div>
 
-                        {/* Image Slideshow */}
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.9, rotate: 5 }}
-                            animate={{ opacity: 1, scale: 1, rotate: 0 }}
-                            transition={{ duration: 0.8, delay: 0.4 }}
-                            className="relative"
-                        >
-                            <div className="relative h-[500px] lg:h-[600px] rounded-3xl overflow-hidden shadow-2xl">
-                                <ImageSlideShow />
-                            </div>
-                            
-                            {/* Floating elements */}
-                            <motion.div
-                                animate={{ 
-                                    y: [0, -20, 0],
-                                    rotate: [0, 5, 0]
-                                }}
-                                transition={{ 
-                                    duration: 6,
-                                    repeat: Infinity,
-                                    ease: "easeInOut"
-                                }}
-                                className="absolute -top-4 -left-4 bg-white/10 backdrop-blur-sm p-4 rounded-2xl border border-white/20 shadow-2xl"
-                            >
-                                <FiStar className="text-yellow-300 text-2xl" />
-                            </motion.div>
-                            
-                            <motion.div
-                                animate={{ 
-                                    y: [0, 20, 0],
-                                    rotate: [0, -5, 0]
-                                }}
-                                transition={{ 
-                                    duration: 4,
-                                    repeat: Infinity,
-                                    ease: "easeInOut",
-                                    delay: 1
-                                }}
-                                className="absolute -bottom-4 -right-4 bg-white/10 backdrop-blur-sm p-4 rounded-2xl border border-white/20 shadow-2xl"
-                            >
-                                <FiHeart className="text-pink-300 text-2xl" />
-                            </motion.div>
-                        </motion.div>
-                    </div>
+            {/* Image Slideshow */}
+            <motion.div
+                initial={{ opacity: 0, scale: 0.9, rotate: 5 }}
+                animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                transition={{ duration: 0.8, delay: 0.4 }}
+                className="relative"
+            >
+                <div className="relative h-[400px] sm:h-[450px] md:h-[500px] lg:h-[600px] rounded-2xl lg:rounded-3xl overflow-hidden shadow-2xl">
+                    <ImageSlideShow />
                 </div>
-            </section>
+                
+                {/* Floating elements */}
+                <motion.div
+                    animate={{ 
+                        y: [0, -20, 0],
+                        rotate: [0, 5, 0]
+                    }}
+                    transition={{ 
+                        duration: 6,
+                        repeat: Infinity,
+                        ease: "easeInOut"
+                    }}
+                    className="absolute -top-3 -left-3 sm:-top-4 sm:-left-4 bg-white/10 backdrop-blur-sm p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-white/20 shadow-2xl"
+                >
+                    <FiStar className="text-yellow-300 text-xl sm:text-2xl" />
+                </motion.div>
+                
+                <motion.div
+                    animate={{ 
+                        y: [0, 20, 0],
+                        rotate: [0, -5, 0]
+                    }}
+                    transition={{ 
+                        duration: 4,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                        delay: 1
+                    }}
+                    className="absolute -bottom-3 -right-3 sm:-bottom-4 sm:-right-4 bg-white/10 backdrop-blur-sm p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-white/20 shadow-2xl"
+                >
+                    <FiHeart className="text-pink-300 text-xl sm:text-2xl" />
+                </motion.div>
+            </motion.div>
+        </div>
+    </div>
+</section>
 
             {/* Enhanced Feature Cards Section */}
           {/* Enhanced Featured Products Section */}
