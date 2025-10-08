@@ -20,7 +20,7 @@ const PaymentForm = ({
     isCustomOrder = false,
     shippingData
 }) => {
-    const { currentUser, getIdToken } = useAuth();
+    const { currentUser } = useAuth(); // Remove getIdToken since we don't need it for Flutterwave
     const [isLoading, setIsLoading] = useState(false);
     const [scriptReady, setScriptReady] = useState(false);
     const [error, setError] = useState(null);
@@ -96,16 +96,6 @@ const PaymentForm = ({
             if (!amount || amount <= 0) throw new Error('Invalid payment amount.');
             if (!cartItems?.length && !isCustomOrder) throw new Error('Your cart is empty.');
 
-            // Get Firebase ID token using the AuthContext method
-            let token;
-            try {
-                token = await getIdToken(true);
-                console.log('Successfully obtained Firebase token');
-            } catch (tokenError) {
-                console.error('Failed to get Firebase token:', tokenError);
-                throw new Error('Authentication failed. Please refresh the page and try again.');
-            }
-
             // Generate transaction reference
             const txRef = `BBA_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
 
@@ -115,13 +105,12 @@ const PaymentForm = ({
                 ? `${shippingData.firstName} ${shippingData.lastName}`.trim()
                 : (currentUser.displayName || 'Customer');
 
-            // Prepare metadata
+            // Prepare metadata (simplified - no token needed for Flutterwave)
             const metaPayload = {
                 userId: currentUser.uid,
                 txRef: txRef,
                 items: JSON.stringify(cartItems.map(item => item?.id).filter(Boolean)),
-                isCustomOrder: isCustomOrder,
-                token: token // Include the token in metadata for backend verification
+                isCustomOrder: isCustomOrder
             };
 
             console.log('Initializing Flutterwave payment with:', {
