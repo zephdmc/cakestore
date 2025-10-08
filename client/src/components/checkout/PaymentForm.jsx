@@ -1,8 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { generateSecurityToken } from '../../utils/securityUtils';
-import { logPaymentEvent } from '../../services/analyticsService';
-import API from '../../services/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FiLock, 
@@ -15,18 +12,15 @@ import {
 } from 'react-icons/fi';
 import { FaRegCopy } from 'react-icons/fa';
 
-const logoUrl = `${window.location.origin}/images/logo.png`;
-
 const PaymentForm = ({ 
     amount, 
     onSuccess, 
     onClose, 
     cartItems, 
     isCustomOrder = false,
-    shippingData,
-    user 
+    shippingData
 }) => {
-    const { currentUser, getIdToken } = useAuth(); // Make sure your AuthContext provides getIdToken
+    const { currentUser, getIdToken } = useAuth();
     const [isLoading, setIsLoading] = useState(false);
     const [scriptReady, setScriptReady] = useState(false);
     const [error, setError] = useState(null);
@@ -34,15 +28,6 @@ const PaymentForm = ({
     const [copied, setCopied] = useState(false);
 
     const paymentResolvedRef = useRef(false);
-    const nonceRef = useRef({
-        nonce: '',
-        txRef: '',
-        securityToken: '',
-        userId: ''
-    });
-
-    // Use the passed user prop or fall back to context
-    const userData = user || currentUser;
 
     // Animation variants
     const containerVariants = {
@@ -95,32 +80,6 @@ const PaymentForm = ({
         setTimeout(() => setCopied(false), 2000);
     };
 
-    // Get Firebase ID token safely
-    const getFirebaseToken = async () => {
-        try {
-            // Method 1: If your AuthContext provides getIdToken
-            if (getIdToken) {
-                return await getIdToken();
-            }
-            
-            // Method 2: If you have access to Firebase auth directly
-            if (window.firebase?.auth?.().currentUser) {
-                return await window.firebase.auth().currentUser.getIdToken(true);
-            }
-            
-            // Method 3: If using Firebase v9 modular SDK
-            if (window.getAuth && window.getAuth().currentUser) {
-                const { getIdToken: modularGetIdToken } = await import('firebase/auth');
-                return await modularGetIdToken(window.getAuth().currentUser);
-            }
-            
-            throw new Error('No authentication method available');
-        } catch (error) {
-            console.error('Failed to get Firebase token:', error);
-            throw new Error('Authentication failed. Please refresh the page and try again.');
-        }
-    };
-
     const initializePayment = async () => {
         if (!scriptReady) {
             setError('Payment processor is still loading. Please wait.');
@@ -132,70 +91,51 @@ const PaymentForm = ({
         setPaymentStep('processing');
 
         try {
-            if (!userData?.email) throw new Error('You must be logged in to pay.');
+            // Validate inputs
+            if (!currentUser?.email) throw new Error('You must be logged in to pay.');
             if (!amount || amount <= 0) throw new Error('Invalid payment amount.');
             if (!cartItems?.length && !isCustomOrder) throw new Error('Your cart is empty.');
-            
-            // Get Firebase ID token safely
-            const token = await getFirebaseToken();
 
-            // Try to get nonce, but handle case where endpoint might not exist
-            let nonce = '';
+            // Get Firebase ID token using the AuthContext method
+            let token;
             try {
-                const nonceResponse = await API.get('/api/payments/payments/nonce', {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Authorization: `Bearer ${token}`
-                    }
-                });
-                nonce = nonceResponse.nonce;
-            } catch (nonceError) {
-                console.warn('Nonce endpoint not available, proceeding without nonce');
-                nonce = `fallback_nonce_${Date.now()}`;
+                token = await getIdToken(true);
+                console.log('Successfully obtained Firebase token');
+            } catch (tokenError) {
+                console.error('Failed to get Firebase token:', tokenError);
+                throw new Error('Authentication failed. Please refresh the page and try again.');
             }
 
+            // Generate transaction reference
             const txRef = `BBA_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
-            const securityToken = await generateSecurityToken(userData.uid, txRef);
-            
-            nonceRef.current = {
-                nonce,
-                txRef,
-                securityToken,
-                userId: userData.uid
-            };
-
-            // Log payment attempt (but don't block if it fails)
-            try {
-                await logPaymentEvent('attempt', {
-                    amount,
-                    txRef,
-                    itemsCount: cartItems.length
-                });
-            } catch (logError) {
-                console.warn('Failed to log payment event:', logError);
-            }
-
-            const itemIds = cartItems
-                .map(i => i?.id)
-                .filter(id => id !== undefined && id !== null);
-
-            const metaPayload = {
-                securityToken,
-                userId: userData.uid,
-                nonce: nonceRef.current.nonce,
-                items: JSON.stringify(itemIds)
-            };
 
             // Use customer data from shipping form if available
-            const customerEmail = userData.email;
+            const customerEmail = currentUser.email;
             const customerName = shippingData 
                 ? `${shippingData.firstName} ${shippingData.lastName}`.trim()
-                : (userData.displayName || 'Customer');
+                : (currentUser.displayName || 'Customer');
 
+            // Prepare metadata
+            const metaPayload = {
+                userId: currentUser.uid,
+                txRef: txRef,
+                items: JSON.stringify(cartItems.map(item => item?.id).filter(Boolean)),
+                isCustomOrder: isCustomOrder,
+                token: token // Include the token in metadata for backend verification
+            };
+
+            console.log('Initializing Flutterwave payment with:', {
+                amount,
+                txRef,
+                customerEmail,
+                customerName
+            });
+
+            // Initialize Flutterwave
             window.FlutterwaveCheckout({
                 public_key: import.meta.env.VITE_FLUTTERWAVE_PUBLIC_KEY,
                 tx_ref: txRef,
-                amount,
+                amount: amount,
                 currency: 'NGN',
                 payment_options: 'card, banktransfer, ussd',
                 customer: {
@@ -206,8 +146,8 @@ const PaymentForm = ({
                 meta: metaPayload,
                 customizations: {
                     title: 'Bellebeau Aesthetics',
-                    description: isCustomOrder ? 'Custom Cake Order' : `Payment for ${cartItems.length} skincare product(s)`,
-                    logo: logoUrl,
+                    description: isCustomOrder ? 'Custom Cake Order' : `Payment for ${cartItems.length} item(s)`,
+                    logo: `${window.location.origin}/images/logo.png`,
                 },
                 callback: handlePaymentCallback,
                 onclose: handlePaymentClose
@@ -215,18 +155,6 @@ const PaymentForm = ({
 
         } catch (error) {
             console.error('Payment initialization error:', error);
-            
-            // Log failure but don't block if logging fails
-            try {
-                await logPaymentEvent('initialization_failed', {
-                    error: error.message,
-                    amount,
-                    itemsCount: cartItems.length
-                });
-            } catch (logError) {
-                console.warn('Failed to log payment failure:', logError);
-            }
-            
             setError(`Payment failed: ${error.message}`);
             setIsLoading(false);
             setPaymentStep('ready');
@@ -238,85 +166,50 @@ const PaymentForm = ({
         setError(null);
 
         try {
+            console.log('Payment callback received:', response);
+            
             const normalizedStatus = (response.status || '').toString().toLowerCase();
             
             if (['successful', 'success', 'completed'].includes(normalizedStatus)) {
                 paymentResolvedRef.current = true;
+
+                setPaymentStep('success');
                 
-                // Get token for verification
-                const token = await getFirebaseToken();
-                const { nonce, txRef, securityToken, userId } = nonceRef.current;
-
-                // Try verification, but handle case where endpoint might not exist
-                let verification = { success: true }; // Default to success if verification fails
-                try {
-                    verification = await API.post('/api/payments/verify', {
+                // Prepare success data
+                const successData = {
+                    payment: {
                         ...response,
-                        nonce,
-                        amount,
-                        meta: {
-                            userId,
-                            items: JSON.stringify(cartItems.map(i => i?.id).filter(Boolean)),
-                            txRef,
-                            securityToken
+                        transaction_id: response.transaction_id || response.id,
+                        tx_ref: response.tx_ref,
+                        customer: {
+                            email: currentUser.email,
+                            name: currentUser.displayName || 'Customer'
                         }
-                    }, {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                            'Content-Type': 'application/json'
-                        }
-                    });
-                } catch (verifyError) {
-                    console.warn('Payment verification endpoint not available, proceeding:', verifyError);
-                    verification = { success: true };
-                }
+                    },
+                    userId: currentUser.uid,
+                    cartItems: cartItems.map(item => ({
+                        id: item.id,
+                        name: item.name,
+                        price: item.price,
+                        quantity: item.quantity,
+                        image: item.image
+                    })),
+                    shippingData: shippingData,
+                    isCustomOrder: isCustomOrder
+                };
 
-                if (verification.success) {
-                    try {
-                        await logPaymentEvent('success', {
-                            txRef: response.tx_ref,
-                            amount: response.amount
-                        });
-                    } catch (logError) {
-                        console.warn('Failed to log payment success:', logError);
-                    }
+                // Small delay to show success state
+                setTimeout(() => {
+                    onSuccess(successData);
+                }, 1500);
 
-                    setPaymentStep('success');
-                    
-                    // Small delay to show success state
-                    setTimeout(() => {
-                        onSuccess({
-                            payment: {
-                                ...response,
-                                transaction_id: response.transaction_id || response.id,
-                                tx_ref: txRef,
-                                customer: {
-                                    email: userData.email,
-                                    name: userData.displayName || 'Customer'
-                                }
-                            },
-                            verification: verification,
-                            userId: userData.uid,
-                            cartItems: cartItems.map(item => ({
-                                id: item.id,
-                                name: item.name,
-                                price: item.price,
-                                quantity: item.quantity,
-                                image: item.image
-                            }))
-                        });
-                    }, 1500);
-
-                } else {
-                    throw new Error(verification.error || 'Verification failed');
-                }
             } else {
-                throw new Error(response.message || 'Payment not completed');
+                throw new Error(response.message || 'Payment was not completed successfully');
             }
 
         } catch (error) {
             console.error('Payment callback error:', error);
-            setError(error.response?.error || error.message);
+            setError(error.message || 'Payment processing failed');
             setPaymentStep('ready');
         } finally {
             setIsLoading(false);
@@ -324,6 +217,7 @@ const PaymentForm = ({
     };
 
     const handlePaymentClose = () => {
+        console.log('Payment modal closed');
         setIsLoading(false);
         setPaymentStep('ready');
         if (!paymentResolvedRef.current) {
@@ -414,7 +308,7 @@ const PaymentForm = ({
                                     <span>Accepted Payment Methods:</span>
                                 </div>
                                 <div className="flex gap-2 flex-wrap">
-                                    {['Card', 'Bank Transfer', 'USSD'].map((method, index) => (
+                                    {['Card', 'Bank Transfer', 'USSD'].map((method) => (
                                         <span 
                                             key={method}
                                             className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium"
