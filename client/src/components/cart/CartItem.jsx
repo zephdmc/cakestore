@@ -88,7 +88,7 @@ export default function CartItem({ item }) {
                         className="relative flex-shrink-0"
                     >
                         <img
-                            src={item.image}
+                            src={item.images}
                             alt={item.name}
                             className="w-20 h-20 md:w-24 md:h-24 object-cover rounded-2xl border-2 border-gray-200 group-hover:border-purple-200 transition-colors duration-300"
                         />
