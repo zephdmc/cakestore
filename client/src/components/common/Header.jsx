@@ -387,18 +387,8 @@ export default function Header() {
 
                     {/* Right-side Icons */}
                     <div className="flex items-center gap-4">
-                        {/* Mobile Search Button */}
-                        <motion.button
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                            className="lg:hidden text-white hover:text-purple-200 transition-colors duration-300 p-2 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20"
-                            onClick={() => {
-                                setMobileMenuOpen(false);
-                                searchRef.current?.focus();
-                            }}
-                        >
-                            <FiSearch size={20} />
-                        </motion.button>
+                        {/* Mobile Search Button - REMOVED */}
+                        {/* Search icon removed from mobile view as requested */}
 
                         {/* Notifications */}
                         {currentUser && (
