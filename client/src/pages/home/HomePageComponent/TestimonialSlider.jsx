@@ -1,30 +1,52 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { FiStar, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 
 const testimonials = [
     {
         id: 1,
-        name: "Sarah J.",
-        role: "Skincare Enthusiast",
-        content: "Bellebeau's Vitamin C serum transformed my complexion. After just 2 weeks, my dark spots faded significantly and my skin has never looked brighter!",
+        name: "Maria C.",
+        role: "Wedding Client",
+        content: "Stefano's created the most breathtaking wedding cake for our special day! Not only was it stunning, but it tasted absolutely divine. Our guests are still talking about it!",
         rating: 5,
-        avatar: "/images/avatars/1.jpg"
+        avatar: "/images/avatars/1.jpg",
+        favorite: "Wedding Tier Cake"
     },
     {
         id: 2,
-        name: "Dr. Maya K.",
-        role: "Dermatologist",
-        content: "As a dermatologist, I'm very selective about products I recommend. Bellebeau's formulations are clean, effective, and suitable for sensitive skin types.",
-        rating: 4,
-        avatar: "/images/avatars/2.jpg"
+        name: "David R.",
+        role: "Regular Customer",
+        content: "The croissants here are perfection - flaky, buttery, and always fresh. I stop by every Saturday morning and it's become my weekly treat!",
+        rating: 5,
+        avatar: "/images/avatars/2.jpg",
+        favorite: "Butter Croissants"
     },
     {
         id: 3,
-        name: "Emma L.",
-        role: "Acne-Prone Skin",
-        content: "Finally found a routine that works! The acne control bundle cleared my breakouts without drying out my skin. Worth every penny!",
+        name: "Sophie M.",
+        role: "Birthday Party Host",
+        content: "Ordered custom cupcakes for my daughter's birthday and they were a huge hit! The designs were adorable and the flavors were incredible. Stefano's never disappoints!",
         rating: 5,
-        avatar: "/images/avatars/3.jpg"
+        avatar: "/images/avatars/3.jpg",
+        favorite: "Custom Cupcakes"
+    },
+    {
+        id: 4,
+        name: "Mr. & Mrs. Johnson",
+        role: "Anniversary Celebration",
+        content: "Our 25th anniversary cake was a masterpiece! The red velvet was moist and delicious, and the sugar flowers looked almost too beautiful to eat. Thank you, Stefano's!",
+        rating: 5,
+        avatar: "/images/avatars/4.jpg",
+        favorite: "Red Velvet Cake"
+    },
+    {
+        id: 5,
+        name: "Chef Antonio",
+        role: "Local Restaurant Owner",
+        content: "As a professional chef, I appreciate quality baked goods. Stefano's sourdough bread is some of the best I've tasted - perfect crust and amazing flavor profile.",
+        rating: 5,
+        avatar: "/images/avatars/5.jpg",
+        favorite: "Artisan Sourdough"
     }
 ];
 
@@ -40,61 +62,101 @@ export default function TestimonialSlider() {
     };
 
     return (
-        <div className="relative max-w-3xl mx-auto">
+        <div className="relative max-w-4xl mx-auto px-4">
             <motion.div
                 key={testimonials[current].id}
-                initial={{ opacity: 0, x: 50 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -50 }}
-                transition={{ duration: 0.3 }}
-                className="bg-white p-8 rounded-xl shadow-md text-center"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.5 }}
+                className="bg-gradient-to-br from-amber-50 to-orange-50 p-8 rounded-2xl shadow-lg border border-amber-200"
             >
-                <div className="flex justify-center mb-4">
-                    {[...Array(testimonials[current].rating)].map((_, i) => (
-                        <svg key={i} className="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                        </svg>
-                    ))}
+                {/* Decorative elements */}
+                <div className="absolute top-4 right-4 text-amber-300 text-6xl opacity-30">"</div>
+                
+                {/* Rating Stars */}
+                <div className="flex justify-center mb-6">
+                    <div className="flex space-x-1">
+                        {[...Array(testimonials[current].rating)].map((_, i) => (
+                            <FiStar key={i} className="w-6 h-6 text-amber-400 fill-current" />
+                        ))}
+                    </div>
                 </div>
-                <p className="text-gray-600 italic mb-6">"{testimonials[current].content}"</p>
+
+                {/* Testimonial Content */}
+                <p className="text-gray-700 text-lg leading-relaxed mb-6 text-center relative z-10">
+                    "{testimonials[current].content}"
+                </p>
+
+                {/* Favorite Item */}
+                <div className="text-center mb-6">
+                    <span className="inline-block bg-amber-500 text-white px-4 py-2 rounded-full text-sm font-semibold">
+                        Favorite: {testimonials[current].favorite}
+                    </span>
+                </div>
+
+                {/* Customer Info */}
                 <div className="flex items-center justify-center space-x-4">
-                    <img
-                        src={testimonials[current].avatar}
-                        alt={testimonials[current].name}
-                        className="w-12 h-12 rounded-full object-cover"
-                    />
-                    <div>
-                        <h4 className="font-bold text-gray-900">{testimonials[current].name}</h4>
-                        <p className="text-sm text-pink-600">{testimonials[current].role}</p>
+                    <div className="relative">
+                        <img
+                            src={testimonials[current].avatar}
+                            alt={testimonials[current].name}
+                            className="w-16 h-16 rounded-full object-cover border-4 border-amber-200 shadow-lg"
+                        />
+                        <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-amber-500 rounded-full flex items-center justify-center">
+                            <FiStar className="w-3 h-3 text-white" />
+                        </div>
+                    </div>
+                    <div className="text-left">
+                        <h4 className="font-bold text-gray-900 text-lg">{testimonials[current].name}</h4>
+                        <p className="text-amber-600 font-medium">{testimonials[current].role}</p>
                     </div>
                 </div>
             </motion.div>
 
+            {/* Navigation Buttons */}
             <button
                 onClick={prevTestimonial}
-                className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-white p-2 rounded-full shadow-md hover:bg-pink-50 transition"
+                className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 bg-white p-3 rounded-full shadow-lg hover:shadow-xl border border-amber-200 hover:bg-amber-50 transition-all duration-300 group"
             >
-                <svg className="w-5 h-5 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
+                <FiChevronLeft className="w-6 h-6 text-amber-600 group-hover:text-amber-700" />
             </button>
             <button
                 onClick={nextTestimonial}
-                className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-white p-2 rounded-full shadow-md hover:bg-pink-50 transition"
+                className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 bg-white p-3 rounded-full shadow-lg hover:shadow-xl border border-amber-200 hover:bg-amber-50 transition-all duration-300 group"
             >
-                <svg className="w-5 h-5 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
+                <FiChevronRight className="w-6 h-6 text-amber-600 group-hover:text-amber-700" />
             </button>
 
-            <div className="flex justify-center mt-6 space-x-2">
+            {/* Dots Indicator */}
+            <div className="flex justify-center mt-8 space-x-3">
                 {testimonials.map((_, index) => (
                     <button
                         key={index}
                         onClick={() => setCurrent(index)}
-                        className={`w-3 h-3 rounded-full ${current === index ? 'bg-pink-600' : 'bg-gray-300'}`}
+                        className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                            current === index 
+                                ? 'bg-amber-500 w-8' 
+                                : 'bg-amber-200 hover:bg-amber-300'
+                        }`}
                     />
                 ))}
+            </div>
+
+            {/* Auto-play indicator */}
+            <div className="text-center mt-4">
+                <div className="inline-flex items-center space-x-2 text-sm text-amber-600 bg-amber-100 px-4 py-2 rounded-full">
+                    <div className="flex space-x-1">
+                        {[...Array(3)].map((_, i) => (
+                            <div
+                                key={i}
+                                className="w-2 h-2 bg-amber-400 rounded-full animate-pulse"
+                                style={{ animationDelay: `${i * 0.2}s` }}
+                            />
+                        ))}
+                    </div>
+                    <span>What our customers say</span>
+                </div>
             </div>
         </div>
     );
