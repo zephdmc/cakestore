@@ -5,47 +5,47 @@ import { FiStar, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 const testimonials = [
     {
         id: 1,
-        name: "Maria C.",
+        name: "Maria Okoro.",
         role: "Wedding Client",
         content: "Stefano's created the most breathtaking wedding cake for our special day! Not only was it stunning, but it tasted absolutely divine. Our guests are still talking about it!",
         rating: 5,
-        avatar: "/images/avatars/1.jpg",
+        avatar: "/images/maria.jpg",
         favorite: "Wedding Tier Cake"
     },
     {
         id: 2,
-        name: "David R.",
+        name: "David Okoye.",
         role: "Regular Customer",
         content: "The croissants here are perfection - flaky, buttery, and always fresh. I stop by every Saturday morning and it's become my weekly treat!",
         rating: 5,
-        avatar: "/images/avatars/2.jpg",
+        avatar: "/images/devid.jpg",
         favorite: "Butter Croissants"
     },
     {
         id: 3,
-        name: "Sophie M.",
+        name: "Sophie Mmadu.",
         role: "Birthday Party Host",
         content: "Ordered custom cupcakes for my daughter's birthday and they were a huge hit! The designs were adorable and the flavors were incredible. Stefano's never disappoints!",
         rating: 5,
-        avatar: "/images/avatars/3.jpg",
+        avatar: "/images/sofia.jpg",
         favorite: "Custom Cupcakes"
     },
     {
         id: 4,
-        name: "Mr. & Mrs. Johnson",
+        name: "Mr. Johnson",
         role: "Anniversary Celebration",
         content: "Our 25th anniversary cake was a masterpiece! The red velvet was moist and delicious, and the sugar flowers looked almost too beautiful to eat. Thank you, Stefano's!",
         rating: 5,
-        avatar: "/images/avatars/4.jpg",
+        avatar: "/images/jonson.jpg",
         favorite: "Red Velvet Cake"
     },
     {
         id: 5,
-        name: "Chef Antonio",
+        name: "Clement Obinna",
         role: "Local Restaurant Owner",
         content: "As a professional chef, I appreciate quality baked goods. Stefano's sourdough bread is some of the best I've tasted - perfect crust and amazing flavor profile.",
         rating: 5,
-        avatar: "/images/avatars/5.jpg",
+        avatar: "/images/clement.jpg",
         favorite: "Artisan Sourdough"
     }
 ];
