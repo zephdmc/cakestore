@@ -17,7 +17,15 @@ import { FaRegCopy } from 'react-icons/fa';
 
 const logoUrl = `${window.location.origin}/images/logo.png`;
 
-const PaymentForm = ({ amount, onSuccess, onClose, cartItems, isCustomOrder = false }) => {
+const PaymentForm = ({ 
+    amount, 
+    onSuccess, 
+    onClose, 
+    cartItems, 
+    isCustomOrder = false,
+    shippingData,
+    user 
+}) => {
     const { currentUser } = useAuth();
     const [isLoading, setIsLoading] = useState(false);
     const [scriptReady, setScriptReady] = useState(false);
@@ -32,6 +40,9 @@ const PaymentForm = ({ amount, onSuccess, onClose, cartItems, isCustomOrder = fa
         securityToken: '',
         userId: ''
     });
+
+    // Use the passed user prop or fall back to context
+    const userData = user || currentUser;
 
     // Animation variants
     const containerVariants = {
@@ -95,11 +106,17 @@ const PaymentForm = ({ amount, onSuccess, onClose, cartItems, isCustomOrder = fa
         setPaymentStep('processing');
 
         try {
-            if (!currentUser?.email) throw new Error('You must be logged in to pay.');
+            if (!userData?.email) throw new Error('You must be logged in to pay.');
             if (!amount || amount <= 0) throw new Error('Invalid payment amount.');
             if (!cartItems?.length && !isCustomOrder) throw new Error('Your cart is empty.');
             
-            const token = await auth.currentUser.getIdToken(true);
+            // Get the Firebase ID token
+            const firebaseUser = window.firebase?.auth().currentUser;
+            if (!firebaseUser) {
+                throw new Error('User authentication required');
+            }
+            
+            const token = await firebaseUser.getIdToken(true);
 
             const nonceResponse = await API.get('/api/payments/payments/nonce', {
                 headers: {
@@ -109,13 +126,13 @@ const PaymentForm = ({ amount, onSuccess, onClose, cartItems, isCustomOrder = fa
             });
 
             const txRef = `BBA_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
-            const securityToken = await generateSecurityToken(currentUser.uid, txRef);
+            const securityToken = await generateSecurityToken(userData.uid, txRef);
             
             nonceRef.current = {
                 nonce: nonceResponse.nonce,
                 txRef,
                 securityToken,
-                userId: currentUser.uid
+                userId: userData.uid
             };
 
             await logPaymentEvent('attempt', {
@@ -130,10 +147,16 @@ const PaymentForm = ({ amount, onSuccess, onClose, cartItems, isCustomOrder = fa
 
             const metaPayload = {
                 securityToken,
-                userId: currentUser.uid,
+                userId: userData.uid,
                 nonce: nonceRef.current.nonce,
                 items: JSON.stringify(itemIds)
             };
+
+            // Use customer data from shipping form if available
+            const customerEmail = userData.email;
+            const customerName = shippingData 
+                ? `${shippingData.firstName} ${shippingData.lastName}`.trim()
+                : (userData.displayName || 'Customer');
 
             window.FlutterwaveCheckout({
                 public_key: import.meta.env.VITE_FLUTTERWAVE_PUBLIC_KEY,
@@ -142,14 +165,14 @@ const PaymentForm = ({ amount, onSuccess, onClose, cartItems, isCustomOrder = fa
                 currency: 'NGN',
                 payment_options: 'card, banktransfer, ussd',
                 customer: {
-                    email: currentUser.email,
-                    name: currentUser.displayName || 'Customer',
-                    phone_number: ''
+                    email: customerEmail,
+                    name: customerName,
+                    phone_number: shippingData?.phone || ''
                 },
                 meta: metaPayload,
                 customizations: {
                     title: 'Bellebeau Aesthetics',
-                    description: 'Payment for skincare products',
+                    description: isCustomOrder ? 'Custom Cake Order' : `Payment for ${cartItems.length} skincare product(s)`,
                     logo: logoUrl,
                 },
                 callback: handlePaymentCallback,
@@ -178,7 +201,14 @@ const PaymentForm = ({ amount, onSuccess, onClose, cartItems, isCustomOrder = fa
             
             if (['successful', 'success', 'completed'].includes(normalizedStatus)) {
                 paymentResolvedRef.current = true;
-                const token = await auth.currentUser.getIdToken(true);
+                
+                // Get the Firebase ID token for verification
+                const firebaseUser = window.firebase?.auth().currentUser;
+                if (!firebaseUser) {
+                    throw new Error('User authentication required for verification');
+                }
+                
+                const token = await firebaseUser.getIdToken(true);
                 const { nonce, txRef, securityToken, userId } = nonceRef.current;
                 if (!nonce) throw new Error('Payment nonce missing');
 
@@ -215,12 +245,12 @@ const PaymentForm = ({ amount, onSuccess, onClose, cartItems, isCustomOrder = fa
                                 transaction_id: response.transaction_id || response.id,
                                 tx_ref: txRef,
                                 customer: {
-                                    email: currentUser.email,
-                                    name: currentUser.displayName || 'Customer'
+                                    email: userData.email,
+                                    name: userData.displayName || 'Customer'
                                 }
                             },
                             verification: verification,
-                            userId: currentUser.uid,
+                            userId: userData.uid,
                             cartItems: cartItems.map(item => ({
                                 id: item.id,
                                 name: item.name,
