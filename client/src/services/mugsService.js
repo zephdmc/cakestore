@@ -12,7 +12,7 @@ export const getProducts = async (params = {}) => {
 
 export const getProductById = async (id) => {
     try {
-        const response = await API.get(`api/products/${id}`);
+        const response = await API.get(`api/mugs/${id}`);
         return response;
     } catch (error) {
         throw error;
@@ -43,7 +43,7 @@ export const createProduct = async (productData) => {
             isCustom: Boolean(productData.isCustom)
         };
 
-        const response = await API.post('/api/products', formattedData, {
+        const response = await API.post('/api/mugs', formattedData, {
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
@@ -86,7 +86,7 @@ export const updateProduct = async (id, productData) => {
             isCustom: Boolean(productData.isCustom)
         };
 
-        const response = await API.put(`api/products/${id}`, formattedData, {
+        const response = await API.put(`api/mugs/${id}`, formattedData, {
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
@@ -107,7 +107,7 @@ export const updateProduct = async (id, productData) => {
 
 export const deleteProduct = async (id) => {
     try {
-        const response = await API.delete(`api/products/${id}`);
+        const response = await API.delete(`api/mugs/${id}`);
         return response;
     } catch (error) {
         throw error;
@@ -117,7 +117,7 @@ export const deleteProduct = async (id) => {
 // Additional mug-specific service functions
 export const getMugCategories = async () => {
     try {
-        const response = await API.get('api/products/categories');
+        const response = await API.get('api/mugs/categories');
         return response;
     } catch (error) {
         throw error;
@@ -127,7 +127,7 @@ export const getMugCategories = async () => {
 export const getMugMaterials = async () => {
     try {
         // This could be a separate endpoint or filtered from products
-        const response = await API.get('api/products', {
+        const response = await API.get('api/mugs', {
             params: { distinct: 'materials' }
         });
         return response;
@@ -152,7 +152,7 @@ export const getFeaturedMugs = async () => {
 
 export const getCustomMugs = async () => {
     try {
-        const response = await API.get('api/products', {
+        const response = await API.get('api/mugs', {
             params: { 
                 isCustom: true,
                 category: 'Custom Mugs'
@@ -167,7 +167,7 @@ export const getCustomMugs = async () => {
 // Filter mugs by specific criteria
 export const filterMugs = async (filters = {}) => {
     try {
-        const response = await API.get('api/products', {
+        const response = await API.get('api/mugs', {
             params: {
                 category: 'mugs',
                 ...filters
