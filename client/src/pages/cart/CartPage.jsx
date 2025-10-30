@@ -9,7 +9,9 @@ import {
     FiTrash2,
     FiHeart,
     FiShoppingCart,
-    FiPackage
+    FiPackage,
+    FiCoffee,
+    FiCake
 } from 'react-icons/fi';
 
 // Create motion-wrapped components at the top level
@@ -47,7 +49,7 @@ const EmptyCart = () => (
                 transition={{ delay: 0.3 }}
                 className="text-white/70 mb-8 text-lg"
             >
-                Looks like you haven't added anything to your cart yet. Let's find something delicious!
+                Looks like you haven't added anything to your cart yet. Let's find something perfect for you!
             </motion.p>
 
             <motion.div
@@ -86,21 +88,22 @@ const EmptyCart = () => (
                 className="mt-12 grid grid-cols-2 gap-4"
             >
                 {[
-                    { name: 'Birthday Cakes', color: 'from-purple-500 to-pink-500' },
-                    { name: 'Wedding Cakes', color: 'from-blue-500 to-cyan-500' },
-                    { name: 'Special Occasions', color: 'from-green-500 to-emerald-500' },
-                    { name: 'Custom Designs', color: 'from-orange-500 to-red-500' }
+                    { name: 'Birthday Cakes', color: 'from-purple-500 to-pink-500', icon: FiCake },
+                    { name: 'Ceramic Mugs', color: 'from-blue-500 to-teal-500', icon: FiCoffee },
+                    { name: 'Custom Designs', color: 'from-orange-500 to-red-500', icon: FiPackage },
+                    { name: 'Gift Sets', color: 'from-green-500 to-emerald-500', icon: FiShoppingBag }
                 ].map((category, index) => (
                     <MotionLink
                         key={category.name}
                         to="/products"
                         whileHover={{ scale: 1.05, y: -2 }}
                         whileTap={{ scale: 0.95 }}
-                        className={`bg-gradient-to-r ${category.color} text-white p-4 rounded-2xl text-center font-medium shadow-lg hover:shadow-xl transition-all duration-300`}
+                        className={`bg-gradient-to-r ${category.color} text-white p-4 rounded-2xl text-center font-medium shadow-lg hover:shadow-xl transition-all duration-300 relative overflow-hidden group`}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.7 + index * 0.1 }}
                     >
+                        <category.icon className="absolute -right-2 -bottom-2 text-white/20 text-3xl group-hover:text-white/30 transition-all duration-300" />
                         {category.name}
                     </MotionLink>
                 ))}
@@ -110,46 +113,153 @@ const EmptyCart = () => (
 );
 
 // Cart Header with Actions
-const CartHeader = ({ cartCount, onClearCart }) => (
-    <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-8"
-    >
-        <div>
-            <h1 className="text-3xl lg:text-4xl font-bold text-white mb-2">Shopping Cart</h1>
-            <p className="text-white/70 flex items-center gap-2">
-                <FiShoppingBag className="text-sm" />
-                {cartCount} {cartCount === 1 ? 'item' : 'items'} in your cart
-            </p>
-        </div>
-        
-        <div className="flex items-center gap-3">
-            <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={onClearCart}
-                className="flex items-center gap-2 bg-white/10 hover:bg-red-500/20 text-white/70 hover:text-red-300 py-3 px-4 rounded-2xl font-medium transition-all duration-300 backdrop-blur-sm border border-white/20 hover:border-red-500/30"
-            >
-                <FiTrash2 className="text-sm" />
-                Clear Cart
-            </motion.button>
+const CartHeader = ({ cartCount, onClearCart, cartType }) => {
+    const getHeaderContent = () => {
+        switch (cartType) {
+            case 'onlyCakes':
+                return {
+                    title: 'Your Cake Order',
+                    subtitle: 'Delicious treats waiting for you!',
+                    icon: FiCake,
+                    gradient: 'from-purple-500/20 to-pink-500/20'
+                };
+            case 'onlyMugs':
+                return {
+                    title: 'Your Mug Collection',
+                    subtitle: 'Perfect for your favorite drinks!',
+                    icon: FiCoffee,
+                    gradient: 'from-blue-500/20 to-teal-500/20'
+                };
+            case 'mixed':
+                return {
+                    title: 'Your Perfect Combo',
+                    subtitle: 'Cakes & mugs - the best of both worlds!',
+                    icon: FiShoppingBag,
+                    gradient: 'from-purple-500/20 via-blue-500/20 to-teal-500/20'
+                };
+            default:
+                return {
+                    title: 'Shopping Cart',
+                    subtitle: `${cartCount} ${cartCount === 1 ? 'item' : 'items'} in your cart`,
+                    icon: FiShoppingBag,
+                    gradient: 'from-purple-500/20 to-pink-500/20'
+                };
+        }
+    };
+
+    const content = getHeaderContent();
+
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-8"
+        >
+            <div>
+                <h1 className="text-3xl lg:text-4xl font-bold text-white mb-2">{content.title}</h1>
+                <p className="text-white/70 flex items-center gap-2">
+                    <content.icon className="text-sm" />
+                    {content.subtitle}
+                    {cartType === 'mixed' && ' 🎉'}
+                </p>
+            </div>
             
-            <MotionLink
-                to="/products"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white py-3 px-4 rounded-2xl font-medium transition-all duration-300 backdrop-blur-sm border border-white/20"
-            >
-                <FiArrowRight className="text-sm rotate-180" />
-                Continue Shopping
-            </MotionLink>
-        </div>
-    </motion.div>
-);
+            <div className="flex items-center gap-3">
+                <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={onClearCart}
+                    className="flex items-center gap-2 bg-white/10 hover:bg-red-500/20 text-white/70 hover:text-red-300 py-3 px-4 rounded-2xl font-medium transition-all duration-300 backdrop-blur-sm border border-white/20 hover:border-red-500/30"
+                >
+                    <FiTrash2 className="text-sm" />
+                    Clear Cart
+                </motion.button>
+                
+                <MotionLink
+                    to="/products"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white py-3 px-4 rounded-2xl font-medium transition-all duration-300 backdrop-blur-sm border border-white/20"
+                >
+                    <FiArrowRight className="text-sm rotate-180" />
+                    Continue Shopping
+                </MotionLink>
+            </div>
+        </motion.div>
+    );
+};
+
+// Product Type Badge
+const ProductTypeBadge = ({ type, count }) => {
+    const getBadgeContent = () => {
+        switch (type) {
+            case 'cake':
+                return { icon: FiCake, text: `${count} Cake${count > 1 ? 's' : ''}`, color: 'from-purple-500 to-pink-500' };
+            case 'mug':
+                return { icon: FiCoffee, text: `${count} Mug${count > 1 ? 's' : ''}`, color: 'from-blue-500 to-teal-500' };
+            default:
+                return { icon: FiShoppingBag, text: `${count} Item${count > 1 ? 's' : ''}`, color: 'from-gray-500 to-gray-600' };
+        }
+    };
+
+    const content = getBadgeContent();
+
+    return (
+        <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            className={`bg-gradient-to-r ${content.color} text-white px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1 shadow-lg`}
+        >
+            <content.icon className="text-xs" />
+            {content.text}
+        </motion.div>
+    );
+};
 
 export default function CartPage() {
     const { cartItems, cartCount, clearCart } = useCart();
+
+    // Smart cart type detection
+    const hasCakes = cartItems.some(item => 
+        item.category?.toLowerCase().includes('cake') ||
+        item.name?.toLowerCase().includes('cake') ||
+        item.flavorTags?.some(tag => tag.toLowerCase().includes('cake'))
+    );
+
+    const hasMugs = cartItems.some(item => 
+        item.category?.toLowerCase().includes('mug') ||
+        item.name?.toLowerCase().includes('mug') ||
+        item.materials // Mug-specific field
+    );
+
+    const cakeCount = cartItems.filter(item => 
+        item.category?.toLowerCase().includes('cake') ||
+        item.name?.toLowerCase().includes('cake')
+    ).length;
+
+    const mugCount = cartItems.filter(item => 
+        item.category?.toLowerCase().includes('mug') ||
+        item.name?.toLowerCase().includes('mug') ||
+        item.materials
+    ).length;
+
+    const cartType = hasCakes && hasMugs ? 'mixed' : 
+                    hasCakes ? 'onlyCakes' : 
+                    hasMugs ? 'onlyMugs' : 'other';
+
+    // Dynamic background based on cart content
+    const getBackgroundGradient = () => {
+        switch (cartType) {
+            case 'onlyCakes':
+                return 'bg-gradient-to-br from-purple-900 via-purple-800 to-pink-700';
+            case 'onlyMugs':
+                return 'bg-gradient-to-br from-blue-900 via-blue-800 to-teal-700';
+            case 'mixed':
+                return 'bg-gradient-to-br from-purple-900 via-blue-800 to-teal-700';
+            default:
+                return 'bg-gradient-to-br from-purple-900 via-purple-800 to-pink-700';
+        }
+    };
 
     if (cartCount === 0) {
         return (
@@ -162,10 +272,31 @@ export default function CartPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-pink-700 py-8">
+        <div className={`min-h-screen py-8 ${getBackgroundGradient()}`}>
             <div className="container mx-auto px-4 max-w-7xl">
                 {/* Header */}
-                <CartHeader cartCount={cartCount} onClearCart={clearCart} />
+                <CartHeader cartCount={cartCount} onClearCart={clearCart} cartType={cartType} />
+
+                {/* Product Type Summary */}
+                {(hasCakes || hasMugs) && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="flex flex-wrap gap-2 mb-6"
+                    >
+                        {hasCakes && <ProductTypeBadge type="cake" count={cakeCount} />}
+                        {hasMugs && <ProductTypeBadge type="mug" count={mugCount} />}
+                        {cartType === 'mixed' && (
+                            <motion.div
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                className="bg-gradient-to-r from-purple-500 to-teal-500 text-white px-3 py-1 rounded-full text-sm font-medium shadow-lg"
+                            >
+                                Perfect Combo! 🎉
+                            </motion.div>
+                        )}
+                    </motion.div>
+                )}
 
                 <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
                     {/* Cart Items */}
@@ -177,12 +308,26 @@ export default function CartPage() {
                             className="bg-white/10 backdrop-blur-sm rounded-3xl border border-white/20 overflow-hidden"
                         >
                             {/* Cart Items Header */}
-                            <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 px-6 py-4 border-b border-white/20">
+                            <div className={`px-6 py-4 border-b border-white/20 bg-gradient-to-r ${
+                                cartType === 'onlyCakes' ? 'from-purple-500/20 to-pink-500/20' :
+                                cartType === 'onlyMugs' ? 'from-blue-500/20 to-teal-500/20' :
+                                'from-purple-500/20 via-blue-500/20 to-teal-500/20'
+                            }`}>
                                 <div className="flex items-center justify-between">
-                                    <h2 className="text-xl font-semibold text-white flex items-center gap-3">
-                                        <FiShoppingBag className="text-purple-300" />
-                                        Your Items ({cartCount})
-                                    </h2>
+                                    <div>
+                                        <h2 className="text-xl font-semibold text-white flex items-center gap-3">
+                                            {cartType === 'onlyCakes' ? <FiCake className="text-purple-300" /> :
+                                             cartType === 'onlyMugs' ? <FiCoffee className="text-blue-300" /> :
+                                             <FiShoppingBag className="text-purple-300" />}
+                                            Your {cartType === 'onlyCakes' ? 'Cakes' : cartType === 'onlyMugs' ? 'Mugs' : 'Items'} ({cartCount})
+                                        </h2>
+                                        {cartType === 'mixed' && (
+                                            <p className="text-white/80 text-sm mt-1 flex items-center gap-1">
+                                                <span>Cakes & Mugs</span>
+                                                <span className="text-yellow-300">✨</span>
+                                            </p>
+                                        )}
+                                    </div>
                                     <motion.button
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
@@ -246,14 +391,18 @@ export default function CartPage() {
                                         </MotionLink>
                                     </div>
                                     
-                                    <motion.div
-                                        whileHover={{ scale: 1.02 }}
-                                        className="bg-white/5 rounded-xl px-4 py-2 border border-white/10"
-                                    >
-                                        <span className="text-white font-semibold">
-                                            Total: {cartCount} {cartCount === 1 ? 'item' : 'items'}
-                                        </span>
-                                    </motion.div>
+                                    <div className="flex items-center gap-3">
+                                        {hasCakes && <ProductTypeBadge type="cake" count={cakeCount} />}
+                                        {hasMugs && <ProductTypeBadge type="mug" count={mugCount} />}
+                                        <motion.div
+                                            whileHover={{ scale: 1.02 }}
+                                            className="bg-white/5 rounded-xl px-4 py-2 border border-white/10"
+                                        >
+                                            <span className="text-white font-semibold">
+                                                Total: {cartCount} {cartCount === 1 ? 'item' : 'items'}
+                                            </span>
+                                        </motion.div>
+                                    </div>
                                 </div>
                             </motion.div>
                         </motion.div>
@@ -268,21 +417,21 @@ export default function CartPage() {
                             {[
                                 { 
                                     icon: FiPackage, 
-                                    title: 'Free Shipping', 
-                                    description: 'On orders over ₦50,000',
-                                    color: 'from-purple-500 to-pink-500'
+                                    title: cartType === 'onlyMugs' ? 'Secure Packaging' : 'Free Shipping', 
+                                    description: cartType === 'onlyMugs' ? 'Bubble-wrapped for safety' : 'On orders over ₦50,000',
+                                    color: cartType === 'onlyMugs' ? 'from-blue-500 to-teal-500' : 'from-purple-500 to-pink-500'
                                 },
                                 { 
-                                    icon: FiHeart, 
-                                    title: 'Quality Guarantee', 
-                                    description: 'Freshly baked with love',
-                                    color: 'from-green-500 to-emerald-500'
+                                    icon: cartType === 'onlyCakes' ? FiHeart : FiCoffee, 
+                                    title: cartType === 'onlyCakes' ? 'Quality Guarantee' : 'Dishwasher Safe', 
+                                    description: cartType === 'onlyCakes' ? 'Freshly baked with love' : 'Easy to clean & maintain',
+                                    color: cartType === 'onlyCakes' ? 'from-green-500 to-emerald-500' : 'from-green-500 to-emerald-500'
                                 },
                                 { 
                                     icon: FiShoppingBag, 
-                                    title: 'Easy Returns', 
-                                    description: '30-day satisfaction',
-                                    color: 'from-blue-500 to-cyan-500'
+                                    title: cartType === 'mixed' ? 'Perfect Combo' : 'Easy Returns', 
+                                    description: cartType === 'mixed' ? 'Cakes & mugs together!' : '30-day satisfaction',
+                                    color: cartType === 'mixed' ? 'from-orange-500 to-yellow-500' : 'from-blue-500 to-cyan-500'
                                 }
                             ].map((badge, index) => (
                                 <motion.div
