@@ -8,7 +8,9 @@ import ForgotPassword from './components/auth/ForgotPassword';
 // Lazy-loaded components
 const HomePage = lazy(() => import('./pages/home/HomePage'));
 const ProductListPage = lazy(() => import('./pages/products/ProductListPage'));
+const MugsListPage = lazy(() => import('./pages/products/mugsList'));
 const ProductDetailPage = lazy(() => import('./components/products/ProductDetails'));
+const MugsDetailPage = lazy(() => import('./components/products/mugsDetails'));
 const CartPage = lazy(() => import('./pages/cart/CartPage'));
 const CheckoutPage = lazy(() => import('./pages/checkout/CheckoutPage'));
 const OrderHistory = lazy(() => import('./pages/orders/OrderHistory'));
@@ -16,6 +18,7 @@ const LoginPage = lazy(() => import('./pages/auth/LoginPage'));
 const RegisterPage = lazy(() => import('./pages/auth/RegisterPage'));
 const Dashboard = lazy(() => import('./components/admin/Dashboard'));
 const AdminProducts = lazy(() => import('./pages/admin/AdminProduct'));
+
 const SearchResultsPage = lazy(() => import('./pages/search/serachPage'));
 const OrderDetails = lazy(() => import('./pages/orders/OrderDetails'))
 const AdminOrders = lazy(() => import('./pages/admin/AdminOrders'));
@@ -30,7 +33,9 @@ const Terms = lazy(() => import('./components/common/terms'));
 const UserManagement = lazy(() => import('./pages/admin/UserManagement'));
 const AdminLayout = lazy(() => import('./components/admin/AdminLayout'));
 const AddProductPage = lazy(() => import('./components/products/AddProductPage'));
+const AddMugsPage = lazy(() => import('./components/products/AddMugsPage'));
 const EditProductPage = lazy(() => import('./components/products/EditProductPage'));
+const EditMugsPage = lazy(() => import('./components/products/EditMugsPage'));
 const AboutPage = lazy(() => import('./pages/About/About'));
 const AdminCustomOrder = lazy(() => import('./pages/admin/AdminCustomOrders'));
 const AppRoutes = () => {
@@ -41,11 +46,17 @@ const AppRoutes = () => {
                 {/* Public Routes */}
                 <Route path="/" element={<HomePage />} />
                 <Route path="/products" element={<ProductListPage />} />
+                <Route path="/mugs" element={<MugsListPage />} />
+
+                
                 <Route path="/about" element={<AboutPage />} />
                 <Route path="/cart" element={<CartPage />} />
                 <Route path="/search" element={<SearchResultsPage />} />
                 <Route path="/checkout" element={<CheckoutPage />} />
                 <Route path="products/:id" element={<ProductDetailPage />} />
+                <Route path="mugs/:id" element={<MugsDetailPage />} />
+
+                
                 <Route path="/orders" element={<OrderHistory />} />
                 <Route path="/orders/:id" element={<OrderDetails />} />
                 <Route path="/blog" element={<BlogListPage />} />
@@ -70,7 +81,9 @@ const AppRoutes = () => {
                         <Route index element={<Dashboard />} />
                         <Route path="products" element={<AdminProducts />} />
                         <Route path="products/new" element={<AddProductPage />} />
+                        <Route path="mugs/new" element={<AddMugsPage />} />
                         <Route path="products/:id/edit" element={<EditProductPage />} />
+                        <Route path="mugs/:id/edit" element={<EditMugsPage />} />
                         <Route path="orders" element={<AdminOrders />} />
                         <Route path="users" element={<UserManagement />} />
                        <Route path="custom-orders" element={<AdminCustomOrder />} />
