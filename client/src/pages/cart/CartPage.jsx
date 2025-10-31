@@ -11,7 +11,7 @@ import {
     FiShoppingCart,
     FiPackage,
     FiCoffee,
-    FiCake
+    
 } from 'react-icons/fi';
 
 // Create motion-wrapped components at the top level
@@ -88,7 +88,7 @@ const EmptyCart = () => (
                 className="mt-12 grid grid-cols-2 gap-4"
             >
                 {[
-                    { name: 'Birthday Cakes', color: 'from-purple-500 to-pink-500', icon: FiCake },
+                    { name: 'Birthday Cakes', color: 'from-purple-500 to-pink-500', icon: FiCoffee },
                     { name: 'Ceramic Mugs', color: 'from-blue-500 to-teal-500', icon: FiCoffee },
                     { name: 'Custom Designs', color: 'from-orange-500 to-red-500', icon: FiPackage },
                     { name: 'Gift Sets', color: 'from-green-500 to-emerald-500', icon: FiShoppingBag }
@@ -120,7 +120,7 @@ const CartHeader = ({ cartCount, onClearCart, cartType }) => {
                 return {
                     title: 'Your Cake Order',
                     subtitle: 'Delicious treats waiting for you!',
-                    icon: FiCake,
+                    icon: FiCoffee,
                     gradient: 'from-purple-500/20 to-pink-500/20'
                 };
             case 'onlyMugs':
@@ -194,7 +194,7 @@ const ProductTypeBadge = ({ type, count }) => {
     const getBadgeContent = () => {
         switch (type) {
             case 'cake':
-                return { icon: FiCake, text: `${count} Cake${count > 1 ? 's' : ''}`, color: 'from-purple-500 to-pink-500' };
+                return { icon: FiCoffee, text: `${count} Cake${count > 1 ? 's' : ''}`, color: 'from-purple-500 to-pink-500' };
             case 'mug':
                 return { icon: FiCoffee, text: `${count} Mug${count > 1 ? 's' : ''}`, color: 'from-blue-500 to-teal-500' };
             default:
@@ -316,7 +316,7 @@ export default function CartPage() {
                                 <div className="flex items-center justify-between">
                                     <div>
                                         <h2 className="text-xl font-semibold text-white flex items-center gap-3">
-                                            {cartType === 'onlyCakes' ? <FiCake className="text-purple-300" /> :
+                                            {cartType === 'onlyCakes' ? <FiCoffee className="text-purple-300" /> :
                                              cartType === 'onlyMugs' ? <FiCoffee className="text-blue-300" /> :
                                              <FiShoppingBag className="text-purple-300" />}
                                             Your {cartType === 'onlyCakes' ? 'Cakes' : cartType === 'onlyMugs' ? 'Mugs' : 'Items'} ({cartCount})
