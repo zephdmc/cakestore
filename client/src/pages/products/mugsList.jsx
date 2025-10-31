@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import ProductCard from '../../components/products/ProductCard';
-import ProductFilter from '../../components/products/ProductFilter';
+import MugsCard from '../../components/products/MugsCard';
+import MugsFilter from '../../components/products/mugsFilter';
 import { useProducts } from '../../context/ProductContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -254,7 +254,7 @@ export default function ProductListPage() {
                             exit={{ opacity: 0, height: 0 }}
                             className="overflow-hidden mb-8"
                         >
-                            <ProductFilter 
+                            <MugsFilter 
                                 categories={categories} 
                                 materials={materials}
                                 features={features}
@@ -331,7 +331,7 @@ export default function ProductListPage() {
                                     transition: { duration: 0.3 }
                                 }}
                             >
-                                <ProductCard 
+                                <MugsCard 
                                     product={product} 
                                     viewMode={viewMode}
                                 />
