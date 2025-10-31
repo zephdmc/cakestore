@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import MugsCard from '../../components/products/MugsCard';
 import MugsFilter from '../../components/products/mugsFilter';
-import { useProducts } from '../../context/ProductContext';
+import { useProducts } from '../../context/MugsContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
     FiLoader, 
