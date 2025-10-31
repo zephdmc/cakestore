@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { getProducts } from '../services/productService';
+import { getProducts } from '../services/mugsservice';
 
 const ProductContext = createContext();
 
