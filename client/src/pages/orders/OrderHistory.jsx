@@ -64,7 +64,7 @@ const StatusBadge = ({ order }) => {
     };
 
     const config = getStatusConfig();
-    const Icon = config.icon;
+    const IconComponent = config.icon;
 
     return (
         <motion.span
@@ -72,7 +72,7 @@ const StatusBadge = ({ order }) => {
             animate={{ scale: 1, opacity: 1 }}
             className={`inline-flex items-center gap-2 bg-gradient-to-r ${config.color} text-white px-3 py-1 rounded-full text-xs font-semibold shadow-lg`}
         >
-            <Icon className="text-xs" />
+            <IconComponent className="text-xs" />
             {config.text}
         </motion.span>
     );
@@ -98,11 +98,11 @@ const OrderCard = ({ order, index }) => (
                     </div>
                     <div>
                         <h3 className="text-lg font-semibold text-white">
-                            Order #{order.id.substring(0, 8)}
+                            Order #{order.id?.substring?.(0, 8) || 'N/A'}
                         </h3>
                         <p className="text-white/70 text-sm flex items-center gap-1">
                             <FiCalendar className="text-xs" />
-                            {new Date(order.createdAt).toLocaleDateString()}
+                            {order.createdAt ? new Date(order.createdAt).toLocaleDateString() : 'Date not available'}
                         </p>
                     </div>
                 </div>
@@ -114,13 +114,13 @@ const OrderCard = ({ order, index }) => (
                     <p className="text-white/70 text-sm">Total Amount</p>
                     <p className="text-white font-semibold text-lg flex items-center gap-1">
                         <FiDollarSign className="text-purple-300" />
-                        ₦{order.totalPrice.toLocaleString()}
+                        ₦{order.totalPrice?.toLocaleString?.() || '0'}
                     </p>
                 </div>
                 <div className="bg-white/5 rounded-xl p-3 border border-white/10">
                     <p className="text-white/70 text-sm">Items</p>
                     <p className="text-white font-semibold">
-                        {order.items.reduce((sum, item) => sum + item.quantity, 0)} items
+                        {order.items?.reduce?.((sum, item) => sum + (item.quantity || 0), 0) || 0} items
                     </p>
                 </div>
             </div>
@@ -133,7 +133,7 @@ const OrderCard = ({ order, index }) => (
                         </span>
                     )}
                     <span className="text-white/60 text-sm">
-                        {order.items.length} product{order.items.length > 1 ? 's' : ''}
+                        {order.items?.length || 0} product{(order.items?.length || 0) > 1 ? 's' : ''}
                     </span>
                 </div>
                 <MotionLink
@@ -151,61 +151,65 @@ const OrderCard = ({ order, index }) => (
 );
 
 // Pagination Component
-const Pagination = ({ currentPage, totalPages, onPageChange }) => (
-    <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between mt-8"
-    >
-        <motion.button
-            onClick={() => onPageChange(Math.max(currentPage - 1, 1))}
-            disabled={currentPage === 1}
-            whileHover={{ scale: currentPage === 1 ? 1 : 1.05 }}
-            whileTap={{ scale: currentPage === 1 ? 1 : 0.95 }}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all duration-300 ${
-                currentPage === 1 
-                    ? 'bg-white/10 text-white/40 cursor-not-allowed' 
-                    : 'bg-white/10 hover:bg-white/20 text-white'
-            }`}
+const Pagination = ({ currentPage, totalPages, onPageChange }) => {
+    const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
+    
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-center justify-between mt-8"
         >
-            <FiArrowLeft className="text-sm" />
-            Previous
-        </motion.button>
+            <motion.button
+                onClick={() => onPageChange(Math.max(currentPage - 1, 1))}
+                disabled={currentPage === 1}
+                whileHover={{ scale: currentPage === 1 ? 1 : 1.05 }}
+                whileTap={{ scale: currentPage === 1 ? 1 : 0.95 }}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all duration-300 ${
+                    currentPage === 1 
+                        ? 'bg-white/10 text-white/40 cursor-not-allowed' 
+                        : 'bg-white/10 hover:bg-white/20 text-white'
+                }`}
+            >
+                <FiArrowLeft className="text-sm" />
+                Previous
+            </motion.button>
 
-        <div className="flex items-center gap-1">
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                <motion.button
-                    key={page}
-                    onClick={() => onPageChange(page)}
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    className={`w-10 h-10 rounded-xl font-medium transition-all duration-300 ${
-                        currentPage === page 
-                            ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg' 
-                            : 'bg-white/10 hover:bg-white/20 text-white'
-                    }`}
-                >
-                    {page}
-                </motion.button>
-            ))}
-        </div>
+            <div className="flex items-center gap-1">
+                {pages.map(page => (
+                    <motion.button
+                        key={page}
+                        onClick={() => onPageChange(page)}
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        className={`w-10 h-10 rounded-xl font-medium transition-all duration-300 ${
+                            currentPage === page 
+                                ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg' 
+                                : 'bg-white/10 hover:bg-white/20 text-white'
+                        }`}
+                    >
+                        {page}
+                    </motion.button>
+                ))}
+            </div>
 
-        <motion.button
-            onClick={() => onPageChange(Math.min(currentPage + 1, totalPages))}
-            disabled={currentPage === totalPages}
-            whileHover={{ scale: currentPage === totalPages ? 1 : 1.05 }}
-            whileTap={{ scale: currentPage === totalPages ? 1 : 0.95 }}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all duration-300 ${
-                currentPage === totalPages 
-                    ? 'bg-white/10 text-white/40 cursor-not-allowed' 
-                    : 'bg-white/10 hover:bg-white/20 text-white'
-            }`}
-        >
-            Next
-            <FiArrowRight className="text-sm" />
-        </motion.button>
-    </motion.div>
-);
+            <motion.button
+                onClick={() => onPageChange(Math.min(currentPage + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                whileHover={{ scale: currentPage === totalPages ? 1 : 1.05 }}
+                whileTap={{ scale: currentPage === totalPages ? 1 : 0.95 }}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all duration-300 ${
+                    currentPage === totalPages 
+                        ? 'bg-white/10 text-white/40 cursor-not-allowed' 
+                        : 'bg-white/10 hover:bg-white/20 text-white'
+                }`}
+            >
+                Next
+                <FiArrowRight className="text-sm" />
+            </motion.button>
+        </motion.div>
+    );
+};
 
 export default function OrderHistory() {
     const { currentUser } = useAuth();
@@ -218,14 +222,19 @@ export default function OrderHistory() {
 
     useEffect(() => {
         const fetchOrders = async () => {
-            if (!currentUser) return;
+            if (!currentUser) {
+                setLoading(false);
+                return;
+            }
 
             try {
                 setLoading(true);
+                setError('');
                 const response = await getOrdersByUser();
-                setOrders(response.data || []);
+                setOrders(response?.data || []);
             } catch (err) {
-                setError(err.message || 'Failed to load orders');
+                setError(err?.message || 'Failed to load orders');
+                setOrders([]);
             } finally {
                 setLoading(false);
             }
@@ -235,10 +244,14 @@ export default function OrderHistory() {
     }, [currentUser]);
 
     // Filter orders based on search term
-    const filteredOrders = orders.filter(order => 
-        order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.totalPrice.toString().includes(searchTerm)
-    );
+    const filteredOrders = orders.filter(order => {
+        const orderId = order.id?.toLowerCase() || '';
+        const totalPrice = order.totalPrice?.toString() || '';
+        return (
+            orderId.includes(searchTerm.toLowerCase()) ||
+            totalPrice.includes(searchTerm)
+        );
+    });
 
     // Pagination logic
     const indexOfLastOrder = currentPage * ordersPerPage;
@@ -246,10 +259,15 @@ export default function OrderHistory() {
     const currentOrders = filteredOrders.slice(indexOfFirstOrder, indexOfLastOrder);
     const totalPages = Math.ceil(filteredOrders.length / ordersPerPage);
 
-    // Stats calculation
+    // Stats calculation with safe access
     const totalOrders = orders.length;
-    const totalSpent = orders.reduce((sum, order) => sum + order.totalPrice, 0);
+    const totalSpent = orders.reduce((sum, order) => sum + (order.totalPrice || 0), 0);
     const deliveredOrders = orders.filter(order => order.isDelivered).length;
+
+    // Reset to page 1 when search term changes
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm]);
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-pink-700 py-8">
@@ -276,7 +294,7 @@ export default function OrderHistory() {
                 </motion.div>
 
                 {/* Stats Cards */}
-                {orders.length > 0 && (
+                {!loading && orders.length > 0 && (
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -320,7 +338,7 @@ export default function OrderHistory() {
                 )}
 
                 {/* Search Bar */}
-                {orders.length > 0 && (
+                {!loading && orders.length > 0 && (
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -373,7 +391,7 @@ export default function OrderHistory() {
                             </div>
                             <h3 className="text-2xl font-bold text-white mb-3">No Orders Yet</h3>
                             <p className="text-white/70 mb-8 max-w-md mx-auto">
-                                You haven't placed any orders yet. Start exploring our products and make your first purchase!
+                                You haven&apos;t placed any orders yet. Start exploring our products and make your first purchase!
                             </p>
                             <MotionLink
                                 to="/products"
