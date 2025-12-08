@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
-import { getProductById, formatProductForDisplay } from '../../services/productService';
+import { getProductById, formatProductForDisplay } from '../../services/productServic';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FiArrowLeft, 
