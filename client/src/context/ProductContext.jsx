@@ -4,7 +4,7 @@ import {
   getProductStats,
   getFilterOptions,
   getProductsByType 
-} from '../services/productService';
+} from '../services/productServic';
 import { PRODUCT_TYPES } from '../utils/productTypes';
 
 const ProductContext = createContext();
