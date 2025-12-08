@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createProduct } from '../../services/productService';
+import { createProduct } from '../../services/productServic';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { auth, storage } from '../../firebase/config';
 import { 
