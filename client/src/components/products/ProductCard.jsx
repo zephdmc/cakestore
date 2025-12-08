@@ -12,7 +12,6 @@ import {
   FiTag,
   FiStar,
   FiClock,
-  FiRuler,
   FiLayers,
   FiShield
 } from 'react-icons/fi';
@@ -295,7 +294,7 @@ export default function ProductCard({ product }) {
                   {typeDetails.details.map((detail, index) => (
                     detail.value && (
                       <div key={index} className="flex items-center text-xs text-gray-600">
-                        {index === 0 && detail.label === 'Size' && <FiRuler className="mr-1" />}
+                        {index === 0 && detail.label === 'Size' && <FiLayers className="mr-1" />}
                         {index === 0 && detail.label === 'Scent' && <FiDroplet className="mr-1" />}
                         {index === 0 && detail.label === 'Capacity' && <FiCoffee className="mr-1" />}
                         {detail.label === 'Burn Time' && <FiClock className="mr-1" />}
