@@ -36,6 +36,26 @@ export const PRODUCT_CATEGORIES = {
     ]
 };
 
+
+
+export const PRODUCT_TYPE_COLORS = {
+  [PRODUCT_TYPES.CAKE]: {
+    bg: 'bg-gradient-to-r from-pink-500 to-rose-500',
+    text: 'text-pink-600',
+    light: 'bg-pink-100 text-pink-800'
+  },
+  [PRODUCT_TYPES.CANDLE]: {
+    bg: 'bg-gradient-to-r from-amber-500 to-orange-500',
+    text: 'text-amber-600',
+    light: 'bg-amber-100 text-amber-800'
+  },
+  [PRODUCT_TYPES.MUG]: {
+    bg: 'bg-gradient-to-r from-blue-500 to-cyan-500',
+    text: 'text-blue-600',
+    light: 'bg-blue-100 text-blue-800'
+  }
+};
+
 // Field configurations for product forms
 export const PRODUCT_FIELD_CONFIGS = {
     [PRODUCT_TYPES.CAKE]: {
