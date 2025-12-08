@@ -5,7 +5,7 @@ import {
   deleteProduct, 
   getProductStats,
   getFilterOptions 
-} from '../../services/productService';
+} from '../../services/productServic';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FiPackage, 
