@@ -11,6 +11,26 @@ export const PRODUCT_TYPE_LABELS = {
     [PRODUCT_TYPES.MUG]: 'Personalized Glass Mugs'
 };
 
+
+export const CAKE_CATEGORIES = [
+  'Birthday Cakes', 'Wedding Cakes', 'Anniversary Cakes', 
+  'Custom Theme Cakes', 'Cupcakes', 'Cheesecakes', 
+  'Seasonal Specials', 'Desserts', 'Cookie Boxes'
+];
+
+export const CANDLE_CATEGORIES = [
+  'Soy Wax Candles', 'Beeswax Candles', 'Scented Candles', 
+  'Decorative Candles', 'Gift Set Candles', 'Essential Oil Candles',
+  'Seasonal Candles', 'Meditation Candles', 'Romantic Candles'
+];
+
+export const MUG_CATEGORIES = [
+  'Personalized Mugs', 'Photo Mugs', 'Glass Mugs', 
+  'Travel Mugs', 'Gift Mugs', 'Ceramic Mugs',
+  'Novelty Mugs', 'Coffee Mugs', 'Tea Mugs'
+];
+
+
 // Common categories for each product type
 export const PRODUCT_CATEGORIES = {
     [PRODUCT_TYPES.CAKE]: [
