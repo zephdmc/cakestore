@@ -4,20 +4,23 @@ const {
     getProduct,
     createProduct,
     updateProduct,
-    deleteProduct
+    deleteProduct,
+    getProductCounts,
+    getFilterOptions  // Added new controller function
 } = require('../controllers/productController');
 const { protect, authorize } = require('../middlewares/authMiddleware');
 
 const router = express.Router();
 
-// Remove express.json() from here - it should be in app.js
-router.route('/')
-    .get(getProducts)
-    .post(protect, authorize('admin'), createProduct); // ← REMOVED express.json()
+// Public routes
+router.get('/', getProducts);
+router.get('/stats/counts', getProductCounts);
+router.get('/filters/options', getFilterOptions);
+router.get('/:id', getProduct);
 
-router.route('/:id')
-    .get(getProduct)
-    .put(protect, authorize('admin'), updateProduct)
-    .delete(protect, authorize('admin'), deleteProduct);
+// Protected admin routes
+router.post('/', protect, authorize('admin'), createProduct);
+router.put('/:id', protect, authorize('admin'), updateProduct);
+router.delete('/:id', protect, authorize('admin'), deleteProduct);
 
 module.exports = router;
