@@ -290,59 +290,6 @@ const QuickShopSection = () => {
 };
 
 // Stats Section Component
-const StatsSection = () => {
-  const stats = [
-    {
-      icon: FiCoffee,
-      value: '100+',
-      label: 'Cake Designs',
-      gradient: 'from-pink-500 to-rose-500'
-    },
-    {
-      icon: FiDroplet,
-      value: '50+',
-      label: 'Candle Scents',
-      gradient: 'from-amber-500 to-orange-500'
-    },
-    {
-      icon: FiGrid,
-      value: '200+',
-      label: 'Mug Designs',
-      gradient: 'from-blue-500 to-cyan-500'
-    },
-    {
-      icon: FiHeart,
-      value: '1K+',
-      label: 'Happy Customers',
-      gradient: 'from-purple-500 to-pink-500'
-    }
-  ];
-
-  return (
-    <section className="py-16 px-4 bg-gradient-to-b from-purple-900/20 to-purple-800/10">
-      <div className="container mx-auto max-w-7xl">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-          {stats.map((stat, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20"
-            >
-              <div className={`w-12 h-12 bg-gradient-to-br ${stat.gradient} rounded-xl flex items-center justify-center mb-4`}>
-                <stat.icon className="text-white text-xl" />
-              </div>
-              <p className="text-3xl font-bold text-white mb-1">{stat.value}</p>
-              <p className="text-white/70 text-sm">{stat.label}</p>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-};
 
 export default function HomePage() {
     const { 
@@ -554,7 +501,7 @@ export default function HomePage() {
             <QuickShopSection />
 
             {/* Stats Section */}
-            <StatsSection />
+      
 
             {/* Enhanced Featured Products Section */}
             <section className="py-20 px-4 bg-gradient-to-b from-purple-900/50 to-purple-800/30">
