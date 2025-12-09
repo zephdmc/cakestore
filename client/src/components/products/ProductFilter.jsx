@@ -13,7 +13,6 @@ import {
   FiDroplet,
   FiGrid,
   FiClock,
-  FiRuler,
   FiShield,
   FiLayers
 } from 'react-icons/fi';
@@ -240,7 +239,7 @@ export default function ProductFilter({ categories, onFilter }) {
             </FilterSection>
 
             {/* Size Filter */}
-            <FilterSection title="Size" icon={FiRuler}>
+            <FilterSection title="Size" icon={FiTag}>
               <input
                 type="text"
                 name="size"
@@ -374,7 +373,7 @@ export default function ProductFilter({ categories, onFilter }) {
             </FilterSection>
 
             {/* Capacity Filter */}
-            <FilterSection title="Capacity" icon={FiRuler}>
+            <FilterSection title="Capacity" icon={FiTag}>
               <input
                 type="text"
                 name="capacity"
