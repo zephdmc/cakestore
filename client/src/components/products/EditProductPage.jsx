@@ -22,7 +22,6 @@ import {
   FiDroplet,
   FiGrid,
   FiClock,
-  FiRuler,
   FiLayers,
   FiShield,
   FiLock
@@ -336,7 +335,7 @@ export default function EditProductPage() {
                 Size/Portion *
               </label>
               <div className="relative">
-                <FiRuler className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <FiTag className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <input
                   type="text"
                   name="size"
@@ -541,7 +540,7 @@ export default function EditProductPage() {
                 Dimensions
               </label>
               <div className="relative">
-                <FiRuler className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <FiTag className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <input
                   type="text"
                   name="dimensions"
