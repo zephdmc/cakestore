@@ -21,7 +21,6 @@ import {
   FiGrid,
   FiTrendingUp,
   FiLayers,
-  FiRuler,
   FiShield,
   FiClock
 } from 'react-icons/fi';
@@ -162,7 +161,7 @@ export default function AdminProducts() {
     switch (product.productType) {
       case PRODUCT_TYPES.CAKE:
         return {
-          icon: FiRuler,
+          icon: FiTag,
           label: 'Size',
           value: product.size || 'N/A',
           color: 'text-pink-600'
