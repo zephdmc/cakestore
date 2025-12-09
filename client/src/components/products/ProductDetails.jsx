@@ -18,7 +18,6 @@ import {
   FiUsers,
   FiDroplet,
   FiGrid,
-  FiRuler,
   FiLayers,
   FiShield,
   FiCheck,
@@ -147,7 +146,7 @@ export default function ProductDetail() {
             {product.size && (
               <div className={`${colors.light} rounded-2xl p-6 border ${colors.text.replace('text', 'border')}`}>
                 <div className="flex items-center mb-3">
-                  <FiRuler className={`mr-3 ${colors.text}`} size={24} />
+                  <FiTag className={`mr-3 ${colors.text}`} size={24} />
                   <h3 className="text-xl font-semibold text-gray-900">Size & Portion</h3>
                 </div>
                 <p className="text-lg font-bold text-gray-800">{product.size}</p>
@@ -268,7 +267,7 @@ export default function ProductDetail() {
               {product.dimensions && (
                 <div className="bg-amber-50 rounded-2xl p-6 border border-amber-200">
                   <div className="flex items-center mb-3">
-                    <FiRuler className="mr-3 text-amber-600" size={24} />
+                    <FiTag className="mr-3 text-amber-600" size={24} />
                     <h3 className="text-xl font-semibold text-gray-900">Dimensions</h3>
                   </div>
                   <p className="text-lg font-bold text-gray-800">{product.dimensions}</p>
