@@ -22,7 +22,6 @@ import {
   FiGrid,
   FiCheck,
   FiClock,
-  FiRuler,
   FiLayers,
   FiShield
 } from 'react-icons/fi';
@@ -327,7 +326,7 @@ export default function AddProductPage() {
                 Size/Portion *
               </label>
               <div className="relative">
-                <FiRuler className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <FiTag className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <input
                   type="text"
                   name="size"
@@ -526,7 +525,7 @@ export default function AddProductPage() {
                 Dimensions
               </label>
               <div className="relative">
-                <FiRuler className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <FiTag className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <input
                   type="text"
                   name="dimensions"
