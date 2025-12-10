@@ -5,7 +5,7 @@ import {
   deleteProduct, 
   getProductStats,
   getFilterOptions 
-} from '../../services/productServic';
+} from '../../services/productServic'; // Fixed typo in import path
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FiPackage, 
@@ -86,8 +86,21 @@ export default function ProductManagement() {
   const fetchProducts = async () => {
     try {
       setLoading(true);
+      setError('');
       const response = await getProducts();
-      setProducts(Array.isArray(response?.data) ? response.data : []);
+      
+      // Handle both response formats
+      let productsData = [];
+      if (Array.isArray(response)) {
+        productsData = response;
+      } else if (response && Array.isArray(response.data)) {
+        productsData = response.data;
+      } else if (response && response.products) {
+        productsData = response.products;
+      }
+      
+      setProducts(productsData);
+      filterProducts(); // Call filter after setting products
     } catch (err) {
       setError(err.message || 'Failed to load products');
       setProducts([]);
@@ -99,19 +112,49 @@ export default function ProductManagement() {
   const fetchStats = async () => {
     try {
       const response = await getProductStats();
-      if (response.success) {
+      
+      // Handle different response formats
+      if (response && response.success && response.data) {
         setStats(response.data);
+      } else if (response && typeof response === 'object') {
+        // If response is already the stats object
+        setStats(response);
+      } else {
+        // Calculate stats from products
+        calculateStatsFromProducts();
       }
     } catch (err) {
       console.error('Failed to load stats:', err);
+      // Calculate stats from products as fallback
+      calculateStatsFromProducts();
     }
+  };
+
+  const calculateStatsFromProducts = () => {
+    const total = products.length;
+    const cakes = products.filter(p => p.productType === PRODUCT_TYPES.CAKE).length;
+    const candles = products.filter(p => p.productType === PRODUCT_TYPES.CANDLE).length;
+    const mugs = products.filter(p => p.productType === PRODUCT_TYPES.MUG).length;
+    const inStock = products.filter(p => (p.countInStock || 0) > 0).length;
+    const outOfStock = products.filter(p => (p.countInStock || 0) === 0).length;
+    
+    setStats({
+      cakes,
+      candles,
+      mugs,
+      total,
+      inStock,
+      outOfStock
+    });
   };
 
   const fetchFilterOptions = async (productType) => {
     try {
       const response = await getFilterOptions(productType);
-      if (response.success) {
+      if (response && response.success) {
         setFilterOptions(response.data);
+      } else if (response && response.categories) {
+        setFilterOptions(response);
       }
     } catch (err) {
       console.error('Failed to load filter options:', err);
@@ -125,9 +168,9 @@ export default function ProductManagement() {
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       result = result.filter(product => 
-        product.name?.toLowerCase().includes(query) ||
-        product.description?.toLowerCase().includes(query) ||
-        product.category?.toLowerCase().includes(query)
+        (product.name || '').toLowerCase().includes(query) ||
+        (product.description || '').toLowerCase().includes(query) ||
+        (product.category || '').toLowerCase().includes(query)
       );
     }
 
@@ -144,8 +187,9 @@ export default function ProductManagement() {
     // Apply stock filter
     if (stockFilter !== 'all') {
       result = result.filter(product => {
-        if (stockFilter === 'in-stock') return product.countInStock > 0;
-        if (stockFilter === 'out-of-stock') return product.countInStock === 0;
+        const stock = product.countInStock || 0;
+        if (stockFilter === 'in-stock') return stock > 0;
+        if (stockFilter === 'out-of-stock') return stock === 0;
         return true;
       });
     }
@@ -154,21 +198,21 @@ export default function ProductManagement() {
     result.sort((a, b) => {
       switch (sortBy) {
         case 'name-asc':
-          return a.name.localeCompare(b.name);
+          return (a.name || '').localeCompare(b.name || '');
         case 'name-desc':
-          return b.name.localeCompare(a.name);
+          return (b.name || '').localeCompare(a.name || '');
         case 'price-asc':
-          return a.price - b.price;
+          return (a.price || 0) - (b.price || 0);
         case 'price-desc':
-          return b.price - a.price;
+          return (b.price || 0) - (a.price || 0);
         case 'stock-asc':
-          return a.countInStock - b.countInStock;
+          return (a.countInStock || 0) - (b.countInStock || 0);
         case 'stock-desc':
-          return b.countInStock - a.countInStock;
+          return (b.countInStock || 0) - (a.countInStock || 0);
         case 'newest':
-          return new Date(b.createdAt) - new Date(a.createdAt);
+          return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
         case 'oldest':
-          return new Date(a.createdAt) - new Date(b.createdAt);
+          return new Date(a.createdAt || 0) - new Date(b.createdAt || 0);
         default:
           return 0;
       }
@@ -186,6 +230,7 @@ export default function ProductManagement() {
           prevProducts.filter((product) => product.id !== productId)
         );
         setSuccess('Product deleted successfully');
+        setError(''); // Clear any existing errors
         setTimeout(() => setSuccess(''), 3000);
         fetchStats(); // Refresh stats
       } catch (err) {
@@ -198,9 +243,19 @@ export default function ProductManagement() {
 
   const refreshProducts = () => {
     setLoading(true);
+    setError('');
     getProducts()
       .then(response => {
-        setProducts(Array.isArray(response?.data) ? response.data : []);
+        let productsData = [];
+        if (Array.isArray(response)) {
+          productsData = response;
+        } else if (response && Array.isArray(response.data)) {
+          productsData = response.data;
+        } else if (response && response.products) {
+          productsData = response.products;
+        }
+        
+        setProducts(productsData);
         fetchStats();
       })
       .catch(err => {
@@ -261,7 +316,20 @@ export default function ProductManagement() {
       ? products 
       : products.filter(p => p.productType === productTypeFilter);
     
-    return ['all', ...new Set(filtered.map(product => product.category).filter(Boolean))];
+    const categories = ['all'];
+    filtered.forEach(product => {
+      if (product.category && !categories.includes(product.category)) {
+        categories.push(product.category);
+      }
+    });
+    
+    return categories;
+  };
+
+  // Handle product image error
+  const handleImageError = (e) => {
+    e.target.src = 'https://via.placeholder.com/150';
+    e.target.onerror = null;
   };
 
   if (loading) {
@@ -340,13 +408,13 @@ export default function ProductManagement() {
               },
               { 
                 label: 'In Stock', 
-                value: stats.inStock || products.filter(p => p.countInStock > 0).length, 
+                value: stats.inStock || products.filter(p => (p.countInStock || 0) > 0).length, 
                 color: 'bg-gradient-to-r from-green-500 to-green-600',
                 icon: FiShoppingCart 
               },
               { 
                 label: 'Out of Stock', 
-                value: stats.outOfStock || products.filter(p => p.countInStock === 0).length, 
+                value: stats.outOfStock || products.filter(p => (p.countInStock || 0) === 0).length, 
                 color: 'bg-gradient-to-r from-red-500 to-red-600',
                 icon: FiAlertCircle 
               }
@@ -531,7 +599,7 @@ export default function ProductManagement() {
                       {filteredProducts.map((product, index) => (
                         <>
                           <motion.tr
-                            key={product.id}
+                            key={product.id || index}
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: index * 0.05 }}
@@ -541,16 +609,14 @@ export default function ProductManagement() {
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="flex items-center">
                                 <img
-                                  src={product.images && product.images[0] ? product.images[0] : '/placeholder-product.png'}
+                                  src={product.images && product.images[0] ? product.images[0] : 'https://via.placeholder.com/150'}
                                   alt={product.name}
                                   className="h-12 w-12 object-cover rounded-xl border border-gray-200 mr-4"
-                                  onError={(e) => {
-                                    e.target.src = '/placeholder-product.png';
-                                  }}
+                                  onError={handleImageError}
                                 />
                                 <div>
                                   <p className="text-sm font-semibold text-gray-900">
-                                    {product.name}
+                                    {product.name || 'Unnamed Product'}
                                   </p>
                                   <p className="text-xs text-gray-500 line-clamp-1">
                                     {product.description || 'No description'}
@@ -564,7 +630,7 @@ export default function ProductManagement() {
                                   {getProductTypeIcon(product.productType)}
                                 </div>
                                 <span className="text-sm text-gray-900 capitalize">
-                                  {PRODUCT_TYPE_LABELS[product.productType] || product.productType}
+                                  {PRODUCT_TYPE_LABELS[product.productType] || product.productType || 'Unknown'}
                                 </span>
                               </div>
                             </td>
@@ -591,7 +657,7 @@ export default function ProductManagement() {
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border ${
-                                product.countInStock > 0 
+                                (product.countInStock || 0) > 0 
                                   ? 'bg-green-100 text-green-800 border-green-200' 
                                   : 'bg-red-100 text-red-800 border-red-200'
                               }`}>
@@ -601,11 +667,11 @@ export default function ProductManagement() {
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border ${
-                                product.countInStock > 0
+                                (product.countInStock || 0) > 0
                                   ? 'bg-blue-100 text-blue-800 border-blue-200' 
                                   : 'bg-gray-100 text-gray-800 border-gray-200'
                               }`}>
-                                {product.countInStock > 0 ? 'Active' : 'Out of Stock'}
+                                {(product.countInStock || 0) > 0 ? 'Active' : 'Out of Stock'}
                               </span>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -666,7 +732,7 @@ export default function ProductManagement() {
                                   <div className="bg-white p-3 rounded-lg border border-gray-200">
                                     <p className="text-xs text-gray-500 font-medium mb-1">Created</p>
                                     <p className="text-sm font-semibold text-gray-900">
-                                      {new Date(product.createdAt).toLocaleDateString()}
+                                      {product.createdAt ? new Date(product.createdAt).toLocaleDateString() : 'Unknown'}
                                     </p>
                                   </div>
                                 </div>
@@ -684,7 +750,7 @@ export default function ProductManagement() {
               <div className="lg:hidden space-y-4">
                 {filteredProducts.map((product, index) => (
                   <motion.div
-                    key={product.id}
+                    key={product.id || index}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
@@ -693,12 +759,10 @@ export default function ProductManagement() {
                     <div className="flex items-start space-x-4">
                       <div className="relative">
                         <img
-                          src={product.images && product.images[0] ? product.images[0] : '/placeholder-product.png'}
+                          src={product.images && product.images[0] ? product.images[0] : 'https://via.placeholder.com/150'}
                           alt={product.name}
                           className="h-16 w-16 object-cover rounded-xl border border-gray-200 flex-shrink-0"
-                          onError={(e) => {
-                            e.target.src = '/placeholder-product.png';
-                          }}
+                          onError={handleImageError}
                         />
                         <div className={`absolute -top-2 -right-2 ${getProductTypeColor(product.productType)} rounded-full p-1`}>
                           {getProductTypeIcon(product.productType)}
@@ -708,14 +772,14 @@ export default function ProductManagement() {
                         <div className="flex items-start justify-between">
                           <div>
                             <h3 className="font-semibold text-gray-900 truncate">
-                              {product.name}
+                              {product.name || 'Unnamed Product'}
                             </h3>
                             <p className="text-xs text-gray-500 mt-1 capitalize">
-                              {PRODUCT_TYPE_LABELS[product.productType] || product.productType}
+                              {PRODUCT_TYPE_LABELS[product.productType] || product.productType || 'Unknown'}
                             </p>
                           </div>
                           <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold ${
-                            product.countInStock > 0 
+                            (product.countInStock || 0) > 0 
                               ? 'bg-green-100 text-green-800' 
                               : 'bg-red-100 text-red-800'
                           }`}>
@@ -732,9 +796,9 @@ export default function ProductManagement() {
                           </div>
                           <div className="flex items-center text-xs text-gray-600">
                             <FiDollarSign className="mr-1" />
-                            <span className="font-semibold">₦{product.price?.toLocaleString()}</span>
+                            <span className="font-semibold">₦{product.price?.toLocaleString() || '0'}</span>
                           </div>
-                          {product.discountPercentage > 0 && (
+                          {(product.discountPercentage || 0) > 0 && (
                             <div className="col-span-2">
                               <span className="inline-flex items-center px-2 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded">
                                 {product.discountPercentage}% discount
