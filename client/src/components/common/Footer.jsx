@@ -86,7 +86,7 @@ export default function Footer() {
     ];
 
     const customerServiceLinks = [
-        { href: '/contact', text: 'Contact Us', delay: 0.3 },
+     
         { href: '/shipping', text: 'Shipping Policy', delay: 0.4 },
         { href: '/returns', text: 'Returns & Exchanges', delay: 0.5 },
         { href: '/privacy', text: 'Privacy Policy', delay: 0.6 },
