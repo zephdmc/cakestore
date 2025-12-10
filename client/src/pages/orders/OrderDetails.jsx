@@ -3,7 +3,6 @@ import { Link, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 import { getOrderById } from '../../services/orderService';
-import { getEnhancedOrderDetails } from '../../services/orderDetailsService';
 import { 
     FiArrowLeft, 
     FiPackage, 
@@ -17,8 +16,14 @@ import {
     FiInfo,
     FiCheckCircle,
     FiClock,
-    FiAlertCircle
+    FiAlertCircle,
+    FiCoffee,
+    FiDroplet,
+    FiGrid,
+    FiEdit,
+    FiMessageSquare
 } from 'react-icons/fi';
+import { PRODUCT_TYPES, PRODUCT_TYPE_LABELS } from '../../utils/productTypes';
 
 // Create motion-wrapped components at the top level
 const MotionLink = motion(Link);
@@ -55,12 +60,71 @@ const OrderSkeleton = () => (
     </div>
 );
 
+// Product Type Badge Component
+const ProductTypeBadge = ({ productType }) => {
+    const getConfig = () => {
+        switch (productType) {
+            case PRODUCT_TYPES.CAKE:
+                return {
+                    icon: FiCoffee,
+                    gradient: 'from-pink-500 to-rose-500',
+                    label: 'Cake'
+                };
+            case PRODUCT_TYPES.CANDLE:
+                return {
+                    icon: FiDroplet,
+                    gradient: 'from-amber-500 to-orange-500',
+                    label: 'Candle'
+                };
+            case PRODUCT_TYPES.MUG:
+                return {
+                    icon: FiGrid,
+                    gradient: 'from-blue-500 to-cyan-500',
+                    label: 'Mug'
+                };
+            default:
+                return {
+                    icon: FiPackage,
+                    gradient: 'from-purple-500 to-pink-500',
+                    label: 'Product'
+                };
+        }
+    };
+
+    const config = getConfig();
+    const Icon = config.icon;
+
+    return (
+        <div className={`inline-flex items-center gap-2 bg-gradient-to-r ${config.gradient} text-white px-3 py-1 rounded-full text-xs font-semibold`}>
+            <Icon className="text-xs" />
+            {config.label}
+        </div>
+    );
+};
+
 // Status Badge Component
 const StatusBadge = ({ status, isPaid, isDelivered }) => {
     const getStatusConfig = () => {
-        if (isDelivered) return { color: 'from-green-500 to-emerald-500', text: 'Delivered', icon: FiCheckCircle };
-        if (isPaid) return { color: 'from-blue-500 to-cyan-500', text: 'Processing', icon: FiPackage };
-        return { color: 'from-yellow-500 to-orange-500', text: 'Pending Payment', icon: FiClock };
+        if (isDelivered) return { 
+            color: 'from-green-500 to-emerald-500', 
+            text: 'Delivered', 
+            icon: FiCheckCircle 
+        };
+        if (isPaid) return { 
+            color: 'from-blue-500 to-cyan-500', 
+            text: 'Processing', 
+            icon: FiPackage 
+        };
+        if (status === 'shipped') return { 
+            color: 'from-indigo-500 to-purple-500', 
+            text: 'Shipped', 
+            icon: FiTruck 
+        };
+        return { 
+            color: 'from-yellow-500 to-orange-500', 
+            text: 'Pending Payment', 
+            icon: FiClock 
+        };
     };
 
     const config = getStatusConfig();
@@ -79,13 +143,13 @@ const StatusBadge = ({ status, isPaid, isDelivered }) => {
 };
 
 // Tab Navigation Component
-const TabNavigation = ({ activeTab, setActiveTab, showCustomTab }) => (
-    <div className="flex space-x-1 bg-white/10 backdrop-blur-sm rounded-2xl p-2 mb-8 border border-white/20">
+const TabNavigation = ({ activeTab, setActiveTab, showCustomTab, productType }) => (
+    <div className="flex flex-wrap gap-2 bg-white/10 backdrop-blur-sm rounded-2xl p-2 mb-8 border border-white/20">
         <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => setActiveTab('orderInfo')}
-            className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all duration-300 ${
+            className={`flex items-center gap-2 px-4 py-3 rounded-xl font-medium transition-all duration-300 ${
                 activeTab === 'orderInfo' 
                     ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg' 
                     : 'text-white/70 hover:text-white hover:bg-white/5'
@@ -100,18 +164,274 @@ const TabNavigation = ({ activeTab, setActiveTab, showCustomTab }) => (
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setActiveTab('customDetails')}
-                className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all duration-300 ${
+                className={`flex items-center gap-2 px-4 py-3 rounded-xl font-medium transition-all duration-300 ${
                     activeTab === 'customDetails' 
                         ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg' 
                         : 'text-white/70 hover:text-white hover:bg-white/5'
                 }`}
             >
-                <FiPackage className="text-sm" />
-                Custom Details
+                <FiEdit className="text-sm" />
+                {productType === PRODUCT_TYPES.CAKE ? 'Cake Details' : 
+                 productType === PRODUCT_TYPES.CANDLE ? 'Candle Details' : 
+                 productType === PRODUCT_TYPES.MUG ? 'Mug Details' : 'Custom Details'}
             </motion.button>
         )}
     </div>
 );
+
+// Product Type Details Component
+const ProductTypeDetails = ({ productType, customOrderDetails }) => {
+    const getProductTypeConfig = () => {
+        switch (productType) {
+            case PRODUCT_TYPES.CAKE:
+                return {
+                    title: 'Cake Customization Details',
+                    icon: FiCoffee,
+                    gradient: 'from-pink-500 to-rose-500',
+                    sections: [
+                        {
+                            title: 'Cake Specifications',
+                            fields: [
+                                { label: 'Occasion', value: customOrderDetails.occasion },
+                                { label: 'Size', value: customOrderDetails.size },
+                                { label: 'Flavor', value: customOrderDetails.flavor },
+                                { label: 'Frosting', value: customOrderDetails.frosting },
+                                { label: 'Filling', value: customOrderDetails.filling },
+                            ]
+                        },
+                        {
+                            title: 'Decorations & Design',
+                            fields: [
+                                { label: 'Theme', value: customOrderDetails.theme },
+                                { label: 'Decorations', value: customOrderDetails.decorations },
+                                { label: 'Color Scheme', value: customOrderDetails.colorScheme },
+                                { label: 'Topper', value: customOrderDetails.topper },
+                            ]
+                        },
+                        {
+                            title: 'Delivery & Special Instructions',
+                            fields: [
+                                { 
+                                    label: 'Delivery Date', 
+                                    value: customOrderDetails.deliveryDate ? 
+                                        new Date(customOrderDetails.deliveryDate).toLocaleDateString() : 'Not specified' 
+                                },
+                                { label: 'Delivery Time', value: customOrderDetails.deliveryTime || 'Anytime' },
+                                { label: 'Allergies', value: customOrderDetails.allergies || 'None' },
+                                { label: 'Special Instructions', value: customOrderDetails.specialInstructions || 'None' },
+                            ]
+                        }
+                    ]
+                };
+            
+            case PRODUCT_TYPES.CANDLE:
+                return {
+                    title: 'Candle Customization Details',
+                    icon: FiDroplet,
+                    gradient: 'from-amber-500 to-orange-500',
+                    sections: [
+                        {
+                            title: 'Candle Specifications',
+                            fields: [
+                                { label: 'Scent', value: customOrderDetails.scent },
+                                { label: 'Wax Type', value: customOrderDetails.waxType },
+                                { label: 'Burn Time', value: customOrderDetails.burnTime },
+                                { label: 'Size', value: customOrderDetails.size },
+                                { label: 'Color', value: customOrderDetails.color },
+                            ]
+                        },
+                        {
+                            title: 'Personalization',
+                            fields: [
+                                { label: 'Personalization Text', value: customOrderDetails.personalization },
+                                { label: 'Font Style', value: customOrderDetails.fontStyle },
+                                { label: 'Label Design', value: customOrderDetails.labelDesign },
+                            ]
+                        },
+                        {
+                            title: 'Special Requirements',
+                            fields: [
+                                { label: 'Jar Type', value: customOrderDetails.jarType || 'Standard' },
+                                { label: 'Wick Type', value: customOrderDetails.wickType || 'Cotton' },
+                                { label: 'Essential Oils', value: customOrderDetails.essentialOils || 'None' },
+                            ]
+                        }
+                    ]
+                };
+            
+            case PRODUCT_TYPES.MUG:
+                return {
+                    title: 'Mug Customization Details',
+                    icon: FiGrid,
+                    gradient: 'from-blue-500 to-cyan-500',
+                    sections: [
+                        {
+                            title: 'Mug Specifications',
+                            fields: [
+                                { label: 'Material', value: customOrderDetails.material },
+                                { label: 'Size', value: customOrderDetails.size },
+                                { label: 'Color', value: customOrderDetails.color },
+                                { label: 'Handle Type', value: customOrderDetails.handleType },
+                            ]
+                        },
+                        {
+                            title: 'Personalization',
+                            fields: [
+                                { label: 'Personalization Text', value: customOrderDetails.personalization },
+                                { label: 'Photo/Image', value: customOrderDetails.imageType ? 'Custom Image' : 'No Image' },
+                                { label: 'Font Style', value: customOrderDetails.fontStyle },
+                                { label: 'Design Layout', value: customOrderDetails.designLayout },
+                            ]
+                        },
+                        {
+                            title: 'Special Features',
+                            fields: [
+                                { label: 'Insulated', value: customOrderDetails.insulated ? 'Yes' : 'No' },
+                                { label: 'Microwave Safe', value: customOrderDetails.microwaveSafe ? 'Yes' : 'No' },
+                                { label: 'Dishwasher Safe', value: customOrderDetails.dishwasherSafe ? 'Yes' : 'No' },
+                            ]
+                        }
+                    ]
+                };
+            
+            default:
+                return {
+                    title: 'Custom Order Details',
+                    icon: FiEdit,
+                    gradient: 'from-purple-500 to-pink-500',
+                    sections: []
+                };
+        }
+    };
+
+    const config = getProductTypeConfig();
+    const Icon = config.icon;
+
+    return (
+        <motion.div
+            initial="hidden"
+            animate="show"
+            variants={containerVariants}
+            className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 overflow-hidden"
+        >
+            <div className={`bg-gradient-to-r ${config.gradient}/20 px-6 py-4 border-b border-white/20`}>
+                <h2 className="text-xl font-semibold text-white flex items-center gap-3">
+                    <Icon className="text-white" />
+                    {config.title}
+                </h2>
+            </div>
+            
+            <div className="p-6 space-y-6">
+                {config.sections.map((section, sectionIndex) => (
+                    <motion.div
+                        key={sectionIndex}
+                        variants={itemVariants}
+                        className="space-y-4"
+                    >
+                        <h3 className="text-lg font-semibold text-white border-b border-white/20 pb-2">
+                            {section.title}
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {section.fields.map((field, fieldIndex) => (
+                                field.value && (
+                                    <div
+                                        key={fieldIndex}
+                                        className="bg-white/5 rounded-xl p-4 border border-white/10"
+                                    >
+                                        <h4 className="text-sm font-medium text-white/70 mb-1">
+                                            {field.label}
+                                        </h4>
+                                        <p className="text-white font-medium">
+                                            {field.value}
+                                        </p>
+                                    </div>
+                                )
+                            ))}
+                        </div>
+                    </motion.div>
+                ))}
+
+                {/* Special Message */}
+                {customOrderDetails.message && (
+                    <motion.div variants={itemVariants} className="bg-white/5 rounded-xl p-4 border border-white/10">
+                        <h3 className="text-sm font-medium text-white/70 mb-2 flex items-center gap-2">
+                            <FiMessageSquare className="text-white/70" />
+                            Special Message
+                        </h3>
+                        <p className="text-white whitespace-pre-wrap">{customOrderDetails.message}</p>
+                    </motion.div>
+                )}
+
+                {/* Delivery Information */}
+                {(customOrderDetails.deliveryDate || customOrderDetails.deliveryTime) && (
+                    <motion.div variants={itemVariants} className="bg-white/5 rounded-xl p-4 border border-white/10">
+                        <h3 className="text-sm font-medium text-white/70 mb-2 flex items-center gap-2">
+                            <FiCalendar className="text-white/70" />
+                            Delivery Information
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {customOrderDetails.deliveryDate && (
+                                <div>
+                                    <p className="text-sm text-white/70">Date</p>
+                                    <p className="text-white font-medium">
+                                        {new Date(customOrderDetails.deliveryDate).toLocaleDateString()}
+                                    </p>
+                                </div>
+                            )}
+                            {customOrderDetails.deliveryTime && (
+                                <div>
+                                    <p className="text-sm text-white/70">Time</p>
+                                    <p className="text-white font-medium">{customOrderDetails.deliveryTime}</p>
+                                </div>
+                            )}
+                        </div>
+                    </motion.div>
+                )}
+
+                {/* Reference Image */}
+                {customOrderDetails.imageUrl && (
+                    <motion.div variants={itemVariants} className="space-y-3">
+                        <h3 className="text-sm font-medium text-white/70">Reference Image</h3>
+                        <div className="relative rounded-2xl overflow-hidden border-2 border-white/20">
+                            <img 
+                                src={customOrderDetails.imageUrl} 
+                                alt="Reference" 
+                                className="w-full h-64 object-cover"
+                                onError={(e) => {
+                                    e.target.src = '/placeholder-product.png';
+                                }}
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+                        </div>
+                    </motion.div>
+                )}
+            </div>
+        </motion.div>
+    );
+};
+
+// Animation variants
+const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+        opacity: 1,
+        transition: {
+            staggerChildren: 0.1
+        }
+    }
+};
+
+const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    show: { 
+        opacity: 1, 
+        y: 0,
+        transition: {
+            duration: 0.6,
+            ease: "easeOut"
+        }
+    }
+};
 
 export default function OrderDetails() {
     const { id } = useParams();
@@ -138,29 +458,6 @@ export default function OrderDetails() {
 
         fetchOrder();
     }, [id, currentUser]);
-
-    // Animation variants
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        show: {
-            opacity: 1,
-            transition: {
-                staggerChildren: 0.1
-            }
-        }
-    };
-
-    const itemVariants = {
-        hidden: { opacity: 0, y: 20 },
-        show: { 
-            opacity: 1, 
-            y: 0,
-            transition: {
-                duration: 0.6,
-                ease: "easeOut"
-            }
-        }
-    };
 
     if (loading) return <OrderSkeleton />;
 
@@ -220,87 +517,20 @@ export default function OrderDetails() {
         );
     }
 
-    // Custom Order Details Component
-    const CustomOrderDetails = () => (
-        <motion.div
-            initial="hidden"
-            animate="show"
-            variants={containerVariants}
-            className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 overflow-hidden"
-        >
-            <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 px-6 py-4 border-b border-white/20">
-                <h2 className="text-xl font-semibold text-white flex items-center gap-3">
-                    <FiPackage className="text-purple-300" />
-                    Custom Cake Details
-                </h2>
-            </div>
-            <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-                {[
-                    { label: 'Occasion', value: order.customOrderDetails.occasion },
-                    { label: 'Size', value: order.customOrderDetails.size },
-                    { label: 'Flavor', value: order.customOrderDetails.flavor },
-                    { label: 'Frosting', value: order.customOrderDetails.frosting },
-                    { label: 'Filling', value: order.customOrderDetails.filling },
-                    { label: 'Decorations', value: order.customOrderDetails.decorations },
-                ].map((item, index) => (
-                    <motion.div
-                        key={item.label}
-                        variants={itemVariants}
-                        className="bg-white/5 rounded-xl p-4 border border-white/10"
-                    >
-                        <h3 className="text-sm font-medium text-purple-300 mb-1">{item.label}</h3>
-                        <p className="text-white font-medium">{item.value}</p>
-                    </motion.div>
-                ))}
-                
-                {order.customOrderDetails.message && (
-                    <motion.div variants={itemVariants} className="md:col-span-2 bg-white/5 rounded-xl p-4 border border-white/10">
-                        <h3 className="text-sm font-medium text-purple-300 mb-1">Special Message</h3>
-                        <p className="text-white font-medium">{order.customOrderDetails.message}</p>
-                    </motion.div>
-                )}
-                
-                <motion.div variants={itemVariants} className="md:col-span-2 bg-white/5 rounded-xl p-4 border border-white/10">
-                    <h3 className="text-sm font-medium text-purple-300 mb-1 flex items-center gap-2">
-                        <FiCalendar className="text-sm" />
-                        Delivery Date & Time
-                    </h3>
-                    <p className="text-white font-medium">
-                        {new Date(order.customOrderDetails.deliveryDate).toLocaleDateString()} 
-                        {order.customOrderDetails.deliveryTime && ` at ${order.customOrderDetails.deliveryTime}`}
-                    </p>
-                </motion.div>
+    // Get product type from custom order details or from items
+    const getProductType = () => {
+        if (order.customOrderDetails?.productType) {
+            return order.customOrderDetails.productType;
+        }
+        // Try to get from first item
+        if (order.items && order.items.length > 0) {
+            const firstItem = order.items[0];
+            return firstItem.productType || 'product';
+        }
+        return 'product';
+    };
 
-                {order.customOrderDetails.allergies && (
-                    <motion.div variants={itemVariants} className="md:col-span-2 bg-yellow-500/10 rounded-xl p-4 border border-yellow-500/20">
-                        <h3 className="text-sm font-medium text-yellow-300 mb-1">Allergies</h3>
-                        <p className="text-white font-medium">{order.customOrderDetails.allergies}</p>
-                    </motion.div>
-                )}
-
-                {order.customOrderDetails.specialInstructions && (
-                    <motion.div variants={itemVariants} className="md:col-span-2 bg-white/5 rounded-xl p-4 border border-white/10">
-                        <h3 className="text-sm font-medium text-purple-300 mb-1">Special Instructions</h3>
-                        <p className="text-white whitespace-pre-wrap">{order.customOrderDetails.specialInstructions}</p>
-                    </motion.div>
-                )}
-
-                {order.customOrderDetails.imageUrl && (
-                    <motion.div variants={itemVariants} className="md:col-span-2">
-                        <h3 className="text-sm font-medium text-purple-300 mb-3">Reference Image</h3>
-                        <div className="relative rounded-2xl overflow-hidden border-2 border-white/20">
-                            <img 
-                                src={order.customOrderDetails.imageUrl} 
-                                alt="Cake reference" 
-                                className="w-full h-64 object-cover"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
-                        </div>
-                    </motion.div>
-                )}
-            </div>
-        </motion.div>
-    );
+    const productType = getProductType();
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-pink-700 py-8">
@@ -324,12 +554,17 @@ export default function OrderDetails() {
                             </MotionLink>
                             <div>
                                 <h1 className="text-3xl lg:text-4xl font-bold text-white">
-                                    Order #{order.id.substring(0, 8)}
+                                    Order #{order.orderNumber || order.id?.substring(0, 8)}
                                 </h1>
-                                <p className="text-white/80 flex items-center gap-2 mt-1">
-                                    <FiCalendar className="text-sm" />
-                                    Placed on {new Date(order.createdAt).toLocaleDateString()} at {new Date(order.createdAt).toLocaleTimeString()}
-                                </p>
+                                <div className="flex flex-wrap items-center gap-3 mt-2">
+                                    <p className="text-white/80 flex items-center gap-2">
+                                        <FiCalendar className="text-sm" />
+                                        {new Date(order.createdAt).toLocaleDateString()} at {new Date(order.createdAt).toLocaleTimeString()}
+                                    </p>
+                                    {order.isCustomOrder && (
+                                        <ProductTypeBadge productType={productType} />
+                                    )}
+                                </div>
                             </div>
                         </div>
                         <StatusBadge 
@@ -345,6 +580,7 @@ export default function OrderDetails() {
                     activeTab={activeTab} 
                     setActiveTab={setActiveTab} 
                     showCustomTab={order.isCustomOrder && order.customOrderDetails} 
+                    productType={productType}
                 />
 
                 {/* Tab Content */}
@@ -368,6 +604,9 @@ export default function OrderDetails() {
                                         <h2 className="text-xl font-semibold text-white flex items-center gap-3">
                                             <FiPackage className="text-purple-300" />
                                             Order Items
+                                            <span className="text-sm font-normal text-white/70 ml-auto">
+                                                {order.items.length} {order.items.length === 1 ? 'item' : 'items'}
+                                            </span>
                                         </h2>
                                     </div>
                                     <div className="divide-y divide-white/10">
@@ -375,14 +614,17 @@ export default function OrderDetails() {
                                             <motion.div
                                                 key={index}
                                                 variants={itemVariants}
-                                                className="p-6 flex items-center gap-4 hover:bg-white/5 transition-all duration-300"
+                                                className="p-6 flex items-start gap-4 hover:bg-white/5 transition-all duration-300"
                                             >
                                                 <div className="flex-shrink-0">
                                                     <div className="relative">
                                                         <img
                                                             className="h-20 w-20 rounded-2xl object-cover border-2 border-white/20"
-                                                            src={item.image}
+                                                            src={item.image || item.images?.[0] || '/placeholder-product.png'}
                                                             alt={item.name}
+                                                            onError={(e) => {
+                                                                e.target.src = '/placeholder-product.png';
+                                                            }}
                                                         />
                                                         <div className="absolute -top-2 -right-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold px-2 py-1 rounded-full">
                                                             {item.quantity}
@@ -390,14 +632,28 @@ export default function OrderDetails() {
                                                     </div>
                                                 </div>
                                                 <div className="flex-1 min-w-0">
-                                                    <h3 className="text-lg font-semibold text-white truncate">
-                                                        <Link 
-                                                            to={`/products/${item.productId}`}
-                                                            className="hover:text-purple-300 transition-colors"
-                                                        >
-                                                            {item.name}
-                                                        </Link>
-                                                    </h3>
+                                                    <div className="flex items-start justify-between mb-2">
+                                                        <div>
+                                                            <h3 className="text-lg font-semibold text-white">
+                                                                <Link 
+                                                                    to={`/products/${item.productId}`}
+                                                                    className="hover:text-purple-300 transition-colors"
+                                                                >
+                                                                    {item.name}
+                                                                </Link>
+                                                            </h3>
+                                                            <div className="flex items-center gap-2 mt-1">
+                                                                {item.productType && (
+                                                                    <ProductTypeBadge productType={item.productType} />
+                                                                )}
+                                                                {item.isCustom && (
+                                                                    <span className="text-xs bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded-full">
+                                                                        Custom
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                     <div className="flex items-center justify-between mt-2">
                                                         <p className="text-purple-300 font-medium">
                                                             ₦{item.price.toLocaleString()} each
@@ -428,7 +684,7 @@ export default function OrderDetails() {
                                     <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div className="bg-white/5 rounded-xl p-4 border border-white/10">
                                             <h3 className="text-sm font-medium text-purple-300 mb-1">Payment Method</h3>
-                                            <p className="text-white font-medium capitalize">{order.paymentMethod}</p>
+                                            <p className="text-white font-medium capitalize">{order.paymentMethod || 'Not specified'}</p>
                                         </div>
                                         <div className="bg-white/5 rounded-xl p-4 border border-white/10">
                                             <h3 className="text-sm font-medium text-purple-300 mb-1">Payment Status</h3>
@@ -452,7 +708,7 @@ export default function OrderDetails() {
                                                 <div className="bg-white/5 rounded-xl p-4 border border-white/10">
                                                     <h3 className="text-sm font-medium text-purple-300 mb-1">Transaction ID</h3>
                                                     <p className="text-white font-mono text-sm">
-                                                        {order.paymentResult?.transactionRef || 'N/A'}
+                                                        {order.paymentResult?.transactionRef || order.paymentResult?.id || 'N/A'}
                                                     </p>
                                                 </div>
                                             </>
@@ -475,9 +731,9 @@ export default function OrderDetails() {
                                     </div>
                                     <div className="p-6 space-y-3">
                                         {[
-                                            { label: 'Items', value: order.itemsPrice },
-                                            { label: 'Shipping', value: order.shippingPrice },
-                                            { label: 'Tax', value: order.taxPrice },
+                                            { label: 'Items', value: order.itemsPrice || order.subtotal || 0 },
+                                            { label: 'Shipping', value: order.shippingPrice || 0 },
+                                            { label: 'Tax', value: order.taxPrice || 0 },
                                         ].map((item, index) => (
                                             <motion.div
                                                 key={item.label}
@@ -520,17 +776,12 @@ export default function OrderDetails() {
                                             <div className="space-y-1">
                                                 <p className="text-white flex items-center gap-2">
                                                     <FiMail className="text-sm text-purple-300" />
-                                                    {order.shippingAddress.email}
+                                                    {order.shippingAddress?.email || order.user?.email || 'N/A'}
                                                 </p>
                                                 <p className="text-white flex items-center gap-2">
                                                     <FiPhone className="text-sm text-purple-300" />
-                                                    {order.shippingAddress.phone}
+                                                    {order.shippingAddress?.phone || 'N/A'}
                                                 </p>
-                                                {order.shippingAddress.promocode && (
-                                                    <p className="text-yellow-300 text-sm">
-                                                        Promo: {order.shippingAddress.promocode}
-                                                    </p>
-                                                )}
                                             </div>
                                         </div>
                                         <div className="bg-white/5 rounded-xl p-4 border border-white/10">
@@ -538,18 +789,25 @@ export default function OrderDetails() {
                                                 <FiMapPin className="text-sm" />
                                                 Shipping Address
                                             </h3>
-                                            <p className="text-white text-sm leading-relaxed">
-                                                {order.shippingAddress.address},<br />
-                                                {order.shippingAddress.city}, {order.shippingAddress.state}<br />
-                                                {order.shippingAddress.postalCode}, {order.shippingAddress.country}
-                                            </p>
+                                            {order.shippingAddress ? (
+                                                <p className="text-white text-sm leading-relaxed">
+                                                    {order.shippingAddress.address && `${order.shippingAddress.address},`}<br />
+                                                    {order.shippingAddress.city && `${order.shippingAddress.city},`} {order.shippingAddress.state || ''}<br />
+                                                    {order.shippingAddress.postalCode && `${order.shippingAddress.postalCode},`} {order.shippingAddress.country || ''}
+                                                </p>
+                                            ) : (
+                                                <p className="text-white/70 text-sm">Pickup or digital order</p>
+                                            )}
                                         </div>
                                     </div>
                                 </motion.div>
                             </div>
                         </div>
                     ) : (
-                        <CustomOrderDetails />
+                        <ProductTypeDetails 
+                            productType={productType}
+                            customOrderDetails={order.customOrderDetails}
+                        />
                     )}
                 </motion.div>
             </div>
