@@ -1,816 +1,943 @@
 import { useState, useEffect } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { useAuth } from '../../context/AuthContext';
-import { getOrderById } from '../../services/orderService';
+import { Link } from 'react-router-dom';
 import { 
-    FiArrowLeft, 
-    FiPackage, 
-    FiTruck, 
-    FiCreditCard, 
-    FiCalendar,
-    FiUser,
-    FiMapPin,
-    FiMail,
-    FiPhone,
-    FiInfo,
-    FiCheckCircle,
-    FiClock,
-    FiAlertCircle,
-    FiCoffee,
-    FiDroplet,
-    FiGrid,
-    FiEdit,
-    FiMessageSquare
+  getProducts, 
+  deleteProduct, 
+  getProductStats,
+  getFilterOptions 
+} from '../../services/productServic'; // Fixed typo in import path
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  FiPackage, 
+  FiPlus, 
+  FiEdit, 
+  FiTrash2, 
+  FiDollarSign, 
+  FiTag, 
+  FiShoppingCart,
+  FiSearch,
+  FiFilter,
+  FiRefreshCw,
+  FiAlertCircle,
+  FiCheckCircle,
+  FiLayers,
+  FiRuler,
+  FiCoffee,
+  FiDroplet,
+  FiGrid,
+  FiTrendingUp,
+  FiChevronDown,
+  FiChevronUp
 } from 'react-icons/fi';
 import { PRODUCT_TYPES, PRODUCT_TYPE_LABELS } from '../../utils/productTypes';
 
-// Create motion-wrapped components at the top level
-const MotionLink = motion(Link);
+export default function ProductManagement() {
+  const [products, setProducts] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('all');
+  const [stockFilter, setStockFilter] = useState('all');
+  const [productTypeFilter, setProductTypeFilter] = useState('all');
+  const [deletingProduct, setDeletingProduct] = useState(null);
+  const [stats, setStats] = useState({
+    cakes: 0,
+    candles: 0,
+    mugs: 0,
+    total: 0,
+    inStock: 0,
+    outOfStock: 0
+  });
+  const [filterOptions, setFilterOptions] = useState({});
+  const [expandedProduct, setExpandedProduct] = useState(null);
+  const [sortBy, setSortBy] = useState('newest');
 
-// Loading Skeleton Component
-const OrderSkeleton = () => (
-    <div className="container mx-auto px-4 py-8">
-        <div className="animate-pulse">
-            {/* Header Skeleton */}
-            <div className="mb-8">
-                <div className="h-6 bg-white/20 rounded w-48 mb-4"></div>
-                <div className="h-8 bg-white/20 rounded w-64 mb-2"></div>
-                <div className="h-4 bg-white/20 rounded w-96"></div>
-            </div>
-            
-            {/* Tabs Skeleton */}
-            <div className="flex gap-4 mb-6">
-                <div className="h-10 bg-white/20 rounded w-32"></div>
-                <div className="h-10 bg-white/20 rounded w-32"></div>
-            </div>
-            
-            {/* Content Skeleton */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2 space-y-6">
-                    <div className="bg-white/10 rounded-2xl p-6 h-64"></div>
-                    <div className="bg-white/10 rounded-2xl p-6 h-48"></div>
-                </div>
-                <div className="space-y-6">
-                    <div className="bg-white/10 rounded-2xl p-6 h-48"></div>
-                    <div className="bg-white/10 rounded-2xl p-6 h-64"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-);
+  // Product type icons
+  const productTypeIcons = {
+    [PRODUCT_TYPES.CAKE]: FiCoffee,
+    [PRODUCT_TYPES.CANDLE]: FiDroplet,
+    [PRODUCT_TYPES.MUG]: FiGrid
+  };
 
-// Product Type Badge Component
-const ProductTypeBadge = ({ productType }) => {
-    const getConfig = () => {
-        switch (productType) {
-            case PRODUCT_TYPES.CAKE:
-                return {
-                    icon: FiCoffee,
-                    gradient: 'from-pink-500 to-rose-500',
-                    label: 'Cake'
-                };
-            case PRODUCT_TYPES.CANDLE:
-                return {
-                    icon: FiDroplet,
-                    gradient: 'from-amber-500 to-orange-500',
-                    label: 'Candle'
-                };
-            case PRODUCT_TYPES.MUG:
-                return {
-                    icon: FiGrid,
-                    gradient: 'from-blue-500 to-cyan-500',
-                    label: 'Mug'
-                };
-            default:
-                return {
-                    icon: FiPackage,
-                    gradient: 'from-purple-500 to-pink-500',
-                    label: 'Product'
-                };
+  // Product type colors
+  const productTypeColors = {
+    [PRODUCT_TYPES.CAKE]: 'from-pink-500 to-rose-500',
+    [PRODUCT_TYPES.CANDLE]: 'from-amber-500 to-orange-500',
+    [PRODUCT_TYPES.MUG]: 'from-blue-500 to-cyan-500'
+  };
+
+  useEffect(() => {
+    fetchProducts();
+    fetchStats();
+  }, []);
+
+  useEffect(() => {
+    filterProducts();
+  }, [products, searchQuery, categoryFilter, stockFilter, productTypeFilter, sortBy]);
+
+  useEffect(() => {
+    if (productTypeFilter !== 'all') {
+      fetchFilterOptions(productTypeFilter);
+    }
+  }, [productTypeFilter]);
+
+  const fetchProducts = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      const response = await getProducts();
+      
+      // Handle both response formats
+      let productsData = [];
+      if (Array.isArray(response)) {
+        productsData = response;
+      } else if (response && Array.isArray(response.data)) {
+        productsData = response.data;
+      } else if (response && response.products) {
+        productsData = response.products;
+      }
+      
+      setProducts(productsData);
+      filterProducts(); // Call filter after setting products
+    } catch (err) {
+      setError(err.message || 'Failed to load products');
+      setProducts([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchStats = async () => {
+    try {
+      const response = await getProductStats();
+      
+      // Handle different response formats
+      if (response && response.success && response.data) {
+        setStats(response.data);
+      } else if (response && typeof response === 'object') {
+        // If response is already the stats object
+        setStats(response);
+      } else {
+        // Calculate stats from products
+        calculateStatsFromProducts();
+      }
+    } catch (err) {
+      console.error('Failed to load stats:', err);
+      // Calculate stats from products as fallback
+      calculateStatsFromProducts();
+    }
+  };
+
+  const calculateStatsFromProducts = () => {
+    const total = products.length;
+    const cakes = products.filter(p => p.productType === PRODUCT_TYPES.CAKE).length;
+    const candles = products.filter(p => p.productType === PRODUCT_TYPES.CANDLE).length;
+    const mugs = products.filter(p => p.productType === PRODUCT_TYPES.MUG).length;
+    const inStock = products.filter(p => (p.countInStock || 0) > 0).length;
+    const outOfStock = products.filter(p => (p.countInStock || 0) === 0).length;
+    
+    setStats({
+      cakes,
+      candles,
+      mugs,
+      total,
+      inStock,
+      outOfStock
+    });
+  };
+
+  const fetchFilterOptions = async (productType) => {
+    try {
+      const response = await getFilterOptions(productType);
+      if (response && response.success) {
+        setFilterOptions(response.data);
+      } else if (response && response.categories) {
+        setFilterOptions(response);
+      }
+    } catch (err) {
+      console.error('Failed to load filter options:', err);
+    }
+  };
+
+  const filterProducts = () => {
+    let result = [...products];
+
+    // Apply search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(product => 
+        (product.name || '').toLowerCase().includes(query) ||
+        (product.description || '').toLowerCase().includes(query) ||
+        (product.category || '').toLowerCase().includes(query)
+      );
+    }
+
+    // Apply product type filter
+    if (productTypeFilter !== 'all') {
+      result = result.filter(product => product.productType === productTypeFilter);
+    }
+
+    // Apply category filter
+    if (categoryFilter !== 'all') {
+      result = result.filter(product => product.category === categoryFilter);
+    }
+
+    // Apply stock filter
+    if (stockFilter !== 'all') {
+      result = result.filter(product => {
+        const stock = product.countInStock || 0;
+        if (stockFilter === 'in-stock') return stock > 0;
+        if (stockFilter === 'out-of-stock') return stock === 0;
+        return true;
+      });
+    }
+
+    // Apply sorting
+    result.sort((a, b) => {
+      switch (sortBy) {
+        case 'name-asc':
+          return (a.name || '').localeCompare(b.name || '');
+        case 'name-desc':
+          return (b.name || '').localeCompare(a.name || '');
+        case 'price-asc':
+          return (a.price || 0) - (b.price || 0);
+        case 'price-desc':
+          return (b.price || 0) - (a.price || 0);
+        case 'stock-asc':
+          return (a.countInStock || 0) - (b.countInStock || 0);
+        case 'stock-desc':
+          return (b.countInStock || 0) - (a.countInStock || 0);
+        case 'newest':
+          return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+        case 'oldest':
+          return new Date(a.createdAt || 0) - new Date(b.createdAt || 0);
+        default:
+          return 0;
+      }
+    });
+
+    setFilteredProducts(result);
+  };
+
+  const handleDelete = async (productId) => {
+    if (window.confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
+      setDeletingProduct(productId);
+      try {
+        await deleteProduct(productId);
+        setProducts(prevProducts =>
+          prevProducts.filter((product) => product.id !== productId)
+        );
+        setSuccess('Product deleted successfully');
+        setError(''); // Clear any existing errors
+        setTimeout(() => setSuccess(''), 3000);
+        fetchStats(); // Refresh stats
+      } catch (err) {
+        setError(err.message || 'Failed to delete product');
+      } finally {
+        setDeletingProduct(null);
+      }
+    }
+  };
+
+  const refreshProducts = () => {
+    setLoading(true);
+    setError('');
+    getProducts()
+      .then(response => {
+        let productsData = [];
+        if (Array.isArray(response)) {
+          productsData = response;
+        } else if (response && Array.isArray(response.data)) {
+          productsData = response.data;
+        } else if (response && response.products) {
+          productsData = response.products;
         }
-    };
-
-    const config = getConfig();
-    const Icon = config.icon;
-
-    return (
-        <div className={`inline-flex items-center gap-2 bg-gradient-to-r ${config.gradient} text-white px-3 py-1 rounded-full text-xs font-semibold`}>
-            <Icon className="text-xs" />
-            {config.label}
-        </div>
-    );
-};
-
-// Status Badge Component
-const StatusBadge = ({ status, isPaid, isDelivered }) => {
-    const getStatusConfig = () => {
-        if (isDelivered) return { 
-            color: 'from-green-500 to-emerald-500', 
-            text: 'Delivered', 
-            icon: FiCheckCircle 
-        };
-        if (isPaid) return { 
-            color: 'from-blue-500 to-cyan-500', 
-            text: 'Processing', 
-            icon: FiPackage 
-        };
-        if (status === 'shipped') return { 
-            color: 'from-indigo-500 to-purple-500', 
-            text: 'Shipped', 
-            icon: FiTruck 
-        };
-        return { 
-            color: 'from-yellow-500 to-orange-500', 
-            text: 'Pending Payment', 
-            icon: FiClock 
-        };
-    };
-
-    const config = getStatusConfig();
-    const Icon = config.icon;
-
-    return (
-        <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className={`inline-flex items-center gap-2 bg-gradient-to-r ${config.color} text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg`}
-        >
-            <Icon className="text-sm" />
-            {config.text}
-        </motion.div>
-    );
-};
-
-// Tab Navigation Component
-const TabNavigation = ({ activeTab, setActiveTab, showCustomTab, productType }) => (
-    <div className="flex flex-wrap gap-2 bg-white/10 backdrop-blur-sm rounded-2xl p-2 mb-8 border border-white/20">
-        <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => setActiveTab('orderInfo')}
-            className={`flex items-center gap-2 px-4 py-3 rounded-xl font-medium transition-all duration-300 ${
-                activeTab === 'orderInfo' 
-                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg' 
-                    : 'text-white/70 hover:text-white hover:bg-white/5'
-            }`}
-        >
-            <FiInfo className="text-sm" />
-            Order Information
-        </motion.button>
         
-        {showCustomTab && (
-            <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => setActiveTab('customDetails')}
-                className={`flex items-center gap-2 px-4 py-3 rounded-xl font-medium transition-all duration-300 ${
-                    activeTab === 'customDetails' 
-                        ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg' 
-                        : 'text-white/70 hover:text-white hover:bg-white/5'
-                }`}
-            >
-                <FiEdit className="text-sm" />
-                {productType === PRODUCT_TYPES.CAKE ? 'Cake Details' : 
-                 productType === PRODUCT_TYPES.CANDLE ? 'Candle Details' : 
-                 productType === PRODUCT_TYPES.MUG ? 'Mug Details' : 'Custom Details'}
-            </motion.button>
-        )}
-    </div>
-);
+        setProducts(productsData);
+        fetchStats();
+      })
+      .catch(err => {
+        setError(err.message || 'Failed to refresh products');
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  };
 
-// Product Type Details Component
-const ProductTypeDetails = ({ productType, customOrderDetails }) => {
-    const getProductTypeConfig = () => {
-        switch (productType) {
-            case PRODUCT_TYPES.CAKE:
-                return {
-                    title: 'Cake Customization Details',
-                    icon: FiCoffee,
-                    gradient: 'from-pink-500 to-rose-500',
-                    sections: [
-                        {
-                            title: 'Cake Specifications',
-                            fields: [
-                                { label: 'Occasion', value: customOrderDetails.occasion },
-                                { label: 'Size', value: customOrderDetails.size },
-                                { label: 'Flavor', value: customOrderDetails.flavor },
-                                { label: 'Frosting', value: customOrderDetails.frosting },
-                                { label: 'Filling', value: customOrderDetails.filling },
-                            ]
-                        },
-                        {
-                            title: 'Decorations & Design',
-                            fields: [
-                                { label: 'Theme', value: customOrderDetails.theme },
-                                { label: 'Decorations', value: customOrderDetails.decorations },
-                                { label: 'Color Scheme', value: customOrderDetails.colorScheme },
-                                { label: 'Topper', value: customOrderDetails.topper },
-                            ]
-                        },
-                        {
-                            title: 'Delivery & Special Instructions',
-                            fields: [
-                                { 
-                                    label: 'Delivery Date', 
-                                    value: customOrderDetails.deliveryDate ? 
-                                        new Date(customOrderDetails.deliveryDate).toLocaleDateString() : 'Not specified' 
-                                },
-                                { label: 'Delivery Time', value: customOrderDetails.deliveryTime || 'Anytime' },
-                                { label: 'Allergies', value: customOrderDetails.allergies || 'None' },
-                                { label: 'Special Instructions', value: customOrderDetails.specialInstructions || 'None' },
-                            ]
-                        }
-                    ]
-                };
-            
-            case PRODUCT_TYPES.CANDLE:
-                return {
-                    title: 'Candle Customization Details',
-                    icon: FiDroplet,
-                    gradient: 'from-amber-500 to-orange-500',
-                    sections: [
-                        {
-                            title: 'Candle Specifications',
-                            fields: [
-                                { label: 'Scent', value: customOrderDetails.scent },
-                                { label: 'Wax Type', value: customOrderDetails.waxType },
-                                { label: 'Burn Time', value: customOrderDetails.burnTime },
-                                { label: 'Size', value: customOrderDetails.size },
-                                { label: 'Color', value: customOrderDetails.color },
-                            ]
-                        },
-                        {
-                            title: 'Personalization',
-                            fields: [
-                                { label: 'Personalization Text', value: customOrderDetails.personalization },
-                                { label: 'Font Style', value: customOrderDetails.fontStyle },
-                                { label: 'Label Design', value: customOrderDetails.labelDesign },
-                            ]
-                        },
-                        {
-                            title: 'Special Requirements',
-                            fields: [
-                                { label: 'Jar Type', value: customOrderDetails.jarType || 'Standard' },
-                                { label: 'Wick Type', value: customOrderDetails.wickType || 'Cotton' },
-                                { label: 'Essential Oils', value: customOrderDetails.essentialOils || 'None' },
-                            ]
-                        }
-                    ]
-                };
-            
-            case PRODUCT_TYPES.MUG:
-                return {
-                    title: 'Mug Customization Details',
-                    icon: FiGrid,
-                    gradient: 'from-blue-500 to-cyan-500',
-                    sections: [
-                        {
-                            title: 'Mug Specifications',
-                            fields: [
-                                { label: 'Material', value: customOrderDetails.material },
-                                { label: 'Size', value: customOrderDetails.size },
-                                { label: 'Color', value: customOrderDetails.color },
-                                { label: 'Handle Type', value: customOrderDetails.handleType },
-                            ]
-                        },
-                        {
-                            title: 'Personalization',
-                            fields: [
-                                { label: 'Personalization Text', value: customOrderDetails.personalization },
-                                { label: 'Photo/Image', value: customOrderDetails.imageType ? 'Custom Image' : 'No Image' },
-                                { label: 'Font Style', value: customOrderDetails.fontStyle },
-                                { label: 'Design Layout', value: customOrderDetails.designLayout },
-                            ]
-                        },
-                        {
-                            title: 'Special Features',
-                            fields: [
-                                { label: 'Insulated', value: customOrderDetails.insulated ? 'Yes' : 'No' },
-                                { label: 'Microwave Safe', value: customOrderDetails.microwaveSafe ? 'Yes' : 'No' },
-                                { label: 'Dishwasher Safe', value: customOrderDetails.dishwasherSafe ? 'Yes' : 'No' },
-                            ]
-                        }
-                    ]
-                };
-            
-            default:
-                return {
-                    title: 'Custom Order Details',
-                    icon: FiEdit,
-                    gradient: 'from-purple-500 to-pink-500',
-                    sections: []
-                };
-        }
-    };
+  const getProductTypeIcon = (productType) => {
+    const Icon = productTypeIcons[productType] || FiPackage;
+    return <Icon className="text-lg" />;
+  };
 
-    const config = getProductTypeConfig();
-    const Icon = config.icon;
+  const getProductTypeColor = (productType) => {
+    return productTypeColors[productType] || 'from-gray-500 to-gray-600';
+  };
 
-    return (
-        <motion.div
-            initial="hidden"
-            animate="show"
-            variants={containerVariants}
-            className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 overflow-hidden"
-        >
-            <div className={`bg-gradient-to-r ${config.gradient}/20 px-6 py-4 border-b border-white/20`}>
-                <h2 className="text-xl font-semibold text-white flex items-center gap-3">
-                    <Icon className="text-white" />
-                    {config.title}
-                </h2>
-            </div>
-            
-            <div className="p-6 space-y-6">
-                {config.sections.map((section, sectionIndex) => (
-                    <motion.div
-                        key={sectionIndex}
-                        variants={itemVariants}
-                        className="space-y-4"
-                    >
-                        <h3 className="text-lg font-semibold text-white border-b border-white/20 pb-2">
-                            {section.title}
-                        </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {section.fields.map((field, fieldIndex) => (
-                                field.value && (
-                                    <div
-                                        key={fieldIndex}
-                                        className="bg-white/5 rounded-xl p-4 border border-white/10"
-                                    >
-                                        <h4 className="text-sm font-medium text-white/70 mb-1">
-                                            {field.label}
-                                        </h4>
-                                        <p className="text-white font-medium">
-                                            {field.value}
-                                        </p>
-                                    </div>
-                                )
-                            ))}
-                        </div>
-                    </motion.div>
-                ))}
-
-                {/* Special Message */}
-                {customOrderDetails.message && (
-                    <motion.div variants={itemVariants} className="bg-white/5 rounded-xl p-4 border border-white/10">
-                        <h3 className="text-sm font-medium text-white/70 mb-2 flex items-center gap-2">
-                            <FiMessageSquare className="text-white/70" />
-                            Special Message
-                        </h3>
-                        <p className="text-white whitespace-pre-wrap">{customOrderDetails.message}</p>
-                    </motion.div>
-                )}
-
-                {/* Delivery Information */}
-                {(customOrderDetails.deliveryDate || customOrderDetails.deliveryTime) && (
-                    <motion.div variants={itemVariants} className="bg-white/5 rounded-xl p-4 border border-white/10">
-                        <h3 className="text-sm font-medium text-white/70 mb-2 flex items-center gap-2">
-                            <FiCalendar className="text-white/70" />
-                            Delivery Information
-                        </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {customOrderDetails.deliveryDate && (
-                                <div>
-                                    <p className="text-sm text-white/70">Date</p>
-                                    <p className="text-white font-medium">
-                                        {new Date(customOrderDetails.deliveryDate).toLocaleDateString()}
-                                    </p>
-                                </div>
-                            )}
-                            {customOrderDetails.deliveryTime && (
-                                <div>
-                                    <p className="text-sm text-white/70">Time</p>
-                                    <p className="text-white font-medium">{customOrderDetails.deliveryTime}</p>
-                                </div>
-                            )}
-                        </div>
-                    </motion.div>
-                )}
-
-                {/* Reference Image */}
-                {customOrderDetails.imageUrl && (
-                    <motion.div variants={itemVariants} className="space-y-3">
-                        <h3 className="text-sm font-medium text-white/70">Reference Image</h3>
-                        <div className="relative rounded-2xl overflow-hidden border-2 border-white/20">
-                            <img 
-                                src={customOrderDetails.imageUrl} 
-                                alt="Reference" 
-                                className="w-full h-64 object-cover"
-                                onError={(e) => {
-                                    e.target.src = '/placeholder-product.png';
-                                }}
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
-                        </div>
-                    </motion.div>
-                )}
-            </div>
-        </motion.div>
-    );
-};
-
-// Animation variants
-const containerVariants = {
-    hidden: { opacity: 0 },
-    show: {
-        opacity: 1,
-        transition: {
-            staggerChildren: 0.1
-        }
-    }
-};
-
-const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    show: { 
-        opacity: 1, 
-        y: 0,
-        transition: {
-            duration: 0.6,
-            ease: "easeOut"
-        }
-    }
-};
-
-export default function OrderDetails() {
-    const { id } = useParams();
-    const { currentUser } = useAuth();
-    const [order, setOrder] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
-    const [activeTab, setActiveTab] = useState('orderInfo');
-
-    useEffect(() => {
-        const fetchOrder = async () => {
-            if (!currentUser) return;
-
-            try {
-                setLoading(true);
-                const response = await getOrderById(id);
-                setOrder(response || null);
-            } catch (err) {
-                setError(err.message || 'Failed to load order details');
-            } finally {
-                setLoading(false);
-            }
+  const getProductDetails = (product) => {
+    switch (product.productType) {
+      case PRODUCT_TYPES.CAKE:
+        return {
+          details: [
+            { label: 'Size', value: product.size || 'N/A', icon: FiRuler },
+            { label: 'Ingredients', value: product.ingredients?.length || 0, icon: FiLayers },
+            { label: 'Dietary', value: product.dietaryTags?.join(', ') || 'None' },
+            { label: 'Flavors', value: product.flavorTags?.join(', ') || 'None' },
+            { label: 'Custom', value: product.isCustom ? 'Yes' : 'No' }
+          ]
         };
-
-        fetchOrder();
-    }, [id, currentUser]);
-
-    if (loading) return <OrderSkeleton />;
-
-    if (error) {
-        return (
-            <div className="container mx-auto px-4 py-8">
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="max-w-2xl mx-auto"
-                >
-                    <div className="bg-red-500/20 backdrop-blur-sm border border-red-500/30 rounded-2xl p-8 text-center">
-                        <FiAlertCircle className="text-4xl text-red-400 mx-auto mb-4" />
-                        <h3 className="text-xl font-semibold text-white mb-2">Error Loading Order</h3>
-                        <p className="text-white/80 mb-6">{error}</p>
-                        <MotionLink
-                            to="/orders"
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white py-3 px-6 rounded-2xl font-semibold transition-all duration-300 shadow-lg"
-                        >
-                            <FiArrowLeft className="text-sm" />
-                            Back to Orders
-                        </MotionLink>
-                    </div>
-                </motion.div>
-            </div>
-        );
+      case PRODUCT_TYPES.CANDLE:
+        return {
+          details: [
+            { label: 'Scent', value: product.scent || 'N/A' },
+            { label: 'Burn Time', value: product.burnTime || 'N/A' },
+            { label: 'Wax Type', value: product.waxType || 'N/A' },
+            { label: 'Dimensions', value: product.dimensions || 'N/A' }
+          ]
+        };
+      case PRODUCT_TYPES.MUG:
+        return {
+          details: [
+            { label: 'Capacity', value: product.capacity || 'N/A' },
+            { label: 'Material', value: product.material || 'N/A' },
+            { label: 'Design Type', value: product.designType || 'N/A' },
+            { label: 'Dishwasher Safe', value: product.isDishwasherSafe ? 'Yes' : 'No' }
+          ]
+        };
+      default:
+        return { details: [] };
     }
+  };
 
-    if (!order) {
-        return (
-            <div className="container mx-auto px-4 py-8">
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="max-w-2xl mx-auto text-center"
-                >
-                    <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-12">
-                        <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                            <FiPackage className="text-2xl text-white" />
-                        </div>
-                        <h3 className="text-2xl font-bold text-white mb-3">Order Not Found</h3>
-                        <p className="text-white/70 mb-8">We couldn't find the order you're looking for.</p>
-                        <MotionLink
-                            to="/orders"
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white py-3 px-8 rounded-2xl font-semibold transition-all duration-300 shadow-lg"
-                        >
-                            <FiArrowLeft className="text-sm" />
-                            Back to Orders
-                        </MotionLink>
-                    </div>
-                </motion.div>
-            </div>
-        );
-    }
+  // Get unique categories for filter
+  const getCategories = () => {
+    const filtered = productTypeFilter === 'all' 
+      ? products 
+      : products.filter(p => p.productType === productTypeFilter);
+    
+    const categories = ['all'];
+    filtered.forEach(product => {
+      if (product.category && !categories.includes(product.category)) {
+        categories.push(product.category);
+      }
+    });
+    
+    return categories;
+  };
 
-    // Get product type from custom order details or from items
-    const getProductType = () => {
-        if (order.customOrderDetails?.productType) {
-            return order.customOrderDetails.productType;
-        }
-        // Try to get from first item
-        if (order.items && order.items.length > 0) {
-            const firstItem = order.items[0];
-            return firstItem.productType || 'product';
-        }
-        return 'product';
-    };
+  // Handle product image error
+  const handleImageError = (e) => {
+    e.target.src = 'https://via.placeholder.com/150';
+    e.target.onerror = null;
+  };
 
-    const productType = getProductType();
-
+  if (loading) {
     return (
-        <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-pink-700 py-8">
-            <div className="container mx-auto px-4 max-w-7xl">
-                {/* Header */}
-                <motion.div
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="mb-8"
-                >
-                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
-                        <div className="flex items-center gap-4">
-                            <MotionLink
-                                to="/orders"
-                                whileHover={{ scale: 1.05, x: -5 }}
-                                whileTap={{ scale: 0.95 }}
-                                className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white py-3 px-4 rounded-2xl font-semibold transition-all duration-300 backdrop-blur-sm border border-white/20"
-                            >
-                                <FiArrowLeft className="text-sm" />
-                                Back to Orders
-                            </MotionLink>
-                            <div>
-                                <h1 className="text-3xl lg:text-4xl font-bold text-white">
-                                    Order #{order.orderNumber || order.id?.substring(0, 8)}
-                                </h1>
-                                <div className="flex flex-wrap items-center gap-3 mt-2">
-                                    <p className="text-white/80 flex items-center gap-2">
-                                        <FiCalendar className="text-sm" />
-                                        {new Date(order.createdAt).toLocaleDateString()} at {new Date(order.createdAt).toLocaleTimeString()}
-                                    </p>
-                                    {order.isCustomOrder && (
-                                        <ProductTypeBadge productType={productType} />
-                                    )}
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
+        <div className="container mx-auto px-4">
+          <div className="flex justify-center items-center h-96">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+              <p className="text-gray-600 font-medium">Loading products...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
+      <div className="container mx-auto px-4 max-w-7xl">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">Product o Management</h1>
+              <p className="text-gray-600">Manage your product catalog across all categoriess</p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-4 mt-4 lg:mt-0">
+              <button
+                onClick={refreshProducts}
+                className="flex items-center bg-white text-gray-700 py-3 px-6 rounded-xl border border-gray-200 hover:shadow-lg transition-all duration-200 font-semibold"
+              >
+                <FiRefreshCw className="mr-2" />
+                Refresh
+              </button>
+              <Link
+                to="/admin/products/new"
+                className="flex items-center bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 px-6 rounded-xl hover:shadow-lg transition-all duration-200 font-semibold"
+              >
+                <FiPlus className="mr-2" />
+                Add New Product
+              </Link>
+            </div>
+          </div>
+
+          {/* Statistics */}
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-6">
+            {[
+              { 
+                label: 'Total Products', 
+                value: stats.total || products.length, 
+                color: 'bg-gradient-to-r from-purple-500 to-pink-500',
+                icon: FiPackage 
+              },
+              { 
+                label: 'Cakes', 
+                value: stats.cakes || products.filter(p => p.productType === PRODUCT_TYPES.CAKE).length, 
+                color: 'bg-gradient-to-r from-pink-500 to-rose-500',
+                icon: productTypeIcons[PRODUCT_TYPES.CAKE]
+              },
+              { 
+                label: 'Candles', 
+                value: stats.candles || products.filter(p => p.productType === PRODUCT_TYPES.CANDLE).length, 
+                color: 'bg-gradient-to-r from-amber-500 to-orange-500',
+                icon: productTypeIcons[PRODUCT_TYPES.CANDLE]
+              },
+              { 
+                label: 'Mugs', 
+                value: stats.mugs || products.filter(p => p.productType === PRODUCT_TYPES.MUG).length, 
+                color: 'bg-gradient-to-r from-blue-500 to-cyan-500',
+                icon: productTypeIcons[PRODUCT_TYPES.MUG]
+              },
+              { 
+                label: 'In Stock', 
+                value: stats.inStock || products.filter(p => (p.countInStock || 0) > 0).length, 
+                color: 'bg-gradient-to-r from-green-500 to-green-600',
+                icon: FiShoppingCart 
+              },
+              { 
+                label: 'Out of Stock', 
+                value: stats.outOfStock || products.filter(p => (p.countInStock || 0) === 0).length, 
+                color: 'bg-gradient-to-r from-red-500 to-red-600',
+                icon: FiAlertCircle 
+              }
+            ].map(({ label, value, color, icon: Icon }) => (
+              <motion.div
+                key={label}
+                whileHover={{ scale: 1.02 }}
+                className="bg-white rounded-2xl shadow-lg p-4"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xl font-bold text-gray-900">{value}</p>
+                    <p className="text-xs text-gray-600 mt-1">{label}</p>
+                  </div>
+                  <div className={`${color} rounded-lg p-2`}>
+                    <Icon className="text-white text-lg" />
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Filters */}
+          <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+              <div className="flex items-center">
+                <FiFilter className="text-purple-600 mr-3 text-xl" />
+                <h3 className="text-lg font-semibold text-gray-900">Filter & Sort Products</h3>
+              </div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 flex-1 lg:ml-8">
+                {/* Search */}
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <FiSearch className="text-gray-400" />
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Search products..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="block w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-gray-50 transition-all duration-200"
+                  />
+                </div>
+
+                {/* Product Type Filter */}
+                <div className="relative">
+                  <select
+                    value={productTypeFilter}
+                    onChange={(e) => setProductTypeFilter(e.target.value)}
+                    className="block w-full pl-4 pr-10 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-gray-50 appearance-none cursor-pointer transition-all duration-200"
+                  >
+                    <option value="all">All Product Types</option>
+                    <option value={PRODUCT_TYPES.CAKE}>Crafted Themed Cakes</option>
+                    <option value={PRODUCT_TYPES.CANDLE}>Luxury Scented Candles</option>
+                    <option value={PRODUCT_TYPES.MUG}>Personalized Glass Mugs</option>
+                  </select>
+                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                    <FiGrid className="text-gray-400" />
+                  </div>
+                </div>
+
+                {/* Category Filter */}
+                <div className="relative">
+                  <select
+                    value={categoryFilter}
+                    onChange={(e) => setCategoryFilter(e.target.value)}
+                    className="block w-full pl-4 pr-10 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-gray-50 appearance-none cursor-pointer transition-all duration-200"
+                  >
+                    <option value="all">All Categories</option>
+                    {getCategories()
+                      .filter(cat => cat !== 'all')
+                      .map(category => (
+                        <option key={category} value={category}>
+                          {category?.charAt(0)?.toUpperCase() + category?.slice(1) || 'Uncategorized'}
+                        </option>
+                      ))}
+                  </select>
+                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                    <FiTag className="text-gray-400" />
+                  </div>
+                </div>
+
+                {/* Stock Filter */}
+                <div className="relative">
+                  <select
+                    value={stockFilter}
+                    onChange={(e) => setStockFilter(e.target.value)}
+                    className="block w-full pl-4 pr-10 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-gray-50 appearance-none cursor-pointer transition-all duration-200"
+                  >
+                    <option value="all">All Stock</option>
+                    <option value="in-stock">In Stock</option>
+                    <option value="out-of-stock">Out of Stock</option>
+                  </select>
+                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                    <FiShoppingCart className="text-gray-400" />
+                  </div>
+                </div>
+
+                {/* Sort By */}
+                <div className="relative">
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className="block w-full pl-4 pr-10 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-gray-50 appearance-none cursor-pointer transition-all duration-200"
+                  >
+                    <option value="newest">Newest First</option>
+                    <option value="oldest">Oldest First</option>
+                    <option value="name-asc">Name (A-Z)</option>
+                    <option value="name-desc">Name (Z-A)</option>
+                    <option value="price-asc">Price (Low to High)</option>
+                    <option value="price-desc">Price (High to Low)</option>
+                    <option value="stock-asc">Stock (Low to High)</option>
+                    <option value="stock-desc">Stock (High to Low)</option>
+                  </select>
+                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                    <FiTrendingUp className="text-gray-400" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Status Messages */}
+        <AnimatePresence>
+          {success && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="bg-green-50 border-l-4 border-green-500 rounded-r-xl p-4 mb-6 shadow-sm"
+            >
+              <div className="flex items-center">
+                <FiCheckCircle className="text-green-500 text-xl mr-3" />
+                <p className="text-green-700 font-medium">{success}</p>
+              </div>
+            </motion.div>
+          )}
+
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="bg-red-50 border-l-4 border-red-500 rounded-r-xl p-4 mb-6 shadow-sm"
+            >
+              <div className="flex items-center">
+                <FiAlertCircle className="text-red-500 text-xl mr-3" />
+                <p className="text-red-700 font-medium">{error}</p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Products Content */}
+        <AnimatePresence mode="wait">
+          {filteredProducts.length > 0 ? (
+            <motion.div
+              key="products-list"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              {/* Desktop Table */}
+              <div className="hidden lg:block bg-white rounded-2xl shadow-lg overflow-hidden mb-6">
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gradient-to-r from-purple-600 to-pink-600">
+                      <tr>
+                        {['Product', 'Type', 'Category', 'Price', 'Stock', 'Status', 'Actions'].map((header) => (
+                          <th
+                            key={header}
+                            className="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider"
+                          >
+                            {header}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {filteredProducts.map((product, index) => (
+                        <>
+                          <motion.tr
+                            key={product.id || index}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.05 }}
+                            className="hover:bg-gray-50 transition-colors duration-200 cursor-pointer"
+                            onClick={() => setExpandedProduct(expandedProduct === product.id ? null : product.id)}
+                          >
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="flex items-center">
+                                <img
+                                  src={product.images && product.images[0] ? product.images[0] : 'https://via.placeholder.com/150'}
+                                  alt={product.name}
+                                  className="h-12 w-12 object-cover rounded-xl border border-gray-200 mr-4"
+                                  onError={handleImageError}
+                                />
+                                <div>
+                                  <p className="text-sm font-semibold text-gray-900">
+                                    {product.name || 'Unnamed Product'}
+                                  </p>
+                                  <p className="text-xs text-gray-500 line-clamp-1">
+                                    {product.description || 'No description'}
+                                  </p>
                                 </div>
-                            </div>
-                        </div>
-                        <StatusBadge 
-                            status={order.status} 
-                            isPaid={order.isPaid} 
-                            isDelivered={order.isDelivered} 
-                        />
-                    </div>
-                </motion.div>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="flex items-center">
+                                <div className={`${getProductTypeColor(product.productType)} rounded-lg p-2 mr-3`}>
+                                  {getProductTypeIcon(product.productType)}
+                                </div>
+                                <span className="text-sm text-gray-900 capitalize">
+                                  {PRODUCT_TYPE_LABELS[product.productType] || product.productType || 'Unknown'}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="flex items-center">
+                                <FiTag className="text-gray-400 mr-2" />
+                                <span className="text-sm text-gray-900 capitalize">
+                                  {product.category || 'Uncategorized'}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="flex items-center">
+                                <FiDollarSign className="text-gray-400 mr-2" />
+                                <span className="text-sm font-semibold text-gray-900">
+                                  ₦{product.price?.toLocaleString() || '0'}
+                                  {product.discountPercentage > 0 && (
+                                    <span className="ml-2 text-xs text-green-600">
+                                      ({product.discountPercentage}% off)
+                                    </span>
+                                  )}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border ${
+                                (product.countInStock || 0) > 0 
+                                  ? 'bg-green-100 text-green-800 border-green-200' 
+                                  : 'bg-red-100 text-red-800 border-red-200'
+                              }`}>
+                                <FiShoppingCart className="mr-1" size={12} />
+                                {product.countInStock || 0}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border ${
+                                (product.countInStock || 0) > 0
+                                  ? 'bg-blue-100 text-blue-800 border-blue-200' 
+                                  : 'bg-gray-100 text-gray-800 border-gray-200'
+                              }`}>
+                                {(product.countInStock || 0) > 0 ? 'Active' : 'Out of Stock'}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                              <div className="flex items-center justify-end space-x-3">
+                                <Link
+                                  to={`/admin/products/${product.id}/edit`}
+                                  className="flex items-center text-blue-600 hover:text-blue-700 font-semibold transition-colors duration-200"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <FiEdit className="mr-1" />
+                                  Edit
+                                </Link>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDelete(product.id);
+                                  }}
+                                  disabled={deletingProduct === product.id}
+                                  className="flex items-center text-red-600 hover:text-red-700 font-semibold disabled:opacity-50 transition-colors duration-200"
+                                >
+                                  {deletingProduct === product.id ? (
+                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600 mr-2"></div>
+                                  ) : (
+                                    <FiTrash2 className="mr-1" />
+                                  )}
+                                  Delete
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setExpandedProduct(expandedProduct === product.id ? null : product.id);
+                                  }}
+                                  className="text-gray-500 hover:text-gray-700"
+                                >
+                                  {expandedProduct === product.id ? (
+                                    <FiChevronUp className="text-lg" />
+                                  ) : (
+                                    <FiChevronDown className="text-lg" />
+                                  )}
+                                </button>
+                              </div>
+                            </td>
+                          </motion.tr>
+                          
+                          {/* Expanded Details Row */}
+                          {expandedProduct === product.id && (
+                            <tr className="bg-gray-50">
+                              <td colSpan="7" className="px-6 py-4">
+                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                                  {getProductDetails(product).details.map((detail, idx) => (
+                                    <div key={idx} className="bg-white p-3 rounded-lg border border-gray-200">
+                                      <p className="text-xs text-gray-500 font-medium mb-1">{detail.label}</p>
+                                      <p className="text-sm font-semibold text-gray-900">
+                                        {detail.value}
+                                      </p>
+                                    </div>
+                                  ))}
+                                  <div className="bg-white p-3 rounded-lg border border-gray-200">
+                                    <p className="text-xs text-gray-500 font-medium mb-1">Created</p>
+                                    <p className="text-sm font-semibold text-gray-900">
+                                      {product.createdAt ? new Date(product.createdAt).toLocaleDateString() : 'Unknown'}
+                                    </p>
+                                  </div>
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                        </>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
 
-                {/* Tab Navigation */}
-                <TabNavigation 
-                    activeTab={activeTab} 
-                    setActiveTab={setActiveTab} 
-                    showCustomTab={order.isCustomOrder && order.customOrderDetails} 
-                    productType={productType}
-                />
-
-                {/* Tab Content */}
-                <motion.div
-                    key={activeTab}
+              {/* Mobile Cards */}
+              <div className="lg:hidden space-y-4">
+                {filteredProducts.map((product, index) => (
+                  <motion.div
+                    key={product.id || index}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5 }}
-                >
-                    {activeTab === 'orderInfo' ? (
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                            {/* Order Items */}
-                            <div className="lg:col-span-2 space-y-6">
-                                <motion.div
-                                    variants={containerVariants}
-                                    initial="hidden"
-                                    animate="show"
-                                    className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 overflow-hidden"
-                                >
-                                    <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 px-6 py-4 border-b border-white/20">
-                                        <h2 className="text-xl font-semibold text-white flex items-center gap-3">
-                                            <FiPackage className="text-purple-300" />
-                                            Order Items
-                                            <span className="text-sm font-normal text-white/70 ml-auto">
-                                                {order.items.length} {order.items.length === 1 ? 'item' : 'items'}
-                                            </span>
-                                        </h2>
-                                    </div>
-                                    <div className="divide-y divide-white/10">
-                                        {order.items.map((item, index) => (
-                                            <motion.div
-                                                key={index}
-                                                variants={itemVariants}
-                                                className="p-6 flex items-start gap-4 hover:bg-white/5 transition-all duration-300"
-                                            >
-                                                <div className="flex-shrink-0">
-                                                    <div className="relative">
-                                                        <img
-                                                            className="h-20 w-20 rounded-2xl object-cover border-2 border-white/20"
-                                                            src={item.image || item.images?.[0] || '/placeholder-product.png'}
-                                                            alt={item.name}
-                                                            onError={(e) => {
-                                                                e.target.src = '/placeholder-product.png';
-                                                            }}
-                                                        />
-                                                        <div className="absolute -top-2 -right-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold px-2 py-1 rounded-full">
-                                                            {item.quantity}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="flex items-start justify-between mb-2">
-                                                        <div>
-                                                            <h3 className="text-lg font-semibold text-white">
-                                                                <Link 
-                                                                    to={`/products/${item.productId}`}
-                                                                    className="hover:text-purple-300 transition-colors"
-                                                                >
-                                                                    {item.name}
-                                                                </Link>
-                                                            </h3>
-                                                            <div className="flex items-center gap-2 mt-1">
-                                                                {item.productType && (
-                                                                    <ProductTypeBadge productType={item.productType} />
-                                                                )}
-                                                                {item.isCustom && (
-                                                                    <span className="text-xs bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded-full">
-                                                                        Custom
-                                                                    </span>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex items-center justify-between mt-2">
-                                                        <p className="text-purple-300 font-medium">
-                                                            ₦{item.price.toLocaleString()} each
-                                                        </p>
-                                                        <p className="text-white font-bold text-lg">
-                                                            ₦{(item.price * item.quantity).toLocaleString()}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </motion.div>
-                                        ))}
-                                    </div>
-                                </motion.div>
-
-                                {/* Payment Information */}
-                                <motion.div
-                                    variants={containerVariants}
-                                    initial="hidden"
-                                    animate="show"
-                                    className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 overflow-hidden"
-                                >
-                                    <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 px-6 py-4 border-b border-white/20">
-                                        <h2 className="text-xl font-semibold text-white flex items-center gap-3">
-                                            <FiCreditCard className="text-purple-300" />
-                                            Payment Information
-                                        </h2>
-                                    </div>
-                                    <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                                            <h3 className="text-sm font-medium text-purple-300 mb-1">Payment Method</h3>
-                                            <p className="text-white font-medium capitalize">{order.paymentMethod || 'Not specified'}</p>
-                                        </div>
-                                        <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                                            <h3 className="text-sm font-medium text-purple-300 mb-1">Payment Status</h3>
-                                            <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-semibold ${
-                                                order.isPaid 
-                                                    ? 'bg-green-500/20 text-green-300 border border-green-500/30' 
-                                                    : 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30'
-                                            }`}>
-                                                {order.isPaid ? <FiCheckCircle className="text-sm" /> : <FiClock className="text-sm" />}
-                                                {order.isPaid ? 'Paid' : 'Pending'}
-                                            </span>
-                                        </div>
-                                        {order.isPaid && (
-                                            <>
-                                                <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                                                    <h3 className="text-sm font-medium text-purple-300 mb-1">Paid At</h3>
-                                                    <p className="text-white font-medium">
-                                                        {new Date(order.paidAt).toLocaleDateString()} at {new Date(order.paidAt).toLocaleTimeString()}
-                                                    </p>
-                                                </div>
-                                                <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                                                    <h3 className="text-sm font-medium text-purple-300 mb-1">Transaction ID</h3>
-                                                    <p className="text-white font-mono text-sm">
-                                                        {order.paymentResult?.transactionRef || order.paymentResult?.id || 'N/A'}
-                                                    </p>
-                                                </div>
-                                            </>
-                                        )}
-                                    </div>
-                                </motion.div>
-                            </div>
-
-                            {/* Sidebar */}
-                            <div className="space-y-6">
-                                {/* Order Summary */}
-                                <motion.div
-                                    variants={containerVariants}
-                                    initial="hidden"
-                                    animate="show"
-                                    className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 overflow-hidden"
-                                >
-                                    <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 px-6 py-4 border-b border-white/20">
-                                        <h2 className="text-xl font-semibold text-white">Order Summary</h2>
-                                    </div>
-                                    <div className="p-6 space-y-3">
-                                        {[
-                                            { label: 'Items', value: order.itemsPrice || order.subtotal || 0 },
-                                            { label: 'Shipping', value: order.shippingPrice || 0 },
-                                            { label: 'Tax', value: order.taxPrice || 0 },
-                                        ].map((item, index) => (
-                                            <motion.div
-                                                key={item.label}
-                                                variants={itemVariants}
-                                                className="flex justify-between items-center"
-                                            >
-                                                <span className="text-white/80">{item.label}</span>
-                                                <span className="text-white font-medium">₦{item.value.toLocaleString()}</span>
-                                            </motion.div>
-                                        ))}
-                                        <motion.div
-                                            variants={itemVariants}
-                                            className="flex justify-between items-center pt-4 border-t border-white/20"
-                                        >
-                                            <span className="text-xl font-bold text-white">Total</span>
-                                            <span className="text-xl font-bold text-white">₦{order.totalPrice.toLocaleString()}</span>
-                                        </motion.div>
-                                    </div>
-                                </motion.div>
-
-                                {/* Shipping Information */}
-                                <motion.div
-                                    variants={containerVariants}
-                                    initial="hidden"
-                                    animate="show"
-                                    className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 overflow-hidden"
-                                >
-                                    <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 px-6 py-4 border-b border-white/20">
-                                        <h2 className="text-xl font-semibold text-white flex items-center gap-3">
-                                            <FiTruck className="text-purple-300" />
-                                            Shipping Information
-                                        </h2>
-                                    </div>
-                                    <div className="p-6 space-y-4">
-                                        <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                                            <h3 className="text-sm font-medium text-purple-300 mb-2 flex items-center gap-2">
-                                                <FiUser className="text-sm" />
-                                                Contact
-                                            </h3>
-                                            <div className="space-y-1">
-                                                <p className="text-white flex items-center gap-2">
-                                                    <FiMail className="text-sm text-purple-300" />
-                                                    {order.shippingAddress?.email || order.user?.email || 'N/A'}
-                                                </p>
-                                                <p className="text-white flex items-center gap-2">
-                                                    <FiPhone className="text-sm text-purple-300" />
-                                                    {order.shippingAddress?.phone || 'N/A'}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                                            <h3 className="text-sm font-medium text-purple-300 mb-2 flex items-center gap-2">
-                                                <FiMapPin className="text-sm" />
-                                                Shipping Address
-                                            </h3>
-                                            {order.shippingAddress ? (
-                                                <p className="text-white text-sm leading-relaxed">
-                                                    {order.shippingAddress.address && `${order.shippingAddress.address},`}<br />
-                                                    {order.shippingAddress.city && `${order.shippingAddress.city},`} {order.shippingAddress.state || ''}<br />
-                                                    {order.shippingAddress.postalCode && `${order.shippingAddress.postalCode},`} {order.shippingAddress.country || ''}
-                                                </p>
-                                            ) : (
-                                                <p className="text-white/70 text-sm">Pickup or digital order</p>
-                                            )}
-                                        </div>
-                                    </div>
-                                </motion.div>
-                            </div>
-                        </div>
-                    ) : (
-                        <ProductTypeDetails 
-                            productType={productType}
-                            customOrderDetails={order.customOrderDetails}
+                    transition={{ delay: index * 0.1 }}
+                    className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-all duration-300"
+                  >
+                    <div className="flex items-start space-x-4">
+                      <div className="relative">
+                        <img
+                          src={product.images && product.images[0] ? product.images[0] : 'https://via.placeholder.com/150'}
+                          alt={product.name}
+                          className="h-16 w-16 object-cover rounded-xl border border-gray-200 flex-shrink-0"
+                          onError={handleImageError}
                         />
-                    )}
-                </motion.div>
+                        <div className={`absolute -top-2 -right-2 ${getProductTypeColor(product.productType)} rounded-full p-1`}>
+                          {getProductTypeIcon(product.productType)}
+                        </div>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <h3 className="font-semibold text-gray-900 truncate">
+                              {product.name || 'Unnamed Product'}
+                            </h3>
+                            <p className="text-xs text-gray-500 mt-1 capitalize">
+                              {PRODUCT_TYPE_LABELS[product.productType] || product.productType || 'Unknown'}
+                            </p>
+                          </div>
+                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold ${
+                            (product.countInStock || 0) > 0 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            {product.countInStock || 0} in stock
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-500 mt-2 line-clamp-2">
+                          {product.description || 'No description'}
+                        </p>
+                        <div className="grid grid-cols-2 gap-2 mt-3">
+                          <div className="flex items-center text-xs text-gray-600">
+                            <FiTag className="mr-1" />
+                            <span className="capitalize">{product.category || 'Uncategorized'}</span>
+                          </div>
+                          <div className="flex items-center text-xs text-gray-600">
+                            <FiDollarSign className="mr-1" />
+                            <span className="font-semibold">₦{product.price?.toLocaleString() || '0'}</span>
+                          </div>
+                          {(product.discountPercentage || 0) > 0 && (
+                            <div className="col-span-2">
+                              <span className="inline-flex items-center px-2 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded">
+                                {product.discountPercentage}% discount
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Expanded Details */}
+                        {expandedProduct === product.id && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="mt-4 pt-4 border-t border-gray-200"
+                          >
+                            <div className="grid grid-cols-2 gap-2">
+                              {getProductDetails(product).details.map((detail, idx) => (
+                                <div key={idx} className="bg-gray-50 p-2 rounded-lg">
+                                  <p className="text-xs text-gray-500 font-medium">{detail.label}</p>
+                                  <p className="text-sm font-semibold text-gray-900">
+                                    {detail.value}
+                                  </p>
+                                </div>
+                              ))}
+                            </div>
+                          </motion.div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
+                      <button
+                        onClick={() => setExpandedProduct(expandedProduct === product.id ? null : product.id)}
+                        className="text-gray-500 hover:text-gray-700 text-sm font-medium"
+                      >
+                        {expandedProduct === product.id ? 'Show Less' : 'Show Details'}
+                      </button>
+                      <div className="flex space-x-3">
+                        <Link
+                          to={`/admin/products/${product.id}/edit`}
+                          className="flex items-center text-blue-600 hover:text-blue-700 font-semibold text-sm transition-colors duration-200"
+                        >
+                          <FiEdit className="mr-1" />
+                          Edit
+                        </Link>
+                        <button
+                          onClick={() => handleDelete(product.id)}
+                          disabled={deletingProduct === product.id}
+                          className="flex items-center text-red-600 hover:text-red-700 font-semibold text-sm disabled:opacity-50 transition-colors duration-200"
+                        >
+                          {deletingProduct === product.id ? (
+                            <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-red-600 mr-2"></div>
+                          ) : (
+                            <FiTrash2 className="mr-1" />
+                          )}
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="empty-state"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="text-center bg-white rounded-2xl shadow-lg p-12"
+            >
+              <div className="w-20 h-20 bg-gradient-to-r from-purple-400 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                <FiPackage className="text-white text-3xl" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">No Products Found</h3>
+              <p className="text-gray-600 mb-8 max-w-md mx-auto">
+                {products.length === 0 
+                  ? "Get started by adding your first product to the catalog" 
+                  : "No products match your current filters"
+                }
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                {(searchQuery || categoryFilter !== 'all' || stockFilter !== 'all' || productTypeFilter !== 'all') && (
+                  <button
+                    onClick={() => {
+                      setSearchQuery('');
+                      setCategoryFilter('all');
+                      setStockFilter('all');
+                      setProductTypeFilter('all');
+                    }}
+                    className="bg-white text-gray-700 py-3 px-6 rounded-xl border border-gray-200 hover:shadow-lg transition-all duration-200 font-semibold"
+                  >
+                    Clear Filters
+                  </button>
+                )}
+                <Link
+                  to="/admin/products/new"
+                  className="bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 px-6 rounded-xl hover:shadow-lg transition-all duration-200 font-semibold"
+                >
+                  <FiPlus className="mr-2 inline" />
+                  Add New Product
+                </Link>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Summary Footer */}
+        {filteredProducts.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-6 bg-white rounded-2xl shadow-lg p-6"
+          >
+            <div className="flex flex-col sm:flex-row items-center justify-between">
+              <div>
+                <p className="text-gray-600">
+                  Showing <span className="font-semibold text-gray-900">{filteredProducts.length}</span> of{' '}
+                  <span className="font-semibold text-gray-900">{products.length}</span> products
+                </p>
+              </div>
+              <div className="flex items-center space-x-4 mt-4 sm:mt-0">
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 rounded-full bg-gradient-to-r from-pink-500 to-rose-500"></div>
+                  <span className="text-sm text-gray-600">Cakes</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 rounded-full bg-gradient-to-r from-amber-500 to-orange-500"></div>
+                  <span className="text-sm text-gray-600">Candles</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500"></div>
+                  <span className="text-sm text-gray-600">Mugs</span>
+                </div>
+              </div>
             </div>
-        </div>
-    );
+          </motion.div>
+        )}
+      </div>
+    </div>
+  );
 }
