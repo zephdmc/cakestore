@@ -21,7 +21,6 @@ import {
   FiAlertCircle,
   FiCheckCircle,
   FiLayers,
-  FiRuler,
   FiCoffee,
   FiDroplet,
   FiGrid,
@@ -280,7 +279,7 @@ export default function ProductManagement() {
       case PRODUCT_TYPES.CAKE:
         return {
           details: [
-            { label: 'Size', value: product.size || 'N/A', icon: FiRuler },
+            { label: 'Size', value: product.size || 'N/A', icon: FiTag },
             { label: 'Ingredients', value: product.ingredients?.length || 0, icon: FiLayers },
             { label: 'Dietary', value: product.dietaryTags?.join(', ') || 'None' },
             { label: 'Flavors', value: product.flavorTags?.join(', ') || 'None' },
