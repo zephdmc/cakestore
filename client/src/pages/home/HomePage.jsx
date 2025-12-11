@@ -25,23 +25,21 @@ import { PRODUCT_TYPES, PRODUCT_TYPE_LABELS } from '../../utils/productTypes';
 const ImageSlideShow = ({ isMobile = false }) => {
   const images = [
    
+ 
   {
-    src: "https://images.unsplash.com/photo-1559620192-032c64bc86af?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
+    src: "https://images.unsplash.com/photo-1621303837174-89787a7d4729?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
     type: PRODUCT_TYPES.CAKE,
-    label: "Custom Cakes",
-    alt: "Beautiful custom decorated cake with floral design"
+    label: "Custom Cakes"
   },
   {
-    src: "https://images.unsplash.com/photo-1603398938378-e54eab446dde?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
+    src: "https://images.unsplash.com/photo-1545243421-89e5c9b6d12a?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
     type: PRODUCT_TYPES.CANDLE,
-    label: "Scented Candles",
-    alt: "Elegant scented candles in glass jars with natural materials"
+    label: "Scented Candles"
   },
   {
-    src: "https://images.unsplash.com/photo-1511537190424-bbbab87ac5eb?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
+    src: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
     type: PRODUCT_TYPES.MUG,
-    label: "Personalized Mugs",
-    alt: "Custom printed ceramic mugs with unique designs"
+    label: "Personalized Mugs"
   }
 ,
     { src: "/images/hero-collection.png", type: "all", label: "Our Collection" }
