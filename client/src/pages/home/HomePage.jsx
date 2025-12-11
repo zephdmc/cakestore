@@ -43,7 +43,7 @@ const ImageSlideShow = ({ isMobile = false }) => {
     label: "Personalized Mugs",
     alt: "Custom printed ceramic mugs with unique designs"
   }
-
+,
     { src: "/images/hero-collection.png", type: "all", label: "Our Collection" }
   ];
   
