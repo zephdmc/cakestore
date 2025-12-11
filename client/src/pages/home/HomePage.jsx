@@ -32,12 +32,12 @@ const ImageSlideShow = ({ isMobile = false }) => {
     label: "Custom Cakes"
   },
   {
-    src: "/images/Candles.png",
+    src: "/images/Candles.jpg",
     type: PRODUCT_TYPES.CANDLE,
     label: "Scented Candles"
   },
   {
-    src: "/images/Mugs.png",
+    src: "/images/Mugs.jpg",
     type: PRODUCT_TYPES.MUG,
     label: "Personalized Mugs"
   }
