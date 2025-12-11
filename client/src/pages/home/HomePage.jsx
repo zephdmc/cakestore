@@ -37,7 +37,7 @@ const ImageSlideShow = ({ isMobile = false }) => {
     label: "Scented Candles"
   },
   {
-    src: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+    src: "https://images.unsplash.com/photo-1559551409-dadc959f76b1?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
     type: PRODUCT_TYPES.MUG,
     label: "Personalized Mugs"
   }
