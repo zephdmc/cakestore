@@ -32,7 +32,7 @@ const ImageSlideShow = ({ isMobile = false }) => {
     label: "Custom Cakes"
   },
   {
-    src: "https://images.unsplash.com/photo-1590736969957-71594b3fa9af?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+    src: "https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
     type: PRODUCT_TYPES.CANDLE,
     label: "Scented Candles"
   },
