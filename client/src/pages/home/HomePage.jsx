@@ -25,24 +25,26 @@ import { PRODUCT_TYPES, PRODUCT_TYPE_LABELS } from '../../utils/productTypes';
 const ImageSlideShow = ({ isMobile = false }) => {
   const images = [
    
+
   {
-    src: "https://images.unsplash.com/photo-1565958011703-44f9829ba187?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
+    src: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
     type: PRODUCT_TYPES.CAKE,
-    label: "Themed Cakes",
-    alt: "Professional cake product photography"
+    label: "Artisan Cakes",
+    alt: "Exquisitely decorated cake with intricate piping details"
   },
   {
-    src: "https://images.unsplash.com/photo-1590736969957-71594b3fa9af?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
+    src: "https://images.unsplash.com/photo-1545243421-89e5c9b6d12a?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
     type: PRODUCT_TYPES.CANDLE,
-    label: "Aromatherapy Candles",
-    alt: "Clean product shot of candle collection"
+    label: "Luxury Candles",
+    alt: "Premium scented candle in elegant packaging"
   },
   {
-    src: "https://images.unsplash.com/photo-1550617931-e17a7b70dce2?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
+    src: "https://images.unsplash.com/photo-1580996488703-8d685cb7a93c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
     type: PRODUCT_TYPES.MUG,
-    label: "Custom Printed Mugs",
-    alt: "Studio shot of personalized coffee mug"
-  },
+    label: "Designer Mugs",
+    alt: "Modern coffee mug with geometric patterns"
+  }
+,
 
     { src: "/images/hero-collection.png", type: "all", label: "Our Collection" }
   ];
