@@ -24,9 +24,26 @@ import { PRODUCT_TYPES, PRODUCT_TYPE_LABELS } from '../../utils/productTypes';
 // Enhanced ImageSlideShow Component with all product types
 const ImageSlideShow = ({ isMobile = false }) => {
   const images = [
-    { src: "/images/hero-cake.png", type: PRODUCT_TYPES.CAKE, label: "Custom Cakes" },
-    { src: "/images/hero-candle.png", type: PRODUCT_TYPES.CANDLE, label: "Scented Candles" },
-    { src: "/images/hero-mug.png", type: PRODUCT_TYPES.MUG, label: "Personalized Mugs" },
+   
+  {
+    src: "https://images.unsplash.com/photo-1565958011703-44f9829ba187?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
+    type: PRODUCT_TYPES.CAKE,
+    label: "Themed Cakes",
+    alt: "Professional cake product photography"
+  },
+  {
+    src: "https://images.unsplash.com/photo-1590736969957-71594b3fa9af?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
+    type: PRODUCT_TYPES.CANDLE,
+    label: "Aromatherapy Candles",
+    alt: "Clean product shot of candle collection"
+  },
+  {
+    src: "https://images.unsplash.com/photo-1550617931-e17a7b70dce2?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
+    type: PRODUCT_TYPES.MUG,
+    label: "Custom Printed Mugs",
+    alt: "Studio shot of personalized coffee mug"
+  },
+
     { src: "/images/hero-collection.png", type: "all", label: "Our Collection" }
   ];
   
