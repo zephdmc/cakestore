@@ -25,26 +25,24 @@ import { PRODUCT_TYPES, PRODUCT_TYPE_LABELS } from '../../utils/productTypes';
 const ImageSlideShow = ({ isMobile = false }) => {
   const images = [
    
-
   {
-    src: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
+    src: "https://images.unsplash.com/photo-1559620192-032c64bc86af?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
     type: PRODUCT_TYPES.CAKE,
-    label: "Artisan Cakes",
-    alt: "Exquisitely decorated cake with intricate piping details"
+    label: "Custom Cakes",
+    alt: "Beautiful custom decorated cake with floral design"
   },
   {
-    src: "https://images.unsplash.com/photo-1545243421-89e5c9b6d12a?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
+    src: "https://images.unsplash.com/photo-1603398938378-e54eab446dde?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
     type: PRODUCT_TYPES.CANDLE,
-    label: "Luxury Candles",
-    alt: "Premium scented candle in elegant packaging"
+    label: "Scented Candles",
+    alt: "Elegant scented candles in glass jars with natural materials"
   },
   {
-    src: "https://images.unsplash.com/photo-1580996488703-8d685cb7a93c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
+    src: "https://images.unsplash.com/photo-1511537190424-bbbab87ac5eb?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
     type: PRODUCT_TYPES.MUG,
-    label: "Designer Mugs",
-    alt: "Modern coffee mug with geometric patterns"
+    label: "Personalized Mugs",
+    alt: "Custom printed ceramic mugs with unique designs"
   }
-,
 
     { src: "/images/hero-collection.png", type: "all", label: "Our Collection" }
   ];
