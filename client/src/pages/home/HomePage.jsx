@@ -32,7 +32,7 @@ const ImageSlideShow = ({ isMobile = false }) => {
     label: "Custom Cakes"
   },
   {
-    src: "/images/Candles.jpg",
+    src: "https://www.namibian.com.na/?n=173987017",
     type: PRODUCT_TYPES.CANDLE,
     label: "Scented Candles"
   },
