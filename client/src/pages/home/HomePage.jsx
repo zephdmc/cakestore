@@ -42,7 +42,7 @@ const ImageSlideShow = ({ isMobile = false }) => {
     label: "Personalized Mugs"
   }
 ,
-    { src: "/images/hero-collection.png", type: "all", label: "Our Collection" }
+    { src: "/images/collections.jpg", type: "all", label: "Our Collection" }
   ];
   
   const [currentIndex, setCurrentIndex] = useState(0);
